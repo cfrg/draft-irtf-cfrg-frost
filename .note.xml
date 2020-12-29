@@ -1,0 +1,7 @@
+<note title="Discussion Venues" removeInRFC="true">
+<t>Discussion of this document takes place on the
+  FROST Working Group mailing list (frost@ietf.org),
+  which is archived at <eref target="https://mailarchive.ietf.org/arch/browse/frost/"/>.</t>
+<t>Source for this draft and an issue tracker can be found at
+  <eref target="https://github.com/chelseakomlo/frost-spec"/>.</t>
+</note>
