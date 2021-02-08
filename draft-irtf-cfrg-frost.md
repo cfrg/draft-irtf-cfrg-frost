@@ -89,35 +89,50 @@ In this draft, we specify key generation using a trusted dealer.
 
 # Basic Assumptions
 
+We maintain assumptions about how participants are selected as well as
+responsibilities of the underlying network channel. Further, we do not specify
+how implementations should handle failures that occur during the execution of
+FROST key generation or signing operations.
+
+## Selection of participants
+
+We assume that at the time of key generation, participants have a mechanism to
+select other participants.
+
+## Communication channels
+
+We assume that participants communicate
+over an authenticated and trustworthy channel. Note that during signing,
+participants can communicate over any channel. We assume that communication
+failures (dropped messages, etc) are handled externally to the protocol.
+
+## Protocol Failures
+
+FROST is not robust; in the case of failures, participants must
+abort the protocol and try again. However, failures may occur due to
+participant misbehavior. As such, we do not specify what implementations should
+do in the case of failure after aborting the protocol.
+
 # Notation
+
+To be completed
 
 # Cryptographic Dependencies
 
-## Elliptic Curve Operations
-
-Here, we describe at a high level the operations that FROST requires for a
-group instantiated over an elliptic curve. We describe in a later section how
-these operations are implemented for specific curves.
-
-### Generation of Group Elements
-
-### Validation of Group Elements
-
-### Group Operations
+To be completed
 
 # Protocol Overview
 
+To be completed
+
 # FROST Key Generation
 
-## Trusted Dealer
-
-## Distributed Key Generation
+To be completed
 
 # FROST Signing
 
-## Two Round
+To be completed
 
-## Single Round
 
 
 
