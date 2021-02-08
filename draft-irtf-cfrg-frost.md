@@ -1,7 +1,7 @@
 ---
 title: "FROST: Flexible Round-Optimized Schnorr Threshold Signatures"
 abbrev: "FROST"
-docname: draft-irtf-cfrg-frost
+docname: draft-irtf-cfrg-frost-latest
 category: info
 
 ipr: trust200902
