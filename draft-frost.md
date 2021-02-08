@@ -14,19 +14,23 @@ smart_quotes: no
 pi: [toc, sortrefs, symrefs]
 
 author:
- -
-    ins: C. Komlo
+ -  ins: C. Komlo
     name: Chelsea Komlo
     organization: University of Waterloo, Zcash Foundation
     email: ckomlo@uwaterloo.ca
-
- -
-    ins: I. Goldberg
+ -  ins: I. Goldberg
     name: Ian Goldberg
     organization: University of Waterloo
     email: iang@uwaterloo.ca
 
 informative:
+  frost:
+    target: https://eprint.iacr.org/2020/852.pdf
+    title: "FROST: Flexible Round-Optimized Schnorr Threshold Signatures"
+    author:
+      - name: Chelsea Komlo
+      - name: Ian Goldberg
+    date: 2020-07-08
 
 
 
@@ -64,17 +68,56 @@ FROST achieves its efficiency improvements in part by allowing the signing
 protocol to abort in the presence of a misbehaving participant (who can be
 identified and excluded from future signing operations).
 
-Here, we define FROST only over prime-order groups over an elliptic curve such
-as Ristretto or Decaf.
+# Change Log
+
+draft-00
+
+- Submitted a basic draft after adoption of draft-komlo-frost as a working
+  group item.
+
+# Terminology
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in
+BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
+capitals, as shown here.
 
 # Security Considerations
 
-TODO Security
+In this draft, we specify key generation using a trusted dealer.
 
+# Basic Assumptions
 
-# IANA Considerations
+# Notation
 
-This document has no IANA actions.
+# Cryptographic Dependencies
+
+## Elliptic Curve Operations
+
+Here, we describe at a high level the operations that FROST requires for a
+group instantiated over an elliptic curve. We describe in a later section how
+these operations are implemented for specific curves.
+
+### Generation of Group Elements
+
+### Validation of Group Elements
+
+### Group Operations
+
+# Protocol Overview
+
+# FROST Key Generation
+
+## Trusted Dealer
+
+## Distributed Key Generation
+
+# FROST Signing
+
+## Two Round
+
+## Single Round
 
 
 
