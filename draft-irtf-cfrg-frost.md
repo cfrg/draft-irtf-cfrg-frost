@@ -131,11 +131,48 @@ element, that is, the group element added to itself in succession a number of
 times equal to the value of the scalar.  Let SUM(START, END){TERMS} denote the
 summation from START to END (inclusive) of TERMS, e.g. SUM(N=0, 3){2N} is equal
 to 2*(1+2+3)=12.  Let PROD(START, END){TERMS} denote the product from START to
-END of TERMS in similar manner.
+END of TERMS in similar manner.  Testing equality between two group elements
+is denoted as ?=, where it is assumed that the elements are in some canonical,
+serialised form.
 
 # Cryptographic Dependencies
 
 To be completed
+
+## Cryptographic Hash Function
+
+We require the use of a cryptographically secure hash function, generically
+written here as H, which functions effectively as a random oracle.  For
+concrete recommendations on hash functions which SHOULD BE used in practice, see
+[Appendix A: Recommended Ciphersuites].
+
+XXXisis How do I link between sections with this setup?
+
+## Pedersen Commitment
+
+A Pedersen commitment is simply a commitment, C, to a uniquely valid opening, o,
+by calculating C = o * B.
+
+## Individual Keypair
+
+An individual keypair is calculated as a scalar sampled in a uniformly
+distributed manner, a, as the secret, and its public counterpart as A = a * B.
+
+## Schnorr Signature
+
+A Schnorr signature, (s, R), created with the secret-public keypair (a, A), over
+the message m, is calculated as: r is a uniformly random scalar, calculated in
+some manner such that if only one signing party remains honest that the
+uniformly random requirement still holds.  R is then calculated as R = r * B.  k
+is calculated as k = H(CIPHERSUITE || R || A || m), where CIPHERSUITE is a string
+describing the specific instantiation properties of this FROST signature scheme,
+e.g. "FROST-RISTRETTO255-SHA512" or "FROST-JUBJUB-BLAKE2B", see Appendix A for
+more concrete details.  Finally, s is calculated as s = k * a + r, and the final
+signature is constituted by the tuple (s, R).
+
+To verify the signature, k is recalculated as before, R' is calculated as
+R' = k * A + s * B, and then check R' ?= R.  If equal, return true; otherwise,
+return false.
 
 # Protocol Overview
 
@@ -149,8 +186,11 @@ To be completed
 
 To be completed
 
+# Appendices
 
+## Appendix A: Recommended Ciphersuites
 
+To be completed
 
 --- back
 
