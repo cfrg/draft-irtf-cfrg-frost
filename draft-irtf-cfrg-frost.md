@@ -117,6 +117,22 @@ do in the case of failure after aborting the protocol.
 
 To be completed
 
+Let B be a generator, or distiguished element, of G, a finite group of with
+order l, a large prime.  Throughout this document, and in practice, we assume
+this group to be instantiated as an arbitrary abstraction of an elliptic curve
+subgroup, defined over a finite field; however, that does not restrict an
+implementation from instantiating FROST signatures over other groups, provided
+their order be prime.
+
+We denote group elements with capital Roman letters, and scalars with
+lower-cased Roman letters.  We use + to denote the group operation, and - to
+denote inversion.  We use * to denote multiplication of a scalar by a group
+element, that is, the group element added to itself in succession a number of
+times equal to the value of the scalar.  Let SUM(START, END){TERMS} denote the
+summation from START to END (inclusive) of TERMS, e.g. SUM(N=0, 3){2N} is equal
+to 2*(1+2+3)=12.  Let PROD(START, END){TERMS} denote the product from START to
+END of TERMS in similar manner.
+
 # Cryptographic Dependencies
 
 To be completed
