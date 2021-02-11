@@ -176,7 +176,14 @@ return false.
 
 # Protocol Overview
 
-To be completed
+The agreed upon participants in a t-out-of-n threshold signing instantiation
+undertake a distributed key generation protocol to create individual keypairs,
+as well as a shared group key.  Using the secret component of their individual
+keypair, a participant MAY submit a partial signature on a given message.  These
+partial signatures SHOULD be aggregated by an untrusted signature aggregator,
+SA, who MAY be one of the individual signers.  The aggregated signature MUST be
+a sigma protocol proof that at least t-out-of-n of the agreed upon participants
+signed the given message.
 
 # FROST Key Generation
 
