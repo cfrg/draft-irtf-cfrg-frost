@@ -1,5 +1,5 @@
 ---
-title: "Two-Round FROST with Trusted Dealer"
+title: "Two-Round FROST with Trusted Dealer, Compatible with EdDSA Signing"
 abbrev: "FROST"
 docname: draft-irtf-cfrg-frost-00
 category: info
@@ -49,7 +49,8 @@ informative:
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
 signature scheme. FROST signatures can be issued after a threshold number of entities
 cooperate to issue the trusted dealer, allowing for improved distribution of trust and
-redundancy.
+redundancy. This draft specifies signatures that are compatible with EdDSA verification of
+signatures, bui not EdDSA key generation.
 
 This variant specifically defines key generation with a trusted dealer and
 two-round signing operations.
@@ -132,24 +133,44 @@ The following notation and terminology are used throughout this document.
 at least `t` shares must be combined to issue a valid signature.
 * `C` represents the coalition of signers, and is a set of participant identifiers of size at least `t`.
 * `l_i` represents the ith Lagrange coefficient.
+* `sig = (R, z)` denotes a signature with public commitment `R` and response `z`.
+* `PK` is the group public key.
+* `sk_i` is each ith individual's private key.
 
 
 # Cryptographic Dependencies
 
 FROST variants rely on the following primitives.
 
+* Group operations over an elliptic curve group.
+
+  - Deirdre will write this section.
+
+ * EdDSA Verification
+
+  - `"Verify(PK, sig)"` outputs accept or fail
 
 # Protocol Overview
 
 To be completed
 
-# FROST Key Generation
+# Two-Round FROST with Trusted Dealer
+
+## Trusted Dealer Key Generation
 
 To be completed
 
-# FROST Signing
+## Signing
 
 To be completed
+
+# Curve and Verification Compatbility
+
+Deirdre will help with this.
+
+* EdDSA over edwards25519 (RFC 8032)
+
+* EdDSA over Ristretto
 
 
 # Security Considerations
