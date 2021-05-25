@@ -26,6 +26,10 @@ author:
     name: Deirdre Connelly
     organization: Zcash Foundation
     email: durumcrustulum@gmail.com
+ -  ins: R.L. Barnes
+    name: Richard Barnes
+    organization: Cisco
+    email: rlb@ipv.sx
 
 informative:
   frost:
