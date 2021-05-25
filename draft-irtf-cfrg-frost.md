@@ -1,5 +1,5 @@
 ---
-title: "FROST: Flexible Round-Optimized Schnorr Threshold Signatures"
+title: "Two-Round FROST with Trusted Dealer"
 abbrev: "FROST"
 docname: draft-irtf-cfrg-frost-00
 category: info
@@ -34,26 +34,25 @@ author:
 informative:
   frost:
     target: https://eprint.iacr.org/2020/852.pdf
-    title: "FROST: Flexible Round-Optimized Schnorr Threshold Signatures"
+    title: "Two-Round FROST with Trusted Dealer"
     author:
       - name: Chelsea Komlo
       - name: Ian Goldberg
-    date: 2020-07-08
+      - name: Deirdre Connelly
+      - name: Richard Barnes
+    date: 2021-06-01
 
 
 
 --- abstract
 
-In this draft, we present FROST, a Flexible Round-Optimized Schnorr Threshold
-signature scheme that reduces network overhead during signing operations while
-protecting against forgery attacks applicable to prior similar threshold and
-multisignature constructions.
+In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
+signature scheme. FROST signatures can be issued after a threshold number of entities
+cooperate to issue the trusted dealer, allowing for improved distribution of trust and
+redundancy.
 
-FROST can be safely used without limiting concurrency of signing operations yet
-allows for true threshold signing, as only a threshold number of participants
-are required for signing operations. Here, we define FROST as a two-round
-protocol, but it can be optimized to a single-round single-round signing protocol
-as the first round can be performed as a batched pre-processing stage.
+This variant specifically defines key generation with a trusted dealer and
+two-round signing operations.
 
 --- middle
 
@@ -68,17 +67,15 @@ well.
 
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
 signature scheme. FROST reduces network overhead during signing operations by
-optimizing for efficiency over robustness. FROST uses a novel technique to
-allow for fully parallelized use while protecting against forgery attacks that
-are applicable to prior similar threshold and multisignature constructions.
+optimizing for efficiency over robustness, while allowing secure
+fully parallelized use.
 
 FROST achieves its efficiency improvements in part by allowing the signing
 protocol to abort in the presence of a misbehaving participant (who can be
 identified and excluded from future signing operations).
 
 Here, we specify the variant of FROST that requires a trusted dealer to perform
-key generation. We do not specify FROST where key generation is performed via a
-Distributed Key Generation (DKG) where all participants are equally trusted.
+key generation, as well as signing operations that are performed in two rounds.
 
 # Change Log
 
