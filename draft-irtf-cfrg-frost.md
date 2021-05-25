@@ -22,6 +22,10 @@ author:
     name: Ian Goldberg
     organization: University of Waterloo
     email: iang@uwaterloo.ca
+ -  ins: D. Connelly
+    name: Deirdre Connelly
+    organization: Zcash Foundation
+    email: durumcrustulum@gmail.com
 
 informative:
   frost:
