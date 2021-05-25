@@ -1,7 +1,7 @@
 ---
 title: "FROST: Flexible Round-Optimized Schnorr Threshold Signatures"
 abbrev: "FROST"
-docname: draft-irtf-cfrg-frost-latest
+docname: draft-irtf-cfrg-frost-00
 category: info
 
 ipr: trust200902
@@ -89,33 +89,40 @@ In this draft, we specify key generation using a trusted dealer.
 
 # Basic Assumptions
 
-We maintain assumptions about how participants are selected as well as
-responsibilities of the underlying network channel. Further, we do not specify
-how implementations should handle failures that occur during the execution of
-FROST key generation or signing operations.
+We maintain the following assumptions.
 
-## Selection of participants
-
-We assume that at the time of key generation, participants have a mechanism to
-select other participants.
+* Selection of participants. We assume implementations determine how participants
+are selected for for key generation and signing.
+* Handling failures. We do not specify how implementations should handle failures.
+* Sampling of secrets. We assume that secrets are sampled uniformly at random.
 
 ## Communication channels
 
-We assume that participants communicate
-over an authenticated and trustworthy channel. Note that during signing,
-participants can communicate over any channel. We assume that communication
-failures (dropped messages, etc) are handled externally to the protocol.
+At the time of key generation, we assume an authenticated, confidential, and
+reliable channel.
+
+At the time of signing, we assume a reliable channel.
 
 ## Protocol Failures
 
-FROST is not robust; in the case of failures, participants must
-abort the protocol and try again. However, failures may occur due to
-participant misbehavior. As such, we do not specify what implementations should
-do in the case of failure after aborting the protocol.
+In the case of failures, participants must abort the protocol.
+We do not specify what implementations should
+do in the case of failure after aborting the protocol. As such,
+some implementations may wish to re-try immediately, whereas
+others may wish to investigate the failure.
 
 # Notation
 
-To be completed
+The following notation and terminology are used throughout this document.
+
+* `s` denotes a secret.
+* `s_i` denotes the ith share of the secret `s`.
+* A participant is an entity that is trusted to hold a secret share.
+* `n` denotes the number of participants, and the number of shares that `s` is split into.
+* `t` denotes the threshold number of participants required to issue a signature. More specifically,
+at least `t` shares must be combined to issue a valid signature.
+* `C` represents the coalition of signers, and is a set of participant identifiers of size at least `t`.
+
 
 # Cryptographic Dependencies
 
