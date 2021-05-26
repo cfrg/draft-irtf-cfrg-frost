@@ -1,5 +1,5 @@
 ---
-title: "Two-Round FROST with Trusted Dealer, Compatible with EdDSA Signing"
+title: "Two-Round FROST with Trusted Dealer"
 abbrev: "FROST"
 docname: draft-irtf-cfrg-frost-00
 category: info
@@ -26,6 +26,10 @@ author:
     name: Deirdre Connelly
     organization: Zcash Foundation
     email: durumcrustulum@gmail.com
+ -  ins: T. Wilson-Brown
+    name: T Wilson-Brown
+    organization: Zcash Foundation
+    email: teor@riseup.net
  -  ins: R.L. Barnes
     name: Richard Barnes
     organization: Cisco
@@ -39,6 +43,7 @@ informative:
       - name: Chelsea Komlo
       - name: Ian Goldberg
       - name: Deirdre Connelly
+      - name: T Wilson-Brown
       - name: Richard Barnes
     date: 2021-06-01
 
@@ -49,11 +54,12 @@ informative:
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
 signature scheme. FROST signatures can be issued after a threshold number of entities
 cooperate to issue the trusted dealer, allowing for improved distribution of trust and
-redundancy. This draft specifies signatures that are compatible with EdDSA verification of
-signatures, bui not EdDSA key generation.
-
+redundancy.
 This variant specifically defines key generation with a trusted dealer and
 two-round signing operations.
+Further, this draft specifies signatures that are compatible with EdDSA verification of
+signatures, bui not EdDSA nonce generation.
+
 
 --- middle
 
@@ -77,6 +83,10 @@ identified and excluded from future signing operations).
 
 Here, we specify the variant of FROST that requires a trusted dealer to perform
 key generation, as well as signing operations that are performed in two rounds.
+Further, this draft specifies signatures that are compatible with EdDSA verification of
+signatures, bui not EdDSA nonce generation. EdDSA-style nonce-generation, where the
+nonce is deterministically derived, is insecure in a multi-party signature setting,
+where up to `(t-1)` signers can be corrupted while still maintaining security.
 
 # Change Log
 
@@ -93,10 +103,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
 capitals, as shown here.
 
-# Security Considerations
-
-In this draft, we specify key generation using a trusted dealer.
-
 # Basic Assumptions
 
 We maintain the following assumptions.
@@ -107,11 +113,17 @@ are selected for for key generation and signing.
 * Sampling of secrets. We assume that secrets are sampled uniformly at random.
 * The dealer that performs key generation is trusted.
 
+# Security Considerations
+
+* Trusted dealer. TODO
+
+* Unforgeability assuming less than `(t-1)` corrupted signers. TODO
+
 ## Communication channels
 
-At the time of key generation, we assume an authenticated, confidential, and
+* Key Generation. At the time of key generation, we assume an authenticated, confidential, and
 reliable channel.
-At the time of signing, we assume a reliable channel.
+* Signing. At the time of signing, we assume a reliable channel.
 
 ## Protocol Failures
 
@@ -146,32 +158,35 @@ FROST variants rely on the following primitives.
 
   - Deirdre will write this section.
 
- * EdDSA Verification
+* EdDSA Verification
 
   - `"Verify(PK, sig)"` outputs accept or fail
 
 # Protocol Overview
 
-To be completed
+Chelsea will write this
 
 # Two-Round FROST with Trusted Dealer
 
 ## Trusted Dealer Key Generation
 
-To be completed
+Chelsea will write this
 
 ## Signing
 
-To be completed
+Chelsea will write this
 
-# Curve and Verification Compatbility
+# Curve and Verification Compatability
 
-Deirdre will help with this.
+Deirdre will write this.
 
 * EdDSA over edwards25519 (RFC 8032)
 
 * EdDSA over Ristretto
 
+# Serialization and Message Format
+
+Teor will write this.
 
 # Security Considerations
 
