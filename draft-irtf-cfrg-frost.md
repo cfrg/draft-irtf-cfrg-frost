@@ -53,11 +53,11 @@ informative:
 
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
 signature scheme. FROST signatures can be issued after a threshold number of entities
-cooperate to issue the trusted dealer, allowing for improved distribution of trust and
-redundancy.
-This variant specifically defines key generation with a trusted dealer and
+cooperate to issue a signature, allowing for improved distribution of trust and
+redundancy with respect to a secret key.
+This variant of FROST specifically defines key generation with a trusted dealer and
 two-round signing operations.
-Further, this draft specifies signatures that are compatible with EdDSA verification of
+Finally, this draft specifies signatures that are compatible with EdDSA verification of
 signatures, bui not EdDSA nonce generation.
 
 
@@ -73,22 +73,24 @@ at https://github.com/chelseakomlo/frost-spec. Instructions are on that page as
 well.
 
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
-signature scheme. FROST reduces network overhead during signing operations by
-optimizing for efficiency over robustness, while allowing secure
-fully parallelized use.
-
+signature scheme.
 FROST achieves its efficiency improvements in part by allowing the signing
 protocol to abort in the presence of a misbehaving participant (who can be
 identified and excluded from future signing operations).
+FROST remains EUF-CMA (existential unforgeability against chosen message attacks) secure
+assuming an adversary can corrupt no more than `(t-1)` participants.
 
 Here, we specify the variant of FROST that requires a trusted dealer to perform
-key generation, as well as signing operations that are performed in two rounds.
-Further, this draft specifies signatures that are compatible with EdDSA verification of
+key generation. Further, this draft specifies only two-round signing operations.
+This draft specifies signatures that are compatible with EdDSA verification of
 signatures, bui not EdDSA nonce generation. EdDSA-style nonce-generation, where the
-nonce is deterministically derived, is insecure in a multi-party signature setting,
-where up to `(t-1)` signers can be corrupted while still maintaining security.
+nonce is derived deterministically, is insecure in a multi-party signature setting.
 
 # Change Log
+
+draft-01
+
+- Submitted a full draft and added additional authors.
 
 draft-00
 
@@ -108,30 +110,33 @@ capitals, as shown here.
 We maintain the following assumptions.
 
 * Selection of participants. We assume implementations determine how participants
-are selected for for key generation and signing.
+are selected for key generation and signing.
 * Handling failures. We do not specify how implementations should handle failures.
 * Sampling of secrets. We assume that secrets are sampled uniformly at random.
-* The dealer that performs key generation is trusted.
 
 # Security Considerations
 
-* Trusted dealer. TODO
+* Trusted dealer. The dealer that performs key generation is trusted to follow
+the protocol, although participants still are able to verify the consistency of their
+shares via a VSS (verifiable secret sharing) step.
 
-* Unforgeability assuming less than `(t-1)` corrupted signers. TODO
+* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
+corrupts fewer than `t-1` participants, the scheme remains secure against EUF-CMA attacks.
 
 ## Communication channels
 
 * Key Generation. At the time of key generation, we assume an authenticated, confidential, and
-reliable channel.
-* Signing. At the time of signing, we assume a reliable channel.
+reliable channel. Specifically, the dealer must be able to transmit secret key material to each
+participant over this channel.
+* Signing. At the time of signing, we assume a reliable channel. While messages that are exchanged
+contain no secret information, the channel must be able to deliver messages reliably in order for
+the protocol to complete.
 
 ## Protocol Failures
 
-In the case of failures, participants must abort the protocol.
-We do not specify what implementations should
-do in the case of failure after aborting the protocol. As such,
-some implementations may wish to re-try immediately, whereas
-others may wish to investigate the failure.
+In the case of failures (such as when a verification check returns invalid), participants must
+abort the protocol. We do not specify what implementations should
+do in the case of failure after aborting.
 
 # Notation
 
