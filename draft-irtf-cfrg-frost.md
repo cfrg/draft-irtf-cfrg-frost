@@ -30,10 +30,6 @@ author:
     name: T Wilson-Brown
     organization: Zcash Foundation
     email: teor@riseup.net
- -  ins: R.L. Barnes
-    name: Richard Barnes
-    organization: Cisco
-    email: rlb@ipv.sx
 
 informative:
   frost:
@@ -44,7 +40,6 @@ informative:
       - name: Ian Goldberg
       - name: Deirdre Connelly
       - name: T Wilson-Brown
-      - name: Richard Barnes
     date: 2021-06-01
 
 
