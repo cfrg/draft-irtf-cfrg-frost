@@ -69,24 +69,17 @@ maintained in GitHub. Suggested changes should be submitted as pull requests
 at https://github.com/chelseakomlo/frost-spec. Instructions are on that page as
 well.
 
+Unlike signatures in a single-party setting, threshold signatures
+require cooperation among a threshold number of signers each holding a share
+of a common private key.  The security of threshold schemes in general assume
+that an adversary can corrupt strictly fewer than a threshold number of participants.
+
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
-signature scheme.
-  FROST reduces network
-  overhead during signing operations while employing a novel technique to
-  protect against forgery attacks applicable to prior Schnorr-based threshold signature constructions.
+signature scheme. FROST reduces network overhead during threshold signing operations while
+employing a novel technique to protect against forgery attacks applicable to prior
+Schnorr-based threshold signature constructions.
 
-
-
-  Unlike signatures in a single-party setting, threshold signatures
-  require cooperation among a threshold number of signers each holding a share
-  of a common private key. Consequently, generating signatures in a threshold
-  setting imposes overhead due to network rounds among signers, proving
-  costly when secret shares are stored on
-  network-limited devices or when
-  coordination occurs over unreliable networks.
-The security of threshold schemes in general assume that an adversary can corrupt strictly fewer than a threshold number of participants.
-
-Here, we specify the variant of FROST that requires a trusted dealer to perform
+This draft specifies the variant of FROST that requires a trusted dealer to perform
 key generation. Further, this draft specifies only two-round signing operations.
 This draft specifies signatures that are compatible with EdDSA verification of
 signatures, bui not EdDSA nonce generation. EdDSA-style nonce-generation, where the
