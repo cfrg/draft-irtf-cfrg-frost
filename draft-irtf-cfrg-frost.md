@@ -160,7 +160,7 @@ The following notation and terminology are used throughout this document.
 at least `t` shares must be combined to issue a valid signature.
 * `C` represents the coalition of signers, and is a set of participant identifiers of size at least `t`.
 * `L_i` represents the ith Lagrange coefficient.
-* `sig = (R, z)` denotes a signature with public commitment `R` and response `z`.
+* `sig = (R, z)` denotes a Schnorr signature with public commitment `R` and response `z`.
 * `PK` is the group public key.
 * `sk_i` is each ith individual's private key.
 
@@ -238,7 +238,12 @@ TODO describe the math
 
 ## Trusted Dealer Key Generation
 
-Chelsea will write this
+To perform key generation, the dealer will simply employ Verifiable Secret Sharing
+as a subroutine, providing as input a secret `s` that was generated uniformly at random.
+The group's joint public key will simply be `PK = g^s`. Each participant's secret key
+will simply be  `sk_i = s_i`, the secret share sent to them by the dealer.
+
+TODO is this enough or do we need more here?
 
 ## Signing
 
