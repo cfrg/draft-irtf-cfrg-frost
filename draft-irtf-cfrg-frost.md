@@ -71,11 +71,20 @@ well.
 
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
 signature scheme.
-FROST achieves its efficiency improvements in part by allowing the signing
-protocol to abort in the presence of a misbehaving participant (who can be
-identified and excluded from future signing operations).
-FROST remains EUF-CMA (existential unforgeability against chosen message attacks) secure
-assuming an adversary can corrupt no more than `(t-1)` participants.
+  FROST reduces network
+  overhead during signing operations while employing a novel technique to
+  protect against forgery attacks applicable to prior Schnorr-based threshold signature constructions.
+
+
+
+  Unlike signatures in a single-party setting, threshold signatures
+  require cooperation among a threshold number of signers each holding a share
+  of a common private key. Consequently, generating signatures in a threshold
+  setting imposes overhead due to network rounds among signers, proving
+  costly when secret shares are stored on
+  network-limited devices or when
+  coordination occurs over unreliable networks.
+The security of threshold schemes in general assume that an adversary can corrupt strictly fewer than a threshold number of participants.
 
 Here, we specify the variant of FROST that requires a trusted dealer to perform
 key generation. Further, this draft specifies only two-round signing operations.
@@ -182,9 +191,48 @@ TODO
 
   * Derivation of the ith Lagrange coefficient
 
-# Protocol Overview
 
-Chelsea will write this
+## Shamir Secret Sharing
+
+TODO finish the math after Dan writes the above section
+
+In Shamir secret sharing, a
+dealer distributes a secret `s` to `n` participants in such a way that any
+cooperating subset of
+`t` participants can recover the secret.
+To distribute this secret, the dealer first
+selects `t-1` coefficients `a_1, \dots, a_{t-1}`
+at random,
+and uses the randomly selected values as coefficients to define a
+polynomial `f(x) = s + a_1 x + ... + a_t-1 x^t-1` of degree `t-1` where `f(0) = s`.
+
+TODO figure out how to describe these sums
+
+
+The secret shares for each
+participant `P_i` are `(i, f(i))`, which the dealer is trusted to
+distribute honestly to each participant.
+To reconstruct the secret, at least `t` participants perform Lagrange
+interpolation to reconstruct the polynomial and thus find the value `s=f(0)`.
+However, no group of fewer than `t` participants can reconstruct the secret, as at least `t`
+points are required to reconstruct a polynomial of degree `t-1`.
+
+TODO describe the actual math to do this
+
+## Verifiable Secret Sharing
+
+Feldman's Verifiable Secret Sharing (VSS)
+builds upon Shamir secret sharing, adding a verification step to
+demonstrate the consistency of a participant's share with a public
+commitment which all participants are assumed to hold a consistent view of.
+To validate that a share is well formed,
+each
+participant validates their share using this commitment.
+If the validation
+fails, the participant can issue a complaint against the dealer, and
+take actions such as broadcasting this complaint to all other participants.
+
+TODO describe the math
 
 # Two-Round FROST with Trusted Dealer
 
