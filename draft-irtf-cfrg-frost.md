@@ -173,7 +173,9 @@ FROST depends on the following constructs:
 - Prime-Order Group, {{dep-pog}};
 - Cryptographic hash function, {{dep-hash}};
 - EdDSA signature scheme, {{dep-sigs}}; and
-- Pedersen committments, {{dep-pedersen}}.
+- Polynomial Operations, {#dep-polynomial}
+- Shamir Secret Sharing, {#dep-shamir}
+- Verifiable Secret Sharing committments, {{dep-vss}}.
 
 These are described in the following sections.
 
@@ -241,7 +243,6 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
-## Pedersen Commitment {#dep-pedersen}
 
 TODO: writeme
 
@@ -268,7 +269,7 @@ Steps:
 4.  Output 1 if c = c' to indicate success; otherwise, output 0.
 ~~~
 
-## Polynomial Operations
+## Polynomial Operations {#dep-polynomial}
 
 (Dan Shumow will write this section)
 
@@ -279,7 +280,7 @@ Steps:
   * Derivation of the ith Lagrange coefficient
 
 
-## Shamir Secret Sharing
+## Shamir Secret Sharing {#dep-shamir}
 
 TODO finish the math after Dan writes the above section
 
@@ -306,7 +307,7 @@ points are required to reconstruct a polynomial of degree `t-1`.
 
 TODO describe the actual math to do this
 
-## Verifiable Secret Sharing
+## Verifiable Secret Sharing {#dep-vss}
 
 Feldman's Verifiable Secret Sharing (VSS)
 builds upon Shamir secret sharing, adding a verification step to
