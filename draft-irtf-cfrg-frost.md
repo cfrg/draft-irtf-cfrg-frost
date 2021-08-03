@@ -155,18 +155,36 @@ at least `t` shares must be combined to issue a valid signature.
 * `PK` is the group public key.
 * `sk_i` is each ith individual's private key.
 
+This specification makes use of the following utility functions:
+
+* SUM(START, END){TERMS}: this function denotes the summation from START to END
+  (inclusive) of TERMS. For example, SUM(N=0, 3){2N} is equal to 2*(1+2+3)=12.
+* PROD(START, END){TERMS}: this function denotes the product from START to
+  END of TERMS in similar manner.
+
 Unless otherwise stated, we assume that secrets are sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG); see
 {{?RFC4086}} for additional guidance on the generation of random numbers.
 
 # Cryptographic Dependencies
 
+FROST depends on the following constructs:
+
+- Prime-Order Group, {{dep-pog}};
+- Cryptographic hash function, {{dep-hash}};
+- EdDSA signature scheme, {{dep-sigs}}; and
+- Pedersen committments, {{dep-pedersen}}.
+
+These are described in the following sections.
+
+## Prime-Order Group {#dep-pog}
+
 FROST depends on an abelian group `G` of prime order `p`. The fundamental group operation
 is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `GG`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element A with itself `r-1` times, this is denoted
-as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `P` as the fixed generator
+as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as the fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
 operation `G` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
 scalars corresponds to `GF(p)`. This document uses types `Element` and `Scalar` to denote
@@ -197,7 +215,7 @@ We now detail a number of member functions that can be invoked on a prime-order 
   representation of a scalar. This function can raise a
   DeserializeError if deserialization fails; see {{input-validation}}.
 
-## Input Validation {#input-validation}
+### Input Validation {#input-validation}
 
 The DeserializeElement function recovers a group element from an arbitrary
 byte array. This function validates that the element is a proper member
@@ -216,10 +234,21 @@ is a member of the scalar field and returns an error if this condition is not me
 For ristretto255, this function ensures that the input, when treated as a
 little-endian integer, is a valud between 0 and `Order()`.
 
-## Sigature Verification
+## Cryptographic Hash Function {#dep-hash}
 
-Verifying a signature `sig` over message `msg` with public key `PK` is done
-as follows.
+FROST requires the use of a cryptographically secure hash function, generically
+written as H, which functions effectively as a random oracle. For concrete
+recommendations on hash functions which SHOULD BE used in practice, see
+{{ciphersuites}}.
+
+## Pedersen Commitment {#dep-pedersen}
+
+TODO: writeme
+
+## EdDSA Signatures {#dep-sigs}
+
+Verifying an EdDSA signature `sig` over message `msg` with public key `PK` is
+done as follows.
 
 ~~~
 EdDSA_verify(msg, sig, PK)
@@ -314,6 +343,10 @@ Deirdre will write this.
 * EdDSA over edwards25519 (RFC 8032)
 
 * EdDSA over Ristretto
+
+# Recommended Ciphersuites {#ciphersuites}
+
+TODO: writeme
 
 # Security Considerations
 
