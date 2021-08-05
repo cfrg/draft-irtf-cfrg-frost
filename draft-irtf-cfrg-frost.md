@@ -22,14 +22,6 @@ author:
     name: Ian Goldberg
     organization: University of Waterloo
     email: iang@uwaterloo.ca
- -  ins: D. Connelly
-    name: Deirdre Connelly
-    organization: Zcash Foundation
-    email: durumcrustulum@gmail.com
- -  ins: T. Wilson-Brown
-    name: T Wilson-Brown
-    organization: Zcash Foundation
-    email: teor@riseup.net
 
 informative:
   frost:
@@ -38,8 +30,6 @@ informative:
     author:
       - name: Chelsea Komlo
       - name: Ian Goldberg
-      - name: Deirdre Connelly
-      - name: T Wilson-Brown
     date: 2021-06-01
 
 
@@ -339,7 +329,7 @@ Chelsea will write this
 
 # Curve and Verification Compatability
 
-Deirdre will write this.
+TODO write me
 
 * EdDSA over edwards25519 (RFC 8032)
 
@@ -383,4 +373,4 @@ channel can be used to facilitate key generation and signing.
 # Acknowledgments
 {:numbered="false"}
 
-TODO acknowledge.
+Chris Wood contributed significantly to the writing of this document and to ensuring compatibility with existing IETF drafts.
