@@ -259,21 +259,22 @@ Inputs:
 - sig, message signature, a tuple of scalars (z, c)
 - PK, EdDSA public key
 
-Outputs:
-- 1 if the signature is valid, and 0 otherwise
+Outputs: 1 if the signature is valid, and 0 otherwise
 
-Steps:
-1.  Parse SIG as (z, c).
-2.  Compute R' = (z * P) + (PK * c^-1)
-3.  Compute c' = Hash(m, R')
-4.  Output 1 if c = c' to indicate success; otherwise, output 0.
+def EdDSA_verify(msg, sig, PK):
+  (z, c) = SIG
+  R' = (z * P) + (PK * c^-1)
+  c' = Hash(m, R')
+  if c = c':
+    return 1
+  return 0
 ~~~
 
 ## Polynomial Operations {#dep-polynomial}
 
 (Dan Shumow will write this section)
 
-  * Evaluation of a polynomial at a specific point
+  * Evaluation of a polynomial at a specific point, "polynomial_evaluate", which takes as input the x-value and the polynomial coefficients
 
     - Horner's method
 
@@ -282,30 +283,74 @@ Steps:
 
 ## Shamir Secret Sharing {#dep-shamir}
 
-TODO finish the math after Dan writes the above section
+In Shamir secret sharing, a dealer distributes a secret `s` to `n` participants
+in such a way that any cooperating subset of `t` participants can recover the
+secret. There are two basic steps in this scheme: (1) splitting a secret into multiple
+shares, and (2) combining shares to reveal the resulting secret.
 
-In Shamir secret sharing, a
-dealer distributes a secret `s` to `n` participants in such a way that any
-cooperating subset of
-`t` participants can recover the secret.
-To distribute this secret, the dealer first
-selects `t-1` coefficients `a_1, \dots, a_{t-1}`
-at random,
-and uses the randomly selected values as coefficients to define a
-polynomial `f(x) = s + a_1 x + ... + a_t-1 x^t-1` of degree `t-1` where `f(0) = s`.
+This secret sharing scheme works over any field F. For convenience, we assume F has
+a member function called `random_element` which returns a uniformly random element
+in the field.
 
-TODO figure out how to describe these sums
+[OPEN ISSUE: should `s` be assume a member of F, or should this procedure encode the secret as an element of F?]
 
+The procedure for splitting a secret into shares is as follows:
 
-The secret shares for each
-participant `P_i` are `(i, f(i))`, which the dealer is trusted to
-distribute honestly to each participant.
-To reconstruct the secret, at least `t` participants perform Lagrange
-interpolation to reconstruct the polynomial and thus find the value `s=f(0)`.
-However, no group of fewer than `t` participants can reconstruct the secret, as at least `t`
-points are required to reconstruct a polynomial of degree `t-1`.
+~~~
+secret_share_split(s, n, t)
 
-TODO describe the actual math to do this
+Inputs:
+- s, secret to be shared, an element of F
+- n, the number of shares to generate, an integer
+- t, the threshold of the secret sharing scheme, an integer
+
+Outputs: a list of n secret shares, each of which is an element of F
+
+Errors:
+- "invalid parameters", if t > n
+
+def secret_share(s, n, t):
+  if t > n:
+    raise "invalid parameters"
+
+  # Generate random coefficients for the polynomial
+  coefficients = [s]
+  for i in range(t - 1):
+    coefficients.append(F.random_element())
+
+  # Evaluate the polynomial for each participant, identified by their index i
+  points = []
+  for i in range(n):
+    point_i = polynomial_evaluate(1, coefficients)
+    points.append(point_i)
+  return points
+~~~
+
+Let `points` be the output of this function. The i-th element in `points` is
+the share for the i-th participant, which is funtionally the randomly generated
+polynomial evaluated at `i`. We denote a secret share as the tuple `(i, points[i])`,
+and the list of these shares as `shares`.
+
+The procedure for combining a `shares` list of length `t` to recover the
+secret `s` is as follows:
+
+~~~
+secret_share_combine(shares)
+
+Inputs:
+- shares, a list of t secret shares, each a tuple (i, f(i))
+- n, the number of shares to generate, an integer
+- t, the threshold of the secret sharing scheme, an integer
+
+Outputs: a list of n secret shares, each of which is an element of F
+
+Errors:
+- "XXX", TBD
+
+def secret_share_combine(shares)
+  s = polynomial_interpolation(0, shares)
+  return s
+~~~
 
 ## Verifiable Secret Sharing {#dep-vss}
 
