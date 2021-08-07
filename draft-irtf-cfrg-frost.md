@@ -278,7 +278,7 @@ def EdDSA_verify(msg, sig, PK):
 
     - Horner's method
 
-  * Derivation of the ith Lagrange coefficient
+  * Derivation of the ith Lagrange coefficient, "polynomial_interpolation", which takes as input the coefficient and then set of remaining points
 
 
 ## Shamir Secret Sharing {#dep-shamir}
