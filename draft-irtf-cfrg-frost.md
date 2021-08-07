@@ -129,7 +129,7 @@ at least `t` shares must be combined to issue a valid signature.
 * `L_i` represents the ith Lagrange coefficient.
 * `sig = (R, z)` denotes a Schnorr signature with public commitment `R` and response `z`.
 * `PK` is the group public key.
-* `sk_i` is each ith individual's private key.
+* `sk_i` is each ith individual's private key, consisting of the tuple `sk_i = (i, s[i])`.
 * `nonce_i`` is the nonce used for the ith participant.
 * `comm_i`` is the commitment corresponding to `nonce_i`.
 * `aggregator`, the signature aggregator for the signing protocol.
@@ -347,7 +347,43 @@ If the validation
 fails, the participant can issue a complaint against the dealer, and
 take actions such as broadcasting this complaint to all other participants.
 
-TODO describe the math
+~~~
+commit(coeffs)
+
+Inputs:
+- coeffs, a vector of the t coefficients which uniquely determine
+a polynomial f.
+
+Outputs: a commitment C, which is a vector commitment to each of the
+coefficients in `coeffs`.
+
+def commit(coeffs):
+  C = []
+  for coeff in coeffs:
+    A_i = HashToScalar(coeff)
+    C.append(A_i)
+  return C
+~~~
+
+Verification of a participant's share is as follows:
+
+~~~
+verify(sk_i, C)
+
+Inputs:
+- sk_i: A participant's secret key, the tuple `sk_i = (i, s[i])`,
+where `s[i]` is a secret share of the constant term of `f`.
+- C: A VSS commitment to a secret polynomial `f`.
+
+Outputs: 1 if `s[i]` is valid, and 0 otherwise
+
+verify(sk_i, commitment)
+  S_i = HashToCurve(s[i])
+  S_i' = PROD(commitment[0], commitment[t-1]){A_j}: (A_j)^(i^j)
+  if A_i = A_i':
+    return 1
+  return 0
+~~~
 
 # Two-Round FROST
 
