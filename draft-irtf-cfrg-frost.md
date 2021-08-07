@@ -189,8 +189,8 @@ application of the group operation on an element A with itself `r-1` times, this
 as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as the fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
 operation `G` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
-scalars corresponds to `GF(p)`. This document uses types `Element` and `Scalar` to denote
-elements of the group `G` and its set of scalars, respectively.
+scalars corresponds to `GF(p)`, which refer to as the scalar field. This document uses types
+`Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
 
 We now detail a number of member functions that can be invoked on a prime-order group `G`.
 
@@ -285,12 +285,13 @@ def EdDSA_verify(msg, sig, PK):
 
 In Shamir secret sharing, a dealer distributes a secret `s` to `n` participants
 in such a way that any cooperating subset of `t` participants can recover the
-secret. There are two basic steps in this scheme: (1) splitting a secret into multiple
-shares, and (2) combining shares to reveal the resulting secret.
+secret. There are two basic steps in this scheme: (1) splitting a secret into
+multiple shares, and (2) combining shares to reveal the resulting secret.
 
-This secret sharing scheme works over any field F. For convenience, we assume F has
-a member function called `random_element` which returns a uniformly random element
-in the field.
+This secret sharing scheme works over any field F. In this specification, F is
+the scalar field of the prime-order group G. For convenience, we assume F has
+a member function called `random_element` which returns a uniformly random
+element in the field.
 
 [OPEN ISSUE: should `s` be assume a member of F, or should this procedure encode the secret as an element of F?]
 
@@ -347,7 +348,7 @@ Outputs: a list of n secret shares, each of which is an element of F
 Errors:
 - "XXX", TBD
 
-def secret_share_combine(shares)
+def secret_share_combine(shares):
   s = polynomial_interpolation(0, shares)
   return s
 ~~~
@@ -367,16 +368,20 @@ take actions such as broadcasting this complaint to all other participants.
 
 TODO describe the math
 
-# Two-Round FROST with Trusted Dealer
+# Two-Round FROST
 
-## Trusted Dealer Key Generation
+The FROST protocol assumes that each participant `P_i` knows the following:
 
-To perform key generation, the dealer will simply employ Verifiable Secret Sharing
-as a subroutine, providing as input a secret `s` that was generated uniformly at random.
-The group's joint public key will simply be `PK = g^s`. Each participant's secret key
-will simply be  `sk_i = s_i`, the secret share sent to them by the dealer.
+- Group public key, denoted `PK = s * B`, corresponding to the group secret key `s`
+- Participant signing key, which is a secret share `(i, s[i])`, where `s[i]` is the i-th secret share of `s`
 
-TODO is this enough or do we need more here?
+The exact key generation mechanism is out of scope for this specification. One
+possible mechanism is to depend on a trust dealer, wherein the dealer generates
+a group secret `s` uniformly at random and uses Verifiable Secret Sharing to share
+it with each participant. Another mechanism is to use a distributed key generation
+protocol.
+
+The rest of this section describes the core FROST protocol.
 
 ## Signing
 
