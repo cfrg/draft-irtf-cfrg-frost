@@ -99,8 +99,7 @@ capitals, as shown here.
 
 FROST is a threshold signature protocol involving the following parties:
 
-- Trusted dealer: Entity responsible for driving distributed key generation
-  for signers.
+- Trusted dealer: Entity responsible for driving key generation for signers.
 - Signers: Entities with signing key shares that participate in the threshold
   signing protocol
 - Signature aggregator: A Signer that combines multiple signatures into a single,
@@ -109,32 +108,19 @@ FROST is a threshold signature protocol involving the following parties:
 FROST assumes the selection of participants, including the dealer, signer, and
 aggregator are all chosen external to the protocol.
 
-FROST consists of two protocols: distributed key generation (DKG) and threshold
-signing. These are briefly described in the following sections.
-
-## Trusted Dealer Key Generation Overview
-
-In the DKG protocol, every Signer participant contributes equally to
-the generation of the shared secret. The output of the protocol is (1) a shared,
-group public key PK owned by each Signer, and (2) individual shares of the signing
-key owned by each Signer. This protocol assumes an authenticated, confidential, and
-reliable channel between all participants. Specifically, the dealer must be able to
-transmit secret key material to each participant over this channel.
-
-## Signing Overview
-
-In the threshold signing protocol, Signers participate in multiple exchanges
-to sign an input message and produce a single, aggregate signature. This protocol
-assumes a reliable channel. While messages that are exchanged contain no secret
-information, the channel must be able to deliver messages reliably in order for
-the protocol to complete.
+FROST consists of two protocols: key generation and threshold signing. These
+are briefly described in the following sections. This specification only covers
+the latter protocol, Signers participate in multiple exchanges to sign an input
+message and produce a single, aggregate signture. This protocol assumes a reliable
+channel. While messages that are exchanged contain no secret information, the channel
+must be able to deliver messages reliably in order for the protocol to complete.
 
 # Conventions and Terminology
 
 The following notation and terminology are used throughout this document.
 
 * `s` denotes a secret that is Shamir secret shared among the participants.
-* `s_i` denotes the ith share of the secret `s`.
+* `s[i]` denotes the i-th share of the secret `s`.
 * A participant is an entity that is trusted to hold a secret share.
 * `n` denotes the number of participants, and the number of shares that `s` is split into.
 * `t` denotes the threshold number of participants required to issue a signature. More specifically,
@@ -179,8 +165,8 @@ application of the group operation on an element A with itself `r-1` times, this
 as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as the fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
 operation `G` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
-scalars corresponds to `GF(p)`. This document uses types `Element` and `Scalar` to denote
-elements of the group `G` and its set of scalars, respectively.
+scalars corresponds to `GF(p)`, which refer to as the scalar field. This document uses types
+`Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
 
 We now detail a number of member functions that can be invoked on a prime-order group `G`.
 
@@ -234,8 +220,6 @@ recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
 
-TODO: writeme
-
 ## EdDSA Signatures {#dep-sigs}
 
 Verifying an EdDSA signature `sig` over message `msg` with public key `PK` is
@@ -249,53 +233,102 @@ Inputs:
 - sig, message signature, a tuple of scalars (z, c)
 - PK, EdDSA public key
 
-Outputs:
-- 1 if the signature is valid, and 0 otherwise
+Outputs: 1 if the signature is valid, and 0 otherwise
 
-Steps:
-1.  Parse SIG as (z, c).
-2.  Compute R' = (z * P) + (PK * c^-1)
-3.  Compute c' = Hash(m, R')
-4.  Output 1 if c = c' to indicate success; otherwise, output 0.
+def EdDSA_verify(msg, sig, PK):
+  (z, c) = SIG
+  R' = (z * P) + (PK * c^-1)
+  c' = Hash(m, R')
+  if c = c':
+    return 1
+  return 0
 ~~~
 
 ## Polynomial Operations {#dep-polynomial}
 
 (Dan Shumow will write this section)
 
-  * Evaluation of a polynomial at a specific point
+  * Evaluation of a polynomial at a specific point, "polynomial_evaluate", which takes as input the x-value and the polynomial coefficients
 
     - Horner's method
 
-  * Derivation of the ith Lagrange coefficient
+  * Derivation of the ith Lagrange coefficient, "polynomial_interpolation", which takes as input the coefficient and then set of remaining points
 
 
 ## Shamir Secret Sharing {#dep-shamir}
 
-TODO finish the math after Dan writes the above section
 
-In Shamir secret sharing, a
-dealer distributes a secret `s` to `n` participants in such a way that any
-cooperating subset of
-`t` participants can recover the secret.
-To distribute this secret, the dealer first
-selects `t-1` coefficients `a_1, \dots, a_{t-1}`
-at random,
-and uses the randomly selected values as coefficients to define a
-polynomial `f(x) = s + a_1 x + ... + a_t-1 x^t-1` of degree `t-1` where `f(0) = s`.
+In Shamir secret sharing, a dealer distributes a secret `s` to `n` participants
+in such a way that any cooperating subset of `t` participants can recover the
+secret. There are two basic steps in this scheme: (1) splitting a secret into
+multiple shares, and (2) combining shares to reveal the resulting secret.
 
-TODO figure out how to describe these sums
+This secret sharing scheme works over any field F. In this specification, F is
+the scalar field of the prime-order group G. For convenience, we assume F has
+a member function called `random_element` which returns a uniformly random
+element in the field.
+
+[OPEN ISSUE: should `s` be assume a member of F, or should this procedure encode the secret as an element of F?]
+
+The procedure for splitting a secret into shares is as follows:
+
+~~~
+secret_share_split(s, n, t)
+
+Inputs:
+- s, secret to be shared, an element of F
+- n, the number of shares to generate, an integer
+- t, the threshold of the secret sharing scheme, an integer
+
+Outputs: a list of n secret shares, each of which is an element of F
+
+Errors:
+- "invalid parameters", if t > n
+
+def secret_share(s, n, t):
+  if t > n:
+    raise "invalid parameters"
+
+  # Generate random coefficients for the polynomial
+  coefficients = [s]
+  for i in range(t - 1):
+    coefficients.append(F.random_element())
+
+  # Evaluate the polynomial for each participant, identified by their index i
+  points = []
+  for i in range(n):
+    point_i = polynomial_evaluate(1, coefficients)
+    points.append(point_i)
+  return points
+~~~
+
+Let `points` be the output of this function. The i-th element in `points` is
+the share for the i-th participant, which is funtionally the randomly generated
+polynomial evaluated at `i`. We denote a secret share as the tuple `(i, points[i])`,
+and the list of these shares as `shares`.
 
 
-The secret shares for each
-participant `P_i` are `(i, f(i))`, which the dealer is trusted to
-distribute honestly to each participant.
-To reconstruct the secret, at least `t` participants perform Lagrange
-interpolation to reconstruct the polynomial and thus find the value `s=f(0)`.
-However, no group of fewer than `t` participants can reconstruct the secret, as at least `t`
-points are required to reconstruct a polynomial of degree `t-1`.
+The procedure for combining a `shares` list of length `t` to recover the
+secret `s` is as follows:
 
-TODO describe the actual math to do this
+~~~
+secret_share_combine(shares)
+
+Inputs:
+- shares, a list of t secret shares, each a tuple (i, f(i))
+- n, the number of shares to generate, an integer
+- t, the threshold of the secret sharing scheme, an integer
+
+Outputs: a list of n secret shares, each of which is an element of F
+
+Errors:
+- "XXX", TBD
+
+def secret_share_combine(shares):
+  s = polynomial_interpolation(0, shares)
+  return s
+~~~
+
 
 ## Verifiable Secret Sharing {#dep-vss}
 
@@ -312,16 +345,22 @@ take actions such as broadcasting this complaint to all other participants.
 
 TODO describe the math
 
-# Two-Round FROST with Trusted Dealer
+# Two-Round FROST
 
-## Trusted Dealer Key Generation
+The FROST protocol assumes that each participant `P_i` knows the following:
 
-To perform key generation, the dealer will simply employ Verifiable Secret Sharing
-as a subroutine, providing as input a secret `s` that was generated uniformly at random.
-The group's joint public key will simply be `PK = g^s`. Each participant's secret key
-will simply be  `sk_i = s_i`, the secret share sent to them by the dealer.
+- Group public key, denoted `PK = s * B`, corresponding to the group secret key `s`
+- Participant signing key, which is a secret share `(i, s[i])`, where `s[i]` is the i-th secret share of `s`
 
-TODO is this enough or do we need more here?
+The exact key generation mechanism is out of scope for this specification. In general,
+key generation is a protocol that outputs (1) a shared, group public key PK owned
+by each Signer, and (2) individual shares of the signing key owned by each Signer.
+One possible mechanism is to depend on a trust dealer, wherein the dealer generates
+a group secret `s` uniformly at random and uses Verifiable Secret Sharing to share
+it with each participant. Another mechanism is to use a distributed key generation
+protocol.
+
+The rest of this section describes the core FROST protocol.
 
 ## Signing
 
