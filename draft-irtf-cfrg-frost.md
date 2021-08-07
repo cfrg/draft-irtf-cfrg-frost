@@ -219,6 +219,7 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
+
 ## EdDSA Signatures {#dep-sigs}
 
 Verifying an EdDSA signature `sig` over message `msg` with public key `PK` is
@@ -255,6 +256,7 @@ def EdDSA_verify(msg, sig, PK):
 
 
 ## Shamir Secret Sharing {#dep-shamir}
+
 
 In Shamir secret sharing, a dealer distributes a secret `s` to `n` participants
 in such a way that any cooperating subset of `t` participants can recover the
@@ -305,6 +307,7 @@ the share for the i-th participant, which is funtionally the randomly generated
 polynomial evaluated at `i`. We denote a secret share as the tuple `(i, points[i])`,
 and the list of these shares as `shares`.
 
+
 The procedure for combining a `shares` list of length `t` to recover the
 secret `s` is as follows:
 
@@ -325,6 +328,7 @@ def secret_share_combine(shares):
   s = polynomial_interpolation(0, shares)
   return s
 ~~~
+
 
 ## Verifiable Secret Sharing {#dep-vss}
 
