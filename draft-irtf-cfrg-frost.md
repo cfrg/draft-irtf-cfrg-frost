@@ -268,8 +268,6 @@ the scalar field of the prime-order group G. For convenience, we assume F has
 a member function called `random_element` which returns a uniformly random
 element in the field.
 
-[OPEN ISSUE: should `s` be assume a member of F, or should this procedure encode the secret as an element of F?]
-
 The procedure for splitting a secret into shares is as follows:
 
 ~~~
@@ -355,10 +353,10 @@ The FROST protocol assumes that each participant `P_i` knows the following:
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
 by each Signer, and (2) individual shares of the signing key owned by each Signer.
-One possible mechanism is to depend on a trust dealer, wherein the dealer generates
-a group secret `s` uniformly at random and uses Verifiable Secret Sharing to share
-it with each participant. Another mechanism is to use a distributed key generation
-protocol.
+In general, two possible key generation mechanisms are possible, one that requires
+a single, trusted dealer, and the other which requires performing a distributed
+key generation protocol. We highlight key generation mechanism by a trusted dealer
+in Section {{dep-dealer}}, for reference.
 
 The rest of this section describes the core FROST protocol.
 
@@ -410,6 +408,35 @@ channel can be used to facilitate key generation and signing.
 --- back
 
 # Acknowledgments
-{:numbered="false"}
 
 Chris Wood contributed significantly to the writing of this document and to ensuring compatibility with existing IETF drafts.
+
+# Trusted Dealer Key Generation {#dep-dealer}
+
+One possible key generation mechanism is to depend on a trusted dealer, wherein the
+dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
+Secret Sharing as described in Sections {{dep-shamir}} and {{dep-vss}} to create secret
+shares of `s` to be sent to all other participants. We highlight at a high level how this
+operation can be performed.
+
+~~~
+trusted_dealer_keygen(n, t)
+
+Inputs:
+- n, the number of shares to generate, an integer
+- t, the threshold of the secret sharing scheme, an integer
+
+Outputs: a list of secret keys, each which is an element of F, and a public key which is
+ an element of G. It is assumed the dealer then sends one secret key to each of the n
+participants, and afterwards deletes the secrets from their local device.
+
+def trusted_dealer_keygen(n, t):
+  s = RandomScalar()
+  points = secret_share_split(s, n, t)
+  secret_keys = []
+    sk_i = (i, points[i])
+  secret_keys.append(sk_i)
+  public_key = HashToScalar(s)
+  return secret_keys, public_key
+
+~~~
