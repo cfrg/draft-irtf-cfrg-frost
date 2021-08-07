@@ -99,8 +99,7 @@ capitals, as shown here.
 
 FROST is a threshold signature protocol involving the following parties:
 
-- Trusted dealer: Entity responsible for driving distributed key generation
-  for signers.
+- Trusted dealer: Entity responsible for driving key generation for signers.
 - Signers: Entities with signing key shares that participate in the threshold
   signing protocol
 - Signature aggregator: A Signer that combines multiple signatures into a single,
@@ -109,25 +108,12 @@ FROST is a threshold signature protocol involving the following parties:
 FROST assumes the selection of participants, including the dealer, signer, and
 aggregator are all chosen external to the protocol.
 
-FROST consists of two protocols: distributed key generation (DKG) and threshold
-signing. These are briefly described in the following sections.
-
-## Trusted Dealer Key Generation Overview
-
-In the DKG protocol, every Signer participant contributes equally to
-the generation of the shared secret. The output of the protocol is (1) a shared,
-group public key PK owned by each Signer, and (2) individual shares of the signing
-key owned by each Signer. This protocol assumes an authenticated, confidential, and
-reliable channel between all participants. Specifically, the dealer must be able to
-transmit secret key material to each participant over this channel.
-
-## Signing Overview
-
-In the threshold signing protocol, Signers participate in multiple exchanges
-to sign an input message and produce a single, aggregate signature. This protocol
-assumes a reliable channel. While messages that are exchanged contain no secret
-information, the channel must be able to deliver messages reliably in order for
-the protocol to complete.
+FROST consists of two protocols: key generation and threshold signing. These
+are briefly described in the following sections. This specification only covers
+the latter protocol, Signers participate in multiple exchanges to sign an input
+message and produce a single, aggregate signture. This protocol assumes a reliable
+channel. While messages that are exchanged contain no secret information, the channel
+must be able to deliver messages reliably in order for the protocol to complete.
 
 # Conventions and Terminology
 
@@ -362,8 +348,10 @@ The FROST protocol assumes that each participant `P_i` knows the following:
 - Group public key, denoted `PK = s * B`, corresponding to the group secret key `s`
 - Participant signing key, which is a secret share `(i, s[i])`, where `s[i]` is the i-th secret share of `s`
 
-The exact key generation mechanism is out of scope for this specification. One
-possible mechanism is to depend on a trust dealer, wherein the dealer generates
+The exact key generation mechanism is out of scope for this specification. In general,
+key generation is a protocol that outputs (1) a shared, group public key PK owned
+by each Signer, and (2) individual shares of the signing key owned by each Signer.
+One possible mechanism is to depend on a trust dealer, wherein the dealer generates
 a group secret `s` uniformly at random and uses Verifiable Secret Sharing to share
 it with each participant. Another mechanism is to use a distributed key generation
 protocol.
