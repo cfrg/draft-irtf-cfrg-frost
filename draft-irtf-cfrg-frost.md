@@ -130,6 +130,9 @@ at least `t` shares must be combined to issue a valid signature.
 * `sig = (R, z)` denotes a Schnorr signature with public commitment `R` and response `z`.
 * `PK` is the group public key.
 * `sk_i` is each ith individual's private key.
+* `nonce_i`` is the nonce used for the ith participant.
+* `comm_i`` is the commitment corresponding to `nonce_i`.
+* `aggregator`, the signature aggregator for the signing protocol.
 
 This specification makes use of the following utility functions:
 
@@ -219,6 +222,9 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
+## Schnorr Signatures {#dep-schnorr}
+
+TODO
 
 ## EdDSA Signatures {#dep-sigs}
 
@@ -348,7 +354,7 @@ TODO describe the math
 The FROST protocol assumes that each participant `P_i` knows the following:
 
 - Group public key, denoted `PK = s * B`, corresponding to the group secret key `s`
-- Participant signing key, which is a secret share `(i, s[i])`, where `s[i]` is the i-th secret share of `s`
+- Participant signing key, which is the tuple `sk = (i, s[i])`, where `s[i]` is the i-th secret share of `s`
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
@@ -362,7 +368,62 @@ The rest of this section describes the core FROST protocol.
 
 ## Signing
 
-Chelsea will write this
+We assume the existence of a *signature aggregator*, who is responsible for the following:
+1. Determining which signers will participate (at least t in number)
+2. Coordinating rounds (receiving and forwarding inputs among participants)
+3. Aggregating signature shares output by each participant, and publishing the resulting signature.
+
+We describe the protocol in two rounds. The first round serves for each participant to issue a commitment.
+The second round receives commitments for all signers as well as the message, and issues a signature share.
+The signature aggregator performs the coordination of each of these rounds.
+The signature aggregator then performs an aggregation round at the end.
+
+
+### Round One
+
+Round one serves to generate nonces and commitments for each signer.
+Each signer generates a nonce and its corresponding commitment.
+The nonce should be stored locally, whereas the commitment should
+be sent to the signature coordinator.
+
+~~~
+round_one()
+
+Inputs:
+- shares, a list of t secret shares, each a tuple (i, f(i))
+- n, the number of shares to generate, an integer
+- t, the threshold of the secret sharing scheme, an integer
+
+Outputs: `nonce_i`, the nonce that the participant should store *locally* to be used for signing in round two, and `comm_i`, to be sent to `aggregator`.
+
+def round_one():
+  d_i = RandomScalar()
+  e_i = RandomScalar()
+  D_i = HashToScalar(d_i)
+  E_i = HashToScalar(e_i)
+  nonce_i = (d_i, e_i)
+  comm_i = (D_i, E_i)
+  return nonce_i, comm_i
+~~~
+
+### Round Two
+
+~~~
+round_two(sk_i, (d_i, e_i), B)
+
+Inputs:
+- secret key `sk_i = (i, s[i])`
+- nonce (d_i, e_i) generated in round one
+- A set B={(j, D_j, E_j), ...} containing each of the commitments for each
+signer issued in round one. `B` is at least of size `t` but at most of size `n` .
+
+Outputs: a list of n secret shares, each of which is an element of F
+
+WIP
+~~~
+
+### Aggregate
+
 
 # Curve and Verification Compatability
 
