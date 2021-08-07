@@ -134,7 +134,7 @@ the protocol to complete.
 The following notation and terminology are used throughout this document.
 
 * `s` denotes a secret that is Shamir secret shared among the participants.
-* `s_i` denotes the ith share of the secret `s`.
+* `s[i]` denotes the i-th share of the secret `s`.
 * A participant is an entity that is trusted to hold a secret share.
 * `n` denotes the number of participants, and the number of shares that `s` is split into.
 * `t` denotes the threshold number of participants required to issue a signature. More specifically,
@@ -232,9 +232,6 @@ FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
-
-
-TODO: writeme
 
 ## EdDSA Signatures {#dep-sigs}
 
