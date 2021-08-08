@@ -102,16 +102,18 @@ FROST is a threshold signature protocol involving the following parties:
 - Trusted dealer: Entity responsible for driving key generation for signers.
 - Signers: Entities with signing key shares that participate in the threshold
   signing protocol
-- Signature aggregator: A Signer that combines multiple signatures into a single,
-  aggregate signature under the group public key.
+- Coordinator: An entity responsible for performing coordination among signers
+and for aggregating signature shares at the end of the protocol, resulting
+in the final signature. This party may be a signer themselves or an external
+party.
 
 FROST assumes the selection of participants, including the dealer, signer, and
-aggregator are all chosen external to the protocol.
+coordinator are all chosen external to the protocol.
 
 FROST consists of two protocols: key generation and threshold signing. These
 are briefly described in the following sections. This specification only covers
 the latter protocol, Signers participate in multiple exchanges to sign an input
-message and produce a single, aggregate signture. This protocol assumes a reliable
+message and produce a single, aggregate signature. This protocol assumes a reliable
 channel. While messages that are exchanged contain no secret information, the channel
 must be able to deliver messages reliably in order for the protocol to complete.
 
@@ -125,14 +127,10 @@ The following notation and terminology are used throughout this document.
 * `n` denotes the number of participants, and the number of shares that `s` is split into.
 * `t` denotes the threshold number of participants required to issue a signature. More specifically,
 at least `t` shares must be combined to issue a valid signature.
-* `C` represents the coalition of signers, and is a set of participant identifiers of size at least `t`.
 * `L_i` represents the ith Lagrange coefficient.
 * `sig = (R, z)` denotes a Schnorr signature with public commitment `R` and response `z`.
 * `PK` is the group public key.
 * `sk_i` is each ith individual's private key, consisting of the tuple `sk_i = (i, s[i])`.
-* `nonce_i`` is the nonce used for the ith participant.
-* `comm_i`` is the commitment corresponding to `nonce_i`.
-* `aggregator`, the signature aggregator for the signing protocol.
 
 This specification makes use of the following utility functions:
 
@@ -221,6 +219,10 @@ FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
+
+We specify two domain-separated hash functions as follows:
+* Hrho
+* Hchal
 
 ## Schnorr Signatures {#dep-schnorr}
 
@@ -339,13 +341,16 @@ def secret_share_combine(shares):
 Feldman's Verifiable Secret Sharing (VSS)
 builds upon Shamir secret sharing, adding a verification step to
 demonstrate the consistency of a participant's share with a public
-commitment which all participants are assumed to hold a consistent view of.
-To validate that a share is well formed,
-each
-participant validates their share using this commitment.
+commitment to the polynomial `f` for which the secret `s` is the constant term.
+This check ensure that all participants have a point (their share) on the same
+polynomial, ensuring that they can later reconstruct the correct secret.
 If the validation
 fails, the participant can issue a complaint against the dealer, and
 take actions such as broadcasting this complaint to all other participants.
+We do not specify the complaint procedure in this draft, as it will be
+implementation-specific.
+
+The procedure for committing to a polynomial `f` of degree `t-1` is as follows:
 
 ~~~
 commit(coeffs)
@@ -365,7 +370,7 @@ def commit(coeffs):
   return C
 ~~~
 
-Verification of a participant's share is as follows:
+The procedure for verification of a participant's share is as follows:
 
 ~~~
 verify(sk_i, C)
@@ -404,15 +409,15 @@ The rest of this section describes the core FROST protocol.
 
 ## Signing
 
-We assume the existence of a *signature aggregator*, who is responsible for the following:
+We assume the existence of a *coordinator*, who is responsible for the following:
 1. Determining which signers will participate (at least t in number)
 2. Coordinating rounds (receiving and forwarding inputs among participants)
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
 We describe the protocol in two rounds. The first round serves for each participant to issue a commitment.
 The second round receives commitments for all signers as well as the message, and issues a signature share.
-The signature aggregator performs the coordination of each of these rounds.
-The signature aggregator then performs an aggregation round at the end.
+The coordinator performs the coordination of each of these rounds.
+The coordinator then performs an aggregation round at the end.
 
 
 ### Round One
@@ -430,7 +435,8 @@ Inputs:
 - n, the number of shares to generate, an integer
 - t, the threshold of the secret sharing scheme, an integer
 
-Outputs: `nonce_i`, the nonce that the participant should store *locally* to be used for signing in round two, and `comm_i`, to be sent to `aggregator`.
+Outputs: `nonce_i`, the nonce that the participant should store *locally* to be used for
+signing in round two, and `comm_i`, to be sent to the coordinator.
 
 def round_one():
   d_i = RandomScalar()
@@ -444,18 +450,32 @@ def round_one():
 
 ### Round Two
 
+In round two, the coordinator is responsible for sending the message to be signed, and
+for choosing which signers will participate (of number at least `t`). Signers
+additionally require locally held data; specifically, their private key and the
+nonces corresponding to their commitment issued in round one.
+
+
 ~~~
-round_two(sk_i, (d_i, e_i), B)
+round_two(sk_i, (d_i, e_i), m, B, L):
 
 Inputs:
 - secret key `sk_i = (i, s[i])`
 - nonce (d_i, e_i) generated in round one
-- A set B={(j, D_j, E_j), ...} containing each of the commitments for each
-signer issued in round one. `B` is at least of size `t` but at most of size `n` .
+- m: the message to be signed.
+- B={(D_j, E_j), ...}: a set of commitments issued by each signer in round one,
+of length `l`, where `t <= l <= n`.
+- L: a set containing identifiers for each signer, similarly of length `l`.
 
-Outputs: a list of n secret shares, each of which is an element of F
+Outputs: a signature share `z_i`.
 
-WIP
+round_two(sk_i, (d_i, e_i), m, B, L):
+  binding_factor = Hrho(B)
+  R = PROD(B[1], B[l]){(j, D_j, E_j)}: D_j * E_j^(binding_factor)
+  lambda_i = derive_lagrange_coefficient(L)
+  c = Hchal(R, m)
+  z_i = d_i + (e_i * binding_factor) + lambda_i + s[i] + c
+
 ~~~
 
 ### Aggregate
