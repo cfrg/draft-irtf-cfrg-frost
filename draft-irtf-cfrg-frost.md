@@ -517,18 +517,18 @@ Inputs:
 - nonce (d_i, e_i) generated in round one
 - m: the message to be signed (sent by the coordinator).
 - B={(D_j, E_j), ...}: a set of commitments issued by each signer
-in round one, of length l, where t <= l <= n (sent by the coordinator).
+in round one, of length w, where t <= w <= n (sent by the coordinator).
 - L: a set containing identifiers for each signer, similarly of length
-l (sent by the coordinator).
+w (sent by the coordinator).
 
 Outputs: a signature share z_i, to be sent to the coordinator.
 
 round_two(sk_i, (d_i, e_i), m, B, L):
   binding_factor = Hrho(B)
-  R = SUM(B[1], B[l]){(j, D_j, E_j)}: D_j + (E_j * binding_factor )
+  R = SUM(B[1], B[w]){(j, D_j, E_j)}: D_j + (E_j * binding_factor )
   L_i = derive_lagrange_coefficient(i, L)
   c = Hchal(R, m)
-  z_i = d_i + (e_i * binding_factor) + lambda_i + s[i] + c
+  z_i = d_i + (e_i * binding_factor) + L_i + s[i] + c
 ~~~
 
 ### Aggregate
@@ -547,16 +547,15 @@ and publicatin.
 aggregate(m, R, Z):
 
 Inputs:
-- Z: a set of signature shares z_i for each signer, of length l,
-where  t <= l <= n.
+- Z: a set of signature shares z_i for each signer, of length w,
+where  t <= w <= n.
 - R: the group commitment.
 - m: the message to be signed.
 
 Outputs: sig=(R, z), a Schnorr signature.
 
 aggregate(m, R, Z):
-  z_i = d_i + (e_i * binding_factor) + lambda_i + s[i] + c
-  z = SUM(Z[1], Z[l]){z_i}: z_i
+  z = SUM(Z[1], Z[w]){z_i}: z_i
   return m, sig=(R, z)
 ~~~
 
