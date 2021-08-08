@@ -364,7 +364,7 @@ Inputs:
 a polynomial f.
 
 Outputs: a commitment C, which is a vector commitment to each of the
-coefficients in `coeffs`.
+coefficients in coeffs.
 
 def commit(coeffs):
   C = []
@@ -380,15 +380,15 @@ The procedure for verification of a participant's share is as follows:
 verify(sk_i, C)
 
 Inputs:
-- sk_i: A participant's secret key, the tuple `sk_i = (i, s[i])`,
-where `s[i]` is a secret share of the constant term of `f`.
-- C: A VSS commitment to a secret polynomial `f`.
+- sk_i: A participant's secret key, the tuple sk_i = (i, s[i]),
+where s[i] is a secret share of the constant term of f.
+- C: A VSS commitment to a secret polynomial f.
 
-Outputs: 1 if `s[i]` is valid, and 0 otherwise
+Outputs: 1 if s[i] is valid, and 0 otherwise
 
 verify(sk_i, commitment)
   S_i = HashToCurve(s[i])
-  S_i' = PROD(commitment[0], commitment[t-1]){A_j}: (A_j)^(i^j)
+  S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
   if A_i = A_i':
     return 1
   return 0
@@ -439,8 +439,8 @@ Inputs:
 - n, the number of shares to generate, an integer
 - t, the threshold of the secret sharing scheme, an integer
 
-Outputs: `nonce_i`, the nonce that the participant should store *locally* to be used for
-signing in round two, and `comm_i`, to be sent to the coordinator.
+Outputs: nonce_i, the nonce that the participant should store *locally* to be used for
+signing in round two, and comm_i, to be sent to the coordinator.
 
 def round_one():
   d_i = RandomScalar()
@@ -464,18 +464,18 @@ nonces corresponding to their commitment issued in round one.
 round_two(sk_i, (d_i, e_i), m, B, L):
 
 Inputs:
-- sk_i: secret key that is the tuple `sk_i= (i, s[i])
+- sk_i: secret key that is the tuple sk_i= (i, s[i])
 - nonce (d_i, e_i) generated in round one
 - m: the message to be signed.
 - B={(D_j, E_j), ...}: a set of commitments issued by each signer in round one,
-of length `l`, where `t <= l <= n`.
-- L: a set containing identifiers for each signer, similarly of length `l`.
+of length l, where t <= l <= n.
+- L: a set containing identifiers for each signer, similarly of length l.
 
-Outputs: a signature share `z_i`.
+Outputs: a signature share z_i.
 
 round_two(sk_i, (d_i, e_i), m, B, L):
   binding_factor = Hrho(B)
-  R = PROD(B[1], B[l]){(j, D_j, E_j)}: D_j * E_j^(binding_factor)
+  R = SUM(B[1], B[l]){(j, D_j, E_j)}: D_j + (E_j * binding_factor )
   lambda_i = derive_lagrange_coefficient(L)
   c = Hchal(R, m)
   z_i = d_i + (e_i * binding_factor) + lambda_i + s[i] + c
@@ -498,7 +498,7 @@ aggregate(m, R, Z):
 
 Inputs:
 - Z: a set of signature shares z_i for each signer, of length l,
-where `t <= l <= n`.
+where  t <= l <= n.
 - R: the group commitment.
 - m: the message to be signed.
 
@@ -539,6 +539,12 @@ allows for a complete key-recovery attack.
 We do not specify what implementations should do when the protocol fails, other than requiring that
 the protocol abort. Examples of viable failure include when a verification check returns invalid or
 if the underlying transport failed to deliver the required messages.
+
+## Additional Security Checks
+
+### Validation of Signature Shares {#sec:validate-sig-share}
+
+### Prevention of Nonce Reuse
 
 ## External Requirements / Non-Goals
 
@@ -587,7 +593,3 @@ def trusted_dealer_keygen(n, t):
 
 ~~~
 
-
-# Validation of signature shares {#sec:validate-sig-share}
-
-TODO
