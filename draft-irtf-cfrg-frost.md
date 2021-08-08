@@ -117,6 +117,10 @@ message and produce a single, aggregate signature. This protocol assumes a relia
 channel. While messages that are exchanged contain no secret information, the channel
 must be able to deliver messages reliably in order for the protocol to complete.
 
+# Threat Model
+
+TODO
+
 # Conventions and Terminology
 
 The following notation and terminology are used throughout this document.
@@ -460,7 +464,7 @@ nonces corresponding to their commitment issued in round one.
 round_two(sk_i, (d_i, e_i), m, B, L):
 
 Inputs:
-- secret key `sk_i = (i, s[i])`
+- sk_i: secret key that is the tuple `sk_i= (i, s[i])
 - nonce (d_i, e_i) generated in round one
 - m: the message to be signed.
 - B={(D_j, E_j), ...}: a set of commitments issued by each signer in round one,
@@ -475,11 +479,36 @@ round_two(sk_i, (d_i, e_i), m, B, L):
   lambda_i = derive_lagrange_coefficient(L)
   c = Hchal(R, m)
   z_i = d_i + (e_i * binding_factor) + lambda_i + s[i] + c
-
 ~~~
 
 ### Aggregate
 
+After signers perform round two and send their signature shares to the coordinator,
+the coordinator performs the `aggregate` operation and publishes the resulting
+signature.
+
+Note that here we do not specify the coordinator as validating each signature schare,
+as if any signature share is invalid, the resulting joint signature will similarly
+be invalid. We specify in {{sec:validate-sig-share}} a mechanism where
+the coordinator can first validate each signature share in addition to aggregation
+and publicatin.
+
+~~~
+aggregate(m, R, Z):
+
+Inputs:
+- Z: a set of signature shares z_i for each signer, of length l,
+where `t <= l <= n`.
+- R: the group commitment.
+- m: the message to be signed.
+
+Outputs: sig=(R, z), a Schnorr signature.
+
+aggregate(m, R, Z):
+  z_i = d_i + (e_i * binding_factor) + lambda_i + s[i] + c
+  z = SUM(Z[1], Z[l]){z_i}: z_i
+  return m, sig=(R, z)
+~~~
 
 # Curve and Verification Compatability
 
@@ -557,3 +586,8 @@ def trusted_dealer_keygen(n, t):
   return secret_keys, public_key
 
 ~~~
+
+
+# Validation of signature shares {#sec:validate-sig-share}
+
+TODO
