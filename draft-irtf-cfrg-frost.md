@@ -79,8 +79,7 @@ nonce is derived deterministically, is insecure in a multi-party signature setti
 
 draft-01
 
-- Submitted a draft that specifies notation and cryptographic dependencies,
-as well including additional authors.
+- Submitted a draft that specifies operations, notation and cryptographic dependencies.
 
 draft-00
 
@@ -186,6 +185,7 @@ of the group. Scalar base multiplication is equivalent to the repeated applicati
 operation `G` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
 scalars corresponds to `GF(p)`, which refer to as the scalar field. This document uses types
 `Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
+We denote equality comparison as `==` and assignment of values by `=`.
 
 We now detail a number of member functions that can be invoked on a prime-order group `G`.
 
@@ -239,7 +239,9 @@ recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
 We specify two domain-separated hash functions as follows:
+
 * Hrho
+
 * Hchal
 
 ## Schnorr Signatures {#dep-schnorr}
@@ -265,7 +267,7 @@ def EdDSA_verify(msg, sig, PK):
   (z, c) = SIG
   R' = (z * P) + (PK * c^-1)
   c' = Hash(m, R')
-  if c = c':
+  if c == c':
     return 1
   return 0
 ~~~
@@ -279,7 +281,7 @@ def EdDSA_verify(msg, sig, PK):
 
 ### Lagrange coefficients
 
-Lagrange coefficients are used in FROST to evaluate a polynomial at the constant term, given a set of `t` other points.
+Lagrange coefficients are used in FROST to evaluate a polynomial `f` at `f(0)`, given a set of `t` other points.
 
 ~~~
 derive_lagrange_coefficient(i, L)
@@ -425,7 +427,7 @@ Outputs: 1 if s[i] is valid, and 0 otherwise
 verify(sk_i, commitment)
   S_i = HashToCurve(s[i])
   S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
-  if A_i = A_i':
+  if A_i == A_i':
     return 1
   return 0
 ~~~
@@ -435,16 +437,12 @@ verify(sk_i, commitment)
 The FROST protocol maintains two separate assumptions for the underlying network
 depending on the operation being performed.
 
-## Key Generation
-
-At the time of key generation, secret shares need to be sent to each participant.
+* *Key Generation*. At the time of key generation, secret shares need to be sent to each participant.
 Consequently, the network layer must provide the properties of authenticity (for
 both sender and receiver), confidentiality, and integrity.
 Mutual TLS is one appropriate option.
 
-## Signing
-
-Signing operations only require a reliable network, since messages exchanged
+* *Signing*. Signing operations only require a reliable network, since messages exchanged
 during signing operations are all within the public domain. An attacker
 masquerading as another participant will result only in an invalid signature.
 
@@ -461,15 +459,18 @@ by each Signer, and (2) individual shares of the signing key owned by each Signe
 In general, two possible key generation mechanisms are possible, one that requires
 a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
-in Section {{dep-dealer}}, for reference.
+in {{dep-dealer}}, for reference.
 
 The rest of this section describes the core FROST protocol.
 
 ## Signing
 
 We assume the existence of a *coordinator*, who is responsible for the following:
+
 1. Determining which signers will participate (at least t in number)
+
 2. Coordinating rounds (receiving and forwarding inputs among participants)
+
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
 We describe the protocol in two rounds. The first round serves for each participant to issue a commitment.
@@ -481,20 +482,14 @@ The coordinator then performs an aggregation round at the end.
 ### Round One
 
 Round one serves to generate nonces and commitments for each signer.
-Each signer generates a nonce and its corresponding commitment.
-The nonce should be stored locally, whereas the commitment should
-be sent to the signature coordinator.
+Each signer should store their nonce locally (to be later used in round
+two), whereas the commitment should be sent to the signature coordinator.
 
 ~~~
 round_one()
 
-Inputs:
-- shares, a list of t secret shares, each a tuple (i, f(i))
-- n, the number of shares to generate, an integer
-- t, the threshold of the secret sharing scheme, an integer
-
-Outputs: nonce_i, the nonce that the participant should store *locally* to be used for
-signing in round two, and comm_i, to be sent to the coordinator.
+Outputs: nonce_i, the nonce that the participant should store for later use in
+round two, and comm_i, their commitment to be sent to the coordinator.
 
 def round_one():
   d_i = RandomScalar()
@@ -520,12 +515,13 @@ round_two(sk_i, (d_i, e_i), m, B, L):
 Inputs:
 - sk_i: secret key that is the tuple sk_i= (i, s[i])
 - nonce (d_i, e_i) generated in round one
-- m: the message to be signed.
-- B={(D_j, E_j), ...}: a set of commitments issued by each signer in round one,
-of length l, where t <= l <= n.
-- L: a set containing identifiers for each signer, similarly of length l.
+- m: the message to be signed (sent by the coordinator).
+- B={(D_j, E_j), ...}: a set of commitments issued by each signer
+in round one, of length l, where t <= l <= n (sent by the coordinator).
+- L: a set containing identifiers for each signer, similarly of length
+l (sent by the coordinator).
 
-Outputs: a signature share z_i.
+Outputs: a signature share z_i, to be sent to the coordinator.
 
 round_two(sk_i, (d_i, e_i), m, B, L):
   binding_factor = Hrho(B)
@@ -595,6 +591,30 @@ if the underlying transport failed to deliver the required messages.
 
 ### Validation of Signature Shares {#sec:validate-sig-share}
 
+The coordinator can perform validation of signature shares by checking:
+
+~~~
+verify(PK_i, z_i, R, R_i, L_i, m)
+
+Inputs:
+- PK_i: the public key for the ith signer, where PK_i = HashToCurve(s[i]).
+- z_i: the signature share for the ith signer
+- R_i: the commitment for the ith signer, where R_i = F_i + E_i * rho
+- R: the group commitment
+- L_i: the ith Lagrange coefficient for the signing set.
+- m: the message to be signed
+
+Outputs: 1 if the signature share is valid, and 0 otherwise
+
+verify(PK_i, z_i, R_i, L_i, m)
+  c' = Hchal(R, m)
+  Z_i = HashToCurve(z_i)
+  R_i' =  Z_i + (PK_i * -c')
+  if R_i == R_i':
+    return 1
+  return 0
+~~~
+
 ### Tracking Nonces to Prevent Reuse
 
 ## External Requirements / Non-Goals
@@ -613,6 +633,8 @@ channel can be used to facilitate key generation and signing.
 # Acknowledgments
 
 Chris Wood contributed significantly to the writing of this document and to ensuring compatibility with existing IETF drafts.
+Isis Lovecruft contributed to the writing of this document and maintains an independent implementation of FROST over Ristretto.
+The Zcash engineering team designed a serialization format for FROST messages which we employ a slightly adapted version here.
 
 # Trusted Dealer Key Generation {#dep-dealer}
 
