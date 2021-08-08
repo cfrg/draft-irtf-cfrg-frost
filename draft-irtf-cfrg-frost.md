@@ -116,24 +116,6 @@ message and produce a single, aggregate signature. This protocol assumes a relia
 channel. While messages that are exchanged contain no secret information, the channel
 must be able to deliver messages reliably in order for the protocol to complete.
 
-# Threat Model
-
-* Trusted dealer. The dealer that performs key generation is trusted to follow
-the protocol, although participants still are able to verify the consistency of their
-shares via a VSS (verifiable secret sharing) step.
-
-* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
-corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
-
-* Coordinator. We assume the coordinator at the time of signing does not perform a
-denial of service attack. A denial of service would include any action which either
-prevents the protocol from completing or causing the resulting signature to be invalid.
-Such actions for the latter include sending inconsistent values to signing participants,
-such as messages or the set of individual commitments. Note that the coordinator
-is *not* trusted with any private information and communication at the time of signing
-can be performed over a public but reliable channel.
-
-
 # Conventions and Terminology
 
 The following notation and terminology are used throughout this document.
@@ -149,6 +131,7 @@ at least `t` shares must be combined to issue a valid signature.
 * `PK` is the group public key.
 * `sk_i` is each ith individual's private key, consisting of the tuple `sk_i = (i, s[i])`.
 * len(x) is the length of integer input `x` as an 8-byte, big-endian integer.
+* \|\| denotes contatenation, i.e., x \|\| y = xy.
 
 This specification makes use of the following utility functions:
 
@@ -239,13 +222,8 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
-Using H, we introduce two separate domain-separated hashes, implemented as
-follows:
-
-* H1(m) = H("rho" || len(m) || m)
-* H2(m) = H("chal" || len(m) || m)
-
-<!-- XXX(caw): specify how these are implemented -->
+Using H, we introduce two separate domain-separated hashes, H1 and H2, where
+H1(m) = H("rho" || len(m) || m) and H2(m) = H("chal" || len(m) || m).
 
 ## Schnorr Signatures {#dep-schnorr}
 
@@ -493,7 +471,7 @@ This protocol assumes reliable message delivery between coordinator and signing 
 Messages exchanged during signing operations are all within the public domain. An attacker
 masquerading as another participant will result only in an invalid signature; see {{sec-considerations}}.
 
-### Round One: Commitment {#frost-round-one}
+### Round One {#frost-round-one}
 
 Round one serves to generate nonces and commitments for each signer.
 Each signer should store their nonce locally (to be later used in round
@@ -542,7 +520,7 @@ D
 E
 : The commimtment blinding factor encoded as a serialized scalar.
 
-### Round Two: Signing {#frost-round-two}
+### Round Two {#frost-round-two}
 
 In round two, the coordinator is responsible for sending the message to be signed, and
 for choosing which signers will participate (of number at least `t`). Signers
@@ -657,7 +635,7 @@ aggregate(R, Z):
 Inputs:
 - R: the group commitment.
 - Z: a set of signature shares z_i for each signer, of length w,
-where  t <= w <= n.
+where t <= w <= n.
 
 Outputs: sig=(R, z), a Schnorr signature.
 
@@ -680,8 +658,25 @@ TODO: writeme
 
 # Security Considerations {#sec-considerations}
 
-A security analysis of FROST exists in {{FROST21}}. The rest of this section
-documents issues particular to implementations or deployments.
+A security analysis of FROST exists in {{FROST21}}. The protocol as specified
+in this document assumes the following threat model.
+
+* Trusted dealer. The dealer that performs key generation is trusted to follow
+the protocol, although participants still are able to verify the consistency of their
+shares via a VSS (verifiable secret sharing) step.
+
+* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
+corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
+
+* Coordinator. We assume the coordinator at the time of signing does not perform a
+denial of service attack. A denial of service would include any action which either
+prevents the protocol from completing or causing the resulting signature to be invalid.
+Such actions for the latter include sending inconsistent values to signing participants,
+such as messages or the set of individual commitments. Note that the coordinator
+is *not* trusted with any private information and communication at the time of signing
+can be performed over a public but reliable channel.
+
+The rest of this section documents issues particular to implementations or deployments.
 
 ## Nonce Reuse Attacks
 
