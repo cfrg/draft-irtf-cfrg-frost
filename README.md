@@ -1,16 +1,16 @@
-# Two-Round FROST with Trusted Dealer
+# Two-Round Threshold Signatures with FROST
 
-This is the working area for the individual Internet-Draft, "Two-Round FROST with Trusted Dealer".
+This is the working area for the individual Internet-Draft, "Two-Round Threshold Signatures with FROST".
 
-* [Editor's Copy](https://chris-wood.github.io/frost-spec/#go.draft-irtf-cfrg-frost.html)
+* [Editor's Copy](https://chelseakomlo.github.io/frost-spec/#go.draft-irtf-cfrg-frost.html)
 * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-frost)
-* [Compare Editor's Copy to Individual Draft](https://chris-wood.github.io/frost-spec/#go.draft-irtf-cfrg-frost.diff)
+* [Compare Editor's Copy to Individual Draft](https://chelseakomlo.github.io/frost-spec/#go.draft-irtf-cfrg-frost.diff)
 
 
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/chris-wood/frost-spec/blob/master/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/chelseakomlo/frost-spec/blob//CONTRIBUTING.md).
 
 Contributions can be made by editing markdown through the GitHub interface.
 
