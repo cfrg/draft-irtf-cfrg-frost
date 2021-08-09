@@ -1,12 +1,21 @@
-# TODO - Your title
+# Two-Round FROST with Trusted Dealer
 
-This is the working area for the individual Internet-Draft, "TODO - Your title".
+This is the working area for the individual Internet-Draft, "Two-Round FROST with Trusted Dealer".
 
-* [Editor's Copy](https://chelseakomlo.github.io/frost-spec/#go.draft-frost.html)
-* [Individual Draft](https://tools.ietf.org/html/draft-frost)
-* [Compare Editor's Copy to Individual Draft](https://chelseakomlo.github.io/frost-spec/#go.draft-frost.diff)
+* [Editor's Copy](https://chris-wood.github.io/frost-spec/#go.draft-irtf-cfrg-frost.html)
+* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-frost)
+* [Compare Editor's Copy to Individual Draft](https://chris-wood.github.io/frost-spec/#go.draft-irtf-cfrg-frost.diff)
 
-## Building the Draft
+
+## Contributing
+
+See the
+[guidelines for contributions](https://github.com/chris-wood/frost-spec/blob/master/CONTRIBUTING.md).
+
+Contributions can be made by editing markdown through the GitHub interface.
+
+
+## Command Line Usage
 
 Formatted text and HTML versions of the draft can be built using `make`.
 
@@ -15,10 +24,5 @@ $ make
 ```
 
 This requires that you have the necessary software installed.  See
-[the instructions](https://github.com/martinthomson/i-d-template/blob/master/doc/SETUP.md).
+[the instructions](https://github.com/martinthomson/i-d-template/blob/main/doc/SETUP.md).
 
-
-## Contributing
-
-See the
-[guidelines for contributions](https://github.com/chelseakomlo/frost-spec/blob/master/CONTRIBUTING.md).
