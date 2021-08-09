@@ -1,7 +1,7 @@
 ---
 title: "Two-Round FROST with Trusted Dealer"
 abbrev: "FROST"
-docname: draft-irtf-cfrg-frost-00
+docname: draft-irtf-cfrg-frost-latest
 category: info
 
 ipr: trust200902
