@@ -276,7 +276,7 @@ recommendations on hash functions which SHOULD BE used in practice, see
 Using H, we introduce two separate domain-separated hashes, H1 and H2, where
 H1(m) = H("rho" || len(m) || m) and H2(m) = H("chal" || len(m) || m).
 
-# Helper functions {helpers#}
+# Helper functions {#helpers}
 
 Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
