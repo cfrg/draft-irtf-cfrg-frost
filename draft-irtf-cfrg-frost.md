@@ -22,6 +22,11 @@ author:
     name: Ian Goldberg
     organization: University of Waterloo
     email: iang@uwaterloo.ca
+ -  ins: T. Wilson-Brown
+    name: T Wilson-Brown
+    organization: Zcash Foundation
+    email: teor@riseup.net
+
 
 informative:
   FROST21:
@@ -30,6 +35,7 @@ informative:
     author:
       - name: Chelsea Komlo
       - name: Ian Goldberg
+      - name: T. Wilson-Brown
     date: 2021-06-01
 
 
@@ -740,13 +746,15 @@ to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
 
+# Contributors
+
+* Chris Wood
+* Isis Lovecruft
+
 --- back
 
 # Acknowledgments
 
-Chris Wood contributed significantly to the writing of this document and to ensuring
-compatibility with existing IETF drafts. Isis Lovecruft contributed to the writing
-of this document and maintains an independent implementation of FROST over Ristretto.
 The Zcash engineering team designed a serialization format for FROST messages which
 we employ a slightly adapted version here.
 
