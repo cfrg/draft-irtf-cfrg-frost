@@ -738,7 +738,7 @@ shares can do so using the `verify_signature_share` function in {{frost-round-tw
     return sig=(R, z)
 ~~~
 
-# Recommended Ciphersuites {#ciphersuites}
+# Ciphersuites {#ciphersuites}
 
 A FROST ciphersuite must specify the underlying prime-order group details
 and cryptographic hash function. Each ciphersuite is denoted as (Group, Hash),
