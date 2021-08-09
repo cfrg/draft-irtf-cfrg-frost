@@ -444,7 +444,7 @@ coefficients in coeffs.
 def commit(coeffs):
   C = []
   for coeff in coeffs:
-    A_i = HashToScalar(coeff)
+    A_i = ScalarBaseMult(coeff)
     C.append(A_i)
   return C
 ~~~
@@ -462,9 +462,9 @@ where s[i] is a secret share of the constant term of f.
 Outputs: 1 if s[i] is valid, and 0 otherwise
 
 verify(sk_i, commitment)
-  S_i = HashToCurve(s[i])
+  S_i = ScalarBaseMult(s[i])
   S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
-  if A_i == A_i':
+  if S_i == S_i':
     return 1
   return 0
 ~~~
@@ -536,17 +536,17 @@ in a `SigningComitment`, along with the participant ID, as follows:
     SignerID id;
     opaque D[Ne];
     opaque E[Ne];
-  } SigningComitment;
+  } SigningCommitment;
 ~~~
 
 id
 : The SignerID.
 
 D
-: The commimtment hiding factor encoded as a serialized group element.
+: The commitment hiding factor encoded as a serialized group element.
 
 E
-: The commimtment blinding factor encoded as a serialized group element.
+: The commitment blinding factor encoded as a serialized group element.
 
 ### Round Two {#frost-round-two}
 
@@ -768,7 +768,7 @@ def trusted_dealer_keygen(n, t):
   secret_keys = []
     sk_i = (i, points[i])
   secret_keys.append(sk_i)
-  public_key = HashToScalar(s)
+  public_key = ScalarBaseMult(s)
   return secret_keys, public_key
 
 ~~~
