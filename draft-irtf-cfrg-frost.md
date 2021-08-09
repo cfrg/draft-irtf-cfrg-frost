@@ -166,7 +166,7 @@ is addition `+` with identity element `I`. For any elements `A` and `B` of the g
 application of the group operation on an element A with itself `r-1` times, this is denoted
 as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as the fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
-operation `G` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
+operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
 scalars corresponds to `GF(p)`, which refer to as the scalar field. This document uses types
 `Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
 We denote equality comparison as `==` and assignment of values by `=`.
