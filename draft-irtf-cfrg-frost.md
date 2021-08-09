@@ -167,7 +167,7 @@ at least `t` shares must be combined to issue a valid signature.
 * `sig = (R, z)` denotes a Schnorr signature with public commitment `R` and response `z`.
 * `PK` is the group public key.
 * `sk_i` is each ith individual's private key, consisting of the tuple `sk_i = (i, s[i])`.
-* len(x) is the length of integer input `x` as an 8-byte, big-endian integer.
+* `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * \|\| denotes contatenation, i.e., x \|\| y = xy.
 
 This specification makes use of the following utility functions:
@@ -181,22 +181,19 @@ Unless otherwise stated, we assume that secrets are sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG); see
 {{?RFC4086}} for additional guidance on the generation of random numbers.
 
-Let B be a generator, or distiguished element, of G, a finite group of with
-order l, a large prime.  Throughout this document, and in practice, we assume
+Let `B` be a generator, or distiguished element, of `G`, a finite group of with
+order `l`, a large prime.  Throughout this document, and in practice, we assume
 this group to be instantiated as an arbitrary abstraction of an elliptic curve
 subgroup, defined over a finite field; however, that does not restrict an
 implementation from instantiating FROST signatures over other groups, provided
 their order be prime.
 
 We denote group elements with capital Roman letters, and scalars with
-lower-cased Roman letters.  We use + to denote the group operation, and - to
-denote inversion.  We use * to denote multiplication of a scalar by a group
+lower-cased Roman letters.  We use `+` to denote the group operation, and `-` to
+denote inversion.  We use `*` to denote multiplication of a scalar by a group
 element, that is, the group element added to itself in succession a number of
-times equal to the value of the scalar.  Let SUM(START, END){TERMS} denote the
-summation from START to END (inclusive) of TERMS, e.g. SUM(N=0, 3){2N} is equal
-to 2*(1+2+3)=12.  Let PROD(START, END){TERMS} denote the product from START to
-END of TERMS in similar manner.  Testing equality between two group elements
-is denoted as ?=, where it is assumed that the elements are in some canonical,
+times equal to the value of the scalar. Testing equality between two group elements
+is denoted as `?=`, where it is assumed that the elements are in some canonical,
 serialised form.
 
 # Cryptographic Dependencies
@@ -242,7 +239,7 @@ We now detail a number of member functions that can be invoked on a prime-order 
 - SerializeScalar(s): A member function of `G` that maps a scalar element `s`
   to a unique byte array `buf` of fixed length `Ns`. The output type of this
   function is `SerializedScalar`.
-- DeserializeScalar(buf): A member function of `GG` that maps a byte array
+- DeserializeScalar(buf): A member function of `G` that maps a byte array
   `buf` to a scalar `s`, or fails if the input is not a valid byte
   representation of a scalar. This function can raise a
   DeserializeError if deserialization fails; see {{input-validation}}.
@@ -264,7 +261,7 @@ byte array. Like DeserializeElement, this function validates that the element
 is a member of the scalar field and returns an error if this condition is not met.
 
 For ristretto255, this function ensures that the input, when treated as a
-little-endian integer, is a valud between 0 and `Order()`.
+little-endian integer, is a value greater than or equal to 0, and less than `Order()`.
 
 ## Cryptographic Hash Function {#dep-hash}
 
@@ -281,10 +278,10 @@ H1(m) = H("rho" || len(m) || m) and H2(m) = H("chal" || len(m) || m).
 Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
 
-- Schnorr signatures, {{dep-schnorr}};
+- Schnorr signatures, {{#dep-schnorr}};
 - Polynomial operations, {#dep-polynomial};
 - Shamir Secret Sharing, {#dep-shamir}; and
-- Verifiable Secret Sharing committments, {{dep-vss}}.
+- Verifiable Secret Sharing committments, {{#dep-vss}}.
 
 This sections describes these operations in more detail.
 
@@ -420,8 +417,8 @@ in such a way that any cooperating subset of `t` participants can recover the
 secret. There are two basic steps in this scheme: (1) splitting a secret into
 multiple shares, and (2) combining shares to reveal the resulting secret.
 
-This secret sharing scheme works over any field F. In this specification, F is
-the scalar field of the prime-order group G.
+This secret sharing scheme works over any field `F`. In this specification, `F` is
+the scalar field of the prime-order group `G`.
 
 The procedure for splitting a secret into shares is as follows.
 
@@ -546,11 +543,11 @@ by each Signer, and (2) individual shares of the signing key owned by each Signe
 In general, two possible key generation mechanisms are possible, one that requires
 a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
-in {{dep-dealer}}, for reference.
+in {{#dep-dealer}}, for reference.
 
 FROST assumes the existence of a *Coordinator*, which is a Signer responsible for the following:
 
-1. Determining which signers will participate (at least t in number);
+1. Determining which signers will participate (at least `t` in number);
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
@@ -563,7 +560,7 @@ final signature.
 This protocol assumes reliable message delivery between Coordinator and signing participants
 in order for the protocol to complete. Messages exchanged during signing operations are all within
 the public domain. An attacker masquerading as another participant will result only in an invalid
-signature; see {{sec-considerations}}.
+signature; see {{#sec-considerations}}.
 
 ### Round One {#frost-round-one}
 
@@ -820,7 +817,7 @@ channel can be used to facilitate key generation and signing.
 
 # Acknowledgments
 
-The Zcash engineering team designed a serialization format for FROST messages which
+The Zcash Foundation engineering team designed a serialization format for FROST messages which
 we employ a slightly adapted version here.
 
 # Trusted Dealer Key Generation {#dep-dealer}
