@@ -24,7 +24,7 @@ author:
     email: iang@uwaterloo.ca
 
 informative:
-  frost:
+  FROST21:
     target: https://eprint.iacr.org/2020/852.pdf
     title: "Two-Round FROST with Trusted Dealer"
     author:
@@ -116,24 +116,6 @@ message and produce a single, aggregate signature. This protocol assumes a relia
 channel. While messages that are exchanged contain no secret information, the channel
 must be able to deliver messages reliably in order for the protocol to complete.
 
-# Threat Model
-
-* Trusted dealer. The dealer that performs key generation is trusted to follow
-the protocol, although participants still are able to verify the consistency of their
-shares via a VSS (verifiable secret sharing) step.
-
-* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
-corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
-
-* Coordinator. We assume the coordinator at the time of signing does not perform a
-denial of service attack. A denial of service would include any action which either
-prevents the protocol from completing or causing the resulting signature to be invalid.
-Such actions for the latter include sending inconsistent values to signing participants,
-such as messages or the set of individual commitments. Note that the coordinator
-is *not* trusted with any private information and communication at the time of signing
-can be performed over a public but reliable channel.
-
-
 # Conventions and Terminology
 
 The following notation and terminology are used throughout this document.
@@ -148,6 +130,8 @@ at least `t` shares must be combined to issue a valid signature.
 * `sig = (R, z)` denotes a Schnorr signature with public commitment `R` and response `z`.
 * `PK` is the group public key.
 * `sk_i` is each ith individual's private key, consisting of the tuple `sk_i = (i, s[i])`.
+* len(x) is the length of integer input `x` as an 8-byte, big-endian integer.
+* \|\| denotes contatenation, i.e., x \|\| y = xy.
 
 This specification makes use of the following utility functions:
 
@@ -238,11 +222,8 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
-We specify two domain-separated hash functions as follows:
-
-* Hrho
-
-* Hchal
+Using H, we introduce two separate domain-separated hashes, H1 and H2, where
+H1(m) = H("rho" || len(m) || m) and H2(m) = H("chal" || len(m) || m).
 
 ## Schnorr Signatures {#dep-schnorr}
 
@@ -274,23 +255,58 @@ def EdDSA_verify(msg, sig, PK):
 
 ## Polynomial Operations {#dep-polynomial}
 
+This section describes operations on and assocaited with polynomials
+that are used in the main signing protocol.
 
 ### Evaluation of a polynomial
 
-    - Horner's method
+This section describes a method for evaluating a polynomial `f` at a
+particular input `x`, i.e., `f(x)`.
+
+~~~
+polynomial_evaluate(x, coeffs)
+
+Inputs:
+- x, input at which to evaluate the polynomial, a scalar
+- coeffs, the polynomial coefficients
+
+Outputs: Scalar result of the polynomial evaluated at input x
+
+def polynomial_evaluate(x, coeffs):
+  TODO: writeme
+~~~
+
+### Polynomial interpolation
+
+Polynomial interpolation is a process to recover the y-intercept of a
+polynomial of degree `t` given a set of `t` points.
+
+~~~
+polynomial_interpolation(points)
+
+Inputs:
+- points, a set of `t` points
+
+Outputs: the y-intercept of the polynomial
+
+def polynomial_interpolation(points):
+  TODO: writeme
+~~~
 
 ### Lagrange coefficients
 
-Lagrange coefficients are used in FROST to evaluate a polynomial `f` at `f(0)`, given a set of `t` other points.
+Lagrange coefficients are used in FROST to evaluate a polynomial
+`f` at `f(0)`, given a set of `t` other points, where `f` is
+represented as a set of coefficients.
 
 ~~~
 derive_lagrange_coefficient(i, L)
 
 Inputs:
-- L: the set of x-coordinates
-- i: an index, contained in L
+- i, an index, contained in L
+- L, the set of x-coordinates
 
-Outputs: L_i, the ith Lagrange coefficient
+Outputs: L_i, the i-th Lagrange coefficient
 
 def derive_lagrange_coefficient(i, L):
   numerator = 0
@@ -304,9 +320,7 @@ def derive_lagrange_coefficient(i, L):
   return L_i
 ~~~
 
-
 ## Shamir Secret Sharing {#dep-shamir}
-
 
 In Shamir secret sharing, a dealer distributes a secret `s` to `n` participants
 in such a way that any cooperating subset of `t` participants can recover the
@@ -321,7 +335,7 @@ element in the field.
 The procedure for splitting a secret into shares is as follows:
 
 ~~~
-secret_share_split(s, n, t)
+secret_share_split(s, n, t):
 
 Inputs:
 - s, secret to be shared, an element of F
@@ -360,7 +374,7 @@ The procedure for combining a `shares` list of length `t` to recover the
 secret `s` is as follows:
 
 ~~~
-secret_share_combine(shares)
+secret_share_combine(shares):
 
 Inputs:
 - shares, a list of t secret shares, each a tuple (i, f(i))
@@ -369,33 +383,27 @@ Inputs:
 
 Outputs: a list of n secret shares, each of which is an element of F
 
-Errors:
-- "XXX", TBD
-
 def secret_share_combine(shares):
-  s = polynomial_interpolation(0, shares)
+  s = polynomial_interpolation(shares)
   return s
 ~~~
 
-
 ## Verifiable Secret Sharing {#dep-vss}
 
-Feldman's Verifiable Secret Sharing (VSS)
-builds upon Shamir secret sharing, adding a verification step to
-demonstrate the consistency of a participant's share with a public
-commitment to the polynomial `f` for which the secret `s` is the constant term.
-This check ensure that all participants have a point (their share) on the same
-polynomial, ensuring that they can later reconstruct the correct secret.
-If the validation
-fails, the participant can issue a complaint against the dealer, and
-take actions such as broadcasting this complaint to all other participants.
-We do not specify the complaint procedure in this draft, as it will be
-implementation-specific.
+Feldman's Verifiable Secret Sharing (VSS) builds upon Shamir secret sharing,
+adding a verification step to demonstrate the consistency of a participant's
+share with a public commitment to the polynomial `f` for which the secret `s`
+is the constant term. This check ensure that all participants have a point
+(their share) on the same polynomial, ensuring that they can later reconstruct
+the correct secret. If the validation fails, the participant can issue a complaint
+against the dealer, and take actions such as broadcasting this complaint to all
+other participants. We do not specify the complaint procedure in this draft, as
+it will be implementation-specific.
 
 The procedure for committing to a polynomial `f` of degree `t-1` is as follows:
 
 ~~~
-commit(coeffs)
+commit(coeffs):
 
 Inputs:
 - coeffs, a vector of the t coefficients which uniquely determine
@@ -415,7 +423,7 @@ def commit(coeffs):
 The procedure for verification of a participant's share is as follows:
 
 ~~~
-verify(sk_i, C)
+verify(sk_i, C):
 
 Inputs:
 - sk_i: A participant's secret key, the tuple sk_i = (i, s[i]),
@@ -432,20 +440,6 @@ verify(sk_i, commitment)
   return 0
 ~~~
 
-# Network Dependencies
-
-The FROST protocol maintains two separate assumptions for the underlying network
-depending on the operation being performed.
-
-* *Key Generation*. At the time of key generation, secret shares need to be sent to each participant.
-Consequently, the network layer must provide the properties of authenticity (for
-both sender and receiver), confidentiality, and integrity.
-Mutual TLS is one appropriate option.
-
-* *Signing*. Signing operations only require a reliable network, since messages exchanged
-during signing operations are all within the public domain. An attacker
-masquerading as another participant will result only in an invalid signature.
-
 # Two-Round FROST
 
 The FROST protocol assumes that each participant `P_i` knows the following:
@@ -461,53 +455,101 @@ a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
 in {{dep-dealer}}, for reference.
 
-The rest of this section describes the core FROST protocol.
+FROST assumes the existence of a *coordinator*, which is a Signer responsible for the following:
 
-## Signing
-
-We assume the existence of a *coordinator*, who is responsible for the following:
-
-1. Determining which signers will participate (at least t in number)
-
-2. Coordinating rounds (receiving and forwarding inputs among participants)
-
+1. Determining which signers will participate (at least t in number);
+2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-We describe the protocol in two rounds. The first round serves for each participant to issue a commitment.
-The second round receives commitments for all signers as well as the message, and issues a signature share.
-The coordinator performs the coordination of each of these rounds.
-The coordinator then performs an aggregation round at the end.
+We describe the protocol in two rounds: commitment and signing. The first round serves for each
+participant to issue a commitment. The second round receives commitments for all signers as well
+as the message, and issues a signature share. The coordinator performs the coordination of each
+of these rounds. The coordinator then performs an aggregation round at the end and outputs the
+final signature.
 
+This protocol assumes reliable message delivery between coordinator and signing participants.
+Messages exchanged during signing operations are all within the public domain. An attacker
+masquerading as another participant will result only in an invalid signature; see {{sec-considerations}}.
 
-### Round One
+### Round One {#frost-round-one}
 
 Round one serves to generate nonces and commitments for each signer.
 Each signer should store their nonce locally (to be later used in round
 two), whereas the commitment should be sent to the signature coordinator.
 
 ~~~
-round_one()
+round_one():
 
-Outputs: nonce_i, the nonce that the participant should store for later use in
-round two, and comm_i, their commitment to be sent to the coordinator.
+Inputs: None
+
+Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs
 
 def round_one():
-  d_i = RandomScalar()
-  e_i = RandomScalar()
-  D_i = HashToScalar(d_i)
-  E_i = HashToScalar(e_i)
-  nonce_i = (d_i, e_i)
-  comm_i = (D_i, E_i)
-  return nonce_i, comm_i
+  d = RandomScalar()
+  e = RandomScalar()
+  D = HashToScalar(d)
+  E = HashToScalar(e)
+  nonce = (d, e)
+  comm = (D, E)
+  return nonce, comm
 ~~~
 
-### Round Two
+The output `nonce` from Participant `P_i` is stored locally and kept private
+for use in the second round. The output `comm` from Participant `P_i` is sent
+to the Coordinator. Both scalar values in this tuple are serialized and encoded
+in a `SigningComitment`, along with the participant ID, as follows:
+
+<!-- Do we want to give (D, E) better names? -->
+<!-- Serialization docs suggest that the committment is a set of points, not scalars? -->
+~~~
+  SignerID uint64;
+
+  struct {
+    SignerID id;
+    opaque D[Ns];
+    opaque E[Ns];
+  } SigningComitment;
+~~~
+
+id
+: The SignerID.
+
+D
+: The commimtment hiding factor encoded as a serialized scalar.
+
+E
+: The commimtment blinding factor encoded as a serialized scalar.
+
+### Round Two {#frost-round-two}
 
 In round two, the coordinator is responsible for sending the message to be signed, and
 for choosing which signers will participate (of number at least `t`). Signers
 additionally require locally held data; specifically, their private key and the
 nonces corresponding to their commitment issued in round one.
 
+The coordinator begins by sending each signer a `SigningPackage`, composed as follows.
+
+~~~
+  struct {
+    SigningComitment signing_commitments<1..2^16-1>;
+    opaque msg<0..2^16-1>;
+  } SigningPackage;
+~~~
+
+<!-- Do we want to make message longer? -->
+
+signing_commitments
+: An list of l SigningComitment values, where t <= l <= n, ordered in ascending order
+by SigningComitment.id. This list MUST NOT contain more than one SigningComitment value
+corresponding to each signer. Signers MUST ignore SigningPackage values with
+duplicate SignerIDs.
+
+msg
+: The message to be signed.
+
+Each signer then runs the following procedure.
+
+<!-- TODO: rewrite inputs as a function of the SigningPackage? -->
 
 ~~~
 round_two(sk_i, (d_i, e_i), m, B, L):
@@ -524,39 +566,82 @@ w (sent by the coordinator).
 Outputs: a signature share z_i, to be sent to the coordinator.
 
 round_two(sk_i, (d_i, e_i), m, B, L):
-  binding_factor = Hrho(B)
-  R = SUM(B[1], B[w]){(j, D_j, E_j)}: D_j + (E_j * binding_factor )
+  binding_factor = H1(B)
+  R = SUM(B[1], B[l]){(j, D_j, E_j)}: D_j + (E_j * binding_factor )
   L_i = derive_lagrange_coefficient(i, L)
-  c = Hchal(R, m)
+  c = H2(R, m)
   z_i = d_i + (e_i * binding_factor) + L_i + s[i] + c
+  return z_i
+~~~
+
+The output of this procedure is a signature share. Each signer then sends this share
+back to the collector in a `SigningPackage`, which is constructed as follows:
+
+~~~
+  struct {
+    SignerID id;
+    opaque package_id[Nh];
+    opaque signature_share[Ns];
+  } SignatureShare;
+~~~
+
+id
+: The SignerID.
+
+package_id
+: The cryptographic hash of the corresponding SigningPackage,
+i.e., package_id = H(SigningPackage).
+
+signature_share
+: The signature share from this signer encoded as a serialized scalar.
+
+Given a set of SignatureShare values, the coordinator MAY elect to verify these
+using the following procedure.
+
+~~~
+verify_signature_share(PK_i, z_i, R, R_i, L_i, m):
+
+Inputs:
+- PK_i, the public key for the ith signer, where PK_i = HashToCurve(s[i]).
+- z_i, the signature share for the ith signer
+- R_i, the commitment for the ith signer, where R_i = F_i + E_i * rho
+- R, the group commitment
+- L_i, the ith Lagrange coefficient for the signing set.
+- m, the message to be signed
+
+Outputs: 1 if the signature share is valid, and 0 otherwise
+
+verify_signature_share(PK_i, z_i, R_i, L_i, m)
+  c' = H2(R, m)
+  Z_i = HashToCurve(z_i)
+  R_i' =  Z_i + (PK_i * -c')
+  if R_i == R_i':
+    return 1
+  return 0
 ~~~
 
 ### Aggregate
 
 After signers perform round two and send their signature shares to the coordinator,
 the coordinator performs the `aggregate` operation and publishes the resulting
-signature.
-
-Note that here we do not specify the coordinator as validating each signature schare,
-as if any signature share is invalid, the resulting joint signature will similarly
-be invalid. We specify in {{sec:validate-sig-share}} a mechanism where
-the coordinator can first validate each signature share in addition to aggregation
-and publicatin.
+signature. Note that here we do not specify the coordinator as validating each
+signature schare, as if any signature share is invalid, the resulting joint
+signature will similarly be invalid. Deployments that wish to validate signature
+shares can do so using the `verify_signature_share` function in {{frost-round-two}}
 
 ~~~
-aggregate(m, R, Z):
+aggregate(R, Z):
 
 Inputs:
-- Z: a set of signature shares z_i for each signer, of length w,
-where  t <= w <= n.
 - R: the group commitment.
-- m: the message to be signed.
+- Z: a set of signature shares z_i for each signer, of length w,
+where t <= w <= n.
 
 Outputs: sig=(R, z), a Schnorr signature.
 
-aggregate(m, R, Z):
+aggregate(R, Z):
   z = SUM(Z[1], Z[w]){z_i}: z_i
-  return m, sig=(R, z)
+  return sig=(R, z)
 ~~~
 
 # Curve and Verification Compatability
@@ -571,50 +656,42 @@ TODO write me
 
 TODO: writeme
 
-# Security Considerations
+# Security Considerations {#sec-considerations}
 
-## Nonce Reuse Attacks.
+A security analysis of FROST exists in {{FROST21}}. The protocol as specified
+in this document assumes the following threat model.
 
-Nonces generated by each participant in the
-first round of signing must be sampled uniformly at random and cannot be derived from some
-determinstic function. This is to avoid replay attacks initiated by other signers, which
-allows for a complete key-recovery attack.
+* Trusted dealer. The dealer that performs key generation is trusted to follow
+the protocol, although participants still are able to verify the consistency of their
+shares via a VSS (verifiable secret sharing) step.
+
+* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
+corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
+
+* Coordinator. We assume the coordinator at the time of signing does not perform a
+denial of service attack. A denial of service would include any action which either
+prevents the protocol from completing or causing the resulting signature to be invalid.
+Such actions for the latter include sending inconsistent values to signing participants,
+such as messages or the set of individual commitments. Note that the coordinator
+is *not* trusted with any private information and communication at the time of signing
+can be performed over a public but reliable channel.
+
+The rest of this section documents issues particular to implementations or deployments.
+
+## Nonce Reuse Attacks
+
+Nonces generated by each participant in the first round of signing must be sampled
+uniformly at random and cannot be derived from some determinstic function. This
+is to avoid replay attacks initiated by other signers, which allows for a complete
+key-recovery attack. Coordinates MAY further hedge against nonce reuse attacks by
+tracking signer nonce commitments used for a given group key, at the cost of additional
+state.
 
 ## Protocol Failures
 
 We do not specify what implementations should do when the protocol fails, other than requiring that
 the protocol abort. Examples of viable failure include when a verification check returns invalid or
 if the underlying transport failed to deliver the required messages.
-
-## Additional Security Checks
-
-### Validation of Signature Shares {#sec:validate-sig-share}
-
-The coordinator can perform validation of signature shares by checking:
-
-~~~
-verify(PK_i, z_i, R, R_i, L_i, m)
-
-Inputs:
-- PK_i: the public key for the ith signer, where PK_i = HashToCurve(s[i]).
-- z_i: the signature share for the ith signer
-- R_i: the commitment for the ith signer, where R_i = F_i + E_i * rho
-- R: the group commitment
-- L_i: the ith Lagrange coefficient for the signing set.
-- m: the message to be signed
-
-Outputs: 1 if the signature share is valid, and 0 otherwise
-
-verify(PK_i, z_i, R_i, L_i, m)
-  c' = Hchal(R, m)
-  Z_i = HashToCurve(z_i)
-  R_i' =  Z_i + (PK_i * -c')
-  if R_i == R_i':
-    return 1
-  return 0
-~~~
-
-### Tracking Nonces to Prevent Reuse
 
 ## External Requirements / Non-Goals
 
@@ -631,9 +708,11 @@ channel can be used to facilitate key generation and signing.
 
 # Acknowledgments
 
-Chris Wood contributed significantly to the writing of this document and to ensuring compatibility with existing IETF drafts.
-Isis Lovecruft contributed to the writing of this document and maintains an independent implementation of FROST over Ristretto.
-The Zcash engineering team designed a serialization format for FROST messages which we employ a slightly adapted version here.
+Chris Wood contributed significantly to the writing of this document and to ensuring
+compatibility with existing IETF drafts. Isis Lovecruft contributed to the writing
+of this document and maintains an independent implementation of FROST over Ristretto.
+The Zcash engineering team designed a serialization format for FROST messages which
+we employ a slightly adapted version here.
 
 # Trusted Dealer Key Generation {#dep-dealer}
 
@@ -665,3 +744,6 @@ def trusted_dealer_keygen(n, t):
 
 ~~~
 
+Use of this method for key generation requires a mutually authenticated secure channel
+between coordinator and participants, wherein the channel provides confidentiality
+and integrity. Mutually authenticated TLS is one possible deployment option.
