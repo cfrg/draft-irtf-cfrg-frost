@@ -487,8 +487,8 @@ Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs
 def round_one():
   d = RandomScalar()
   e = RandomScalar()
-  D = HashToScalar(d)
-  E = HashToScalar(e)
+  D = ScalarBaseMult(d)
+  E = ScalarBaseMult(e)
   nonce = (d, e)
   comm = (D, E)
   return nonce, comm
@@ -500,14 +500,13 @@ to the Coordinator. Both scalar values in this tuple are serialized and encoded
 in a `SigningComitment`, along with the participant ID, as follows:
 
 <!-- Do we want to give (D, E) better names? -->
-<!-- Serialization docs suggest that the committment is a set of points, not scalars? -->
 ~~~
   SignerID uint64;
 
   struct {
     SignerID id;
-    opaque D[Ns];
-    opaque E[Ns];
+    opaque D[Ne];
+    opaque E[Ne];
   } SigningComitment;
 ~~~
 
@@ -515,10 +514,10 @@ id
 : The SignerID.
 
 D
-: The commimtment hiding factor encoded as a serialized scalar.
+: The commimtment hiding factor encoded as a serialized group element.
 
 E
-: The commimtment blinding factor encoded as a serialized scalar.
+: The commimtment blinding factor encoded as a serialized group element.
 
 ### Round Two {#frost-round-two}
 
