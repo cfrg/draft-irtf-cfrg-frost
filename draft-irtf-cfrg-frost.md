@@ -144,6 +144,24 @@ Unless otherwise stated, we assume that secrets are sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG); see
 {{?RFC4086}} for additional guidance on the generation of random numbers.
 
+Let B be a generator, or distiguished element, of G, a finite group of with
+order l, a large prime.  Throughout this document, and in practice, we assume
+this group to be instantiated as an arbitrary abstraction of an elliptic curve
+subgroup, defined over a finite field; however, that does not restrict an
+implementation from instantiating FROST signatures over other groups, provided
+their order be prime.
+
+We denote group elements with capital Roman letters, and scalars with
+lower-cased Roman letters.  We use + to denote the group operation, and - to
+denote inversion.  We use * to denote multiplication of a scalar by a group
+element, that is, the group element added to itself in succession a number of
+times equal to the value of the scalar.  Let SUM(START, END){TERMS} denote the
+summation from START to END (inclusive) of TERMS, e.g. SUM(N=0, 3){2N} is equal
+to 2*(1+2+3)=12.  Let PROD(START, END){TERMS} denote the product from START to
+END of TERMS in similar manner.  Testing equality between two group elements
+is denoted as ?=, where it is assumed that the elements are in some canonical,
+serialised form.
+
 # Cryptographic Dependencies
 
 FROST depends on the following constructs:
@@ -225,9 +243,21 @@ recommendations on hash functions which SHOULD BE used in practice, see
 Using H, we introduce two separate domain-separated hashes, H1 and H2, where
 H1(m) = H("rho" || len(m) || m) and H2(m) = H("chal" || len(m) || m).
 
-## Schnorr Signatures {#dep-schnorr}
+## Schnorr Signature {#dep-schnorr}
 
-TODO
+A Schnorr signature, (s, R), created with the secret-public keypair (a, A), over
+the message m, is calculated as: r is a uniformly random scalar, calculated in
+some manner such that if only one signing party remains honest that the
+uniformly random requirement still holds.  R is then calculated as R = r * B.  k
+is calculated as k = H(CIPHERSUITE || R || A || m), where CIPHERSUITE is a string
+describing the specific instantiation properties of this FROST signature scheme,
+e.g. "FROST-RISTRETTO255-SHA512" or "FROST-JUBJUB-BLAKE2B", see Appendix A for
+more concrete details.  Finally, s is calculated as s = k * a + r, and the final
+signature is constituted by the tuple (s, R).
+
+To verify the signature, k is recalculated as before, R' is calculated as
+R' = k * A + s * B, and then check R' ?= R.  If equal, return true; otherwise,
+return false.
 
 ## EdDSA Signatures {#dep-sigs}
 
@@ -368,7 +398,6 @@ Let `points` be the output of this function. The i-th element in `points` is
 the share for the i-th participant, which is funtionally the randomly generated
 polynomial evaluated at `i`. We denote a secret share as the tuple `(i, points[i])`,
 and the list of these shares as `shares`.
-
 
 The procedure for combining a `shares` list of length `t` to recover the
 secret `s` is as follows:
@@ -691,6 +720,7 @@ state.
 We do not specify what implementations should do when the protocol fails, other than requiring that
 the protocol abort. Examples of viable failure include when a verification check returns invalid or
 if the underlying transport failed to deliver the required messages.
+
 
 ## External Requirements / Non-Goals
 
