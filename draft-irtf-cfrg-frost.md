@@ -278,10 +278,10 @@ H1(m) = H("rho" || len(m) || m) and H2(m) = H("chal" || len(m) || m).
 Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
 
-- Schnorr signatures, {{#dep-schnorr}};
-- Polynomial operations, {#dep-polynomial};
-- Shamir Secret Sharing, {#dep-shamir}; and
-- Verifiable Secret Sharing committments, {{#dep-vss}}.
+- Schnorr signatures, {{dep-schnorr}};
+- Polynomial operations, {dep-polynomial};
+- Shamir Secret Sharing, {dep-shamir}; and
+- Verifiable Secret Sharing committments, {{dep-vss}}.
 
 This sections describes these operations in more detail.
 
@@ -543,7 +543,7 @@ by each Signer, and (2) individual shares of the signing key owned by each Signe
 In general, two possible key generation mechanisms are possible, one that requires
 a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
-in {{#dep-dealer}}, for reference.
+in {{dep-dealer}}, for reference.
 
 FROST assumes the existence of a *Coordinator*, which is a Signer responsible for the following:
 
@@ -560,7 +560,7 @@ final signature.
 This protocol assumes reliable message delivery between Coordinator and signing participants
 in order for the protocol to complete. Messages exchanged during signing operations are all within
 the public domain. An attacker masquerading as another participant will result only in an invalid
-signature; see {{#sec-considerations}}.
+signature; see {{sec-considerations}}.
 
 ### Round One {#frost-round-one}
 
