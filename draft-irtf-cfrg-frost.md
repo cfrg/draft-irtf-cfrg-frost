@@ -138,10 +138,10 @@ function to produce the final signature This is sketched below.
 ------------>
             |
       == Round 1 (Commitment) ==
-            |    SigningComitment    |                 |
+            |    SigningCommitment    |                 |
             |<-----------------------+                 |
             |          ...                             |
-            |    SigningComitment                      |
+            |    SigningCommitment                      |
             |<-----------------------------------------+
 
       == Round 2 (Signing) ==
@@ -598,7 +598,7 @@ Each signer in round one generates a nonce `nonce = (d, e)` and commitment
 The output `nonce` from Participant `P_i` is stored locally and kept private
 for use in the second round. The output `comm` from Participant `P_i` is sent
 to the Coordinator. Both group elements in this tuple are serialized and encoded
-in a `SigningComitment`, along with the participant ID, as follows.
+in a `SigningCommitment`, along with the participant ID, as follows.
 
 <!-- Maybe give (D, E) better names? -->
 ~~~
@@ -631,7 +631,7 @@ The Coordinator begins by sending each signer a `SigningPackage`, composed as fo
 
 ~~~
   struct {
-    SigningComitment signing_commitments<1..2^16-1>;
+    SigningCommitment signing_commitments<1..2^16-1>;
     opaque msg<0..2^16-1>;
   } SigningPackage;
 ~~~
@@ -639,8 +639,8 @@ The Coordinator begins by sending each signer a `SigningPackage`, composed as fo
 <!-- Should messages be longer? The limit is due to the wire format here. -->
 
 signing_commitments
-: An list of w SigningComitment values, where t <= w <= n, ordered in ascending order
-by SigningComitment.id. This list MUST NOT contain more than one SigningComitment value
+: An list of w SigningCommitment values, where t <= w <= n, ordered in ascending order
+by SigningCommitment.id. This list MUST NOT contain more than one SigningCommitment value
 corresponding to each signer. Signers MUST ignore SigningPackage values with
 duplicate SignerIDs.
 
