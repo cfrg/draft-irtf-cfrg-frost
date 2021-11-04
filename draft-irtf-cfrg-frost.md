@@ -476,8 +476,6 @@ secret `s` is as follows.
 
   Inputs:
   - shares, a list of t secret shares, each a tuple (i, f(i))
-  - n, the number of shares to generate, an integer
-  - t, the threshold of the secret sharing scheme, an integer
 
   Outputs: a list of n secret shares, each of which is an element of F
 
