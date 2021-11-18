@@ -402,7 +402,7 @@ interpolation, defined as follows.
   Outputs: the constant term of f
 
   def polynomial_interpolation(points):
-    let L = []
+    L = []
     for point in points:
       L.append(point[0]) // add the x-coordinate
 
