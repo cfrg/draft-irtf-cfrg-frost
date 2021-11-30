@@ -270,8 +270,15 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}.
 
-Using H, we introduce two separate domain-separated hashes, H1 and H2, where
-H1(m) = H("rho" || len(m) || m) and H2(m) = H("chal" || len(m) || m).
+Using H, we introduce two separate domain-separated hashes, H1 and H2, where they are
+domain separated. These hash functions differ per parameter set, so H1 and H2 will
+differ between instantiations of the protocol, for example:
+
+H1(m) = H("FROST-RISTRETTO-SHA512" || "rho" || len(m) || m)
+
+and
+
+H2(m) = H("FROST-RISTRETTO-SHA512" || "chal" || len(m) || m)
 
 # Helper functions {#helpers}
 
