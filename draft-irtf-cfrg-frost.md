@@ -338,23 +338,27 @@ The corresponding verification operation is as follows.
 ## Polynomial Operations {#dep-polynomial}
 
 This section describes operations on and associated with polynomials
-that are used in the main signing protocol.
+that are used in the main signing protocol. A polynomial of degree t
+is represented as a sorted list of t coefficients. A point on the
+polynomial is a tuple (x, y), where `y = f(x)`. For notational
+convenience, we refer to the x-coordinate and y-coordinate of a
+point p as `p.x` and `p.y`, respectively.
 
 ### Evaluation of a polynomial
 
 This section describes a method for evaluating a polynomial `f` at a
-particular input `x`, i.e., `f(x)` using Horner's method.
+particular input `x`, i.e., `y = f(x)` using Horner's method.
 
 ~~~
   polynomial_evaluate(x, coeffs):
 
   Inputs:
   - x, input at which to evaluate the polynomial, a scalar
-  - coeffs, the polynomial coefficients
+  - coeffs, the polynomial coefficients, a list of scalars
 
   Outputs: Scalar result of the polynomial evaluated at input x
 
-  def polynomial_evaluate(xcoord, coeffs):
+  def polynomial_evaluate(x, coeffs):
     value = 0
     for (counter, coeff) in coeffs.reverse():
       if counter = coeffs.len():
@@ -376,14 +380,14 @@ represented as a set of coefficients.
   derive_lagrange_coefficient(i, L):
 
   Inputs:
-  - i, an index, contained in L
-  - L, the set of x-coordinates
+  - i, an index contained in L, a scalar
+  - L, the set of x-coordinates, each a scalar
 
   Outputs: L_i, the i-th Lagrange coefficient
 
   def derive_lagrange_coefficient(i, L):
-    numerator = 0
-    denominator = 0
+    numerator = 1
+    denominator = 1
     for j in L:
       if j == i: continue
       numerator *= j
@@ -404,16 +408,21 @@ interpolation, defined as follows.
   polynomial_interpolation(points):
 
   Inputs:
-  - points, a set of `t` points on a polynomial f
+  - points, a set of `t` points on a polynomial f, each a tuple of two
+    scalar values representing the x and y coordinates
 
-  Outputs: the constant term of f
+  Outputs: The constant term of f, i.e., f(0)
 
   def polynomial_interpolation(points):
     L = []
     for point in points:
-      L.append(point[0]) // add the x-coordinate
+      L.append(point.x)
 
-    f_zero = SUM(points[0], points[t]){point}: point[1] * derive_lagrange_coefficient(point[0], L)
+    f_zero = F(0)
+    for point in points:
+      delta = point.y * derive_lagrange_coefficient(point.x, L)
+      f_zero = f_zero + delta
+
     return f_zero
 ~~~
 
@@ -437,7 +446,7 @@ The procedure for splitting a secret into shares is as follows.
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
-  Outputs: a list of n secret shares, each of which is an element of F
+  Outputs: A list of n secret shares, each of which is an element of F
 
   Errors:
   - "invalid parameters", if t > n
@@ -451,17 +460,18 @@ The procedure for splitting a secret into shares is as follows.
     for i in range(t - 1):
       coefficients.append(RandomScalar())
 
-    # Evaluate the polynomial for each participant, identified by their index i
+    # Evaluate the polynomial for each participant, identified by their index i > 0
     points = []
-    for i in range(n):
-      point_i = polynomial_evaluate(1, coefficients)
+    for x_i in range(1, n+1):
+      y_i = polynomial_evaluate(x_i, coefficients)
+      point_i = (x_i, y_i)
       points.append(point_i)
     return points
 ~~~
 
 Let `points` be the output of this function. The i-th element in `points` is
-the share for the i-th participant, which is funtionally the randomly generated
-polynomial evaluated at `i`. We denote a secret share as the tuple `(i, points[i])`,
+the share for the i-th participant, which is the randomly generated polynomial
+evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i])`,
 and the list of these shares as `shares`.
 
 The procedure for combining a `shares` list of length `t` to recover the
@@ -473,9 +483,14 @@ secret `s` is as follows.
   Inputs:
   - shares, a list of t secret shares, each a tuple (i, f(i))
 
-  Outputs: a list of n secret shares, each of which is an element of F
+  Outputs: A list of n secret shares, each of which is an element of F
+
+  Errors:
+  - "invalid parameters", if less than t input shares are provided
 
   def secret_share_combine(shares):
+    if len(shares) < t:
+      raise "invalid parameters"
     s = polynomial_interpolation(shares)
     return s
 ~~~
