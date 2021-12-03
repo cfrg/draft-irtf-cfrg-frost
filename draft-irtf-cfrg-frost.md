@@ -127,10 +127,10 @@ function to produce the final signature This is sketched below.
 ------------>
             |
       == Round 1 (Commitment) ==
-            |    SigningCommitment    |                 |
+            |    SigningCommitment   |                 |
             |<-----------------------+                 |
             |          ...                             |
-            |    SigningCommitment                      |
+            |    SigningCommitment                     |
             |<-----------------------------------------+
 
       == Round 2 (Signing) ==
@@ -274,11 +274,15 @@ Using H, we introduce two separate domain-separated hashes, H1 and H2, where the
 domain separated. These hash functions differ per parameter set, so H1 and H2 will
 differ between instantiations of the protocol, for example:
 
+~~~
 H1(m) = H("FROST-RISTRETTO-SHA512" || "rho" || len(m) || m)
+~~~
 
 and
 
+~~~
 H2(m) = H("FROST-RISTRETTO-SHA512" || "chal" || len(m) || m)
+~~~
 
 # Helper functions {#helpers}
 
