@@ -690,7 +690,9 @@ Each signer then runs the following procedure.
 
   frost_sign(sk_i, (d_i, e_i), m, B, L):
     binding_factor = H1(B, L)
-    R = SUM(B[1], B[l]){(j, D_j, E_j)}: D_j + (E_j * binding_factor )
+    hiding_aggregate = SUM(B[1], B[l]){(j, D_j, _)}: D_j
+    blinding_aggregate = SUM(B[1], B[l]){(j, _, E_j)}: E_j
+    R = hiding_aggregate + (blinding_aggreate * binding_factor)
     L_i = derive_lagrange_coefficient(i, L)
     c = H2(R, m)
     z_i = d_i + (e_i * binding_factor) + L_i + s[i] + c
