@@ -22,10 +22,10 @@ author:
     name: Ian Goldberg
     organization: University of Waterloo
     email: iang@uwaterloo.ca
- -  ins: T. Wilson-Brown
-    name: T Wilson-Brown
-    organization: Zcash Foundation
-    email: teor@riseup.net
+ -  ins: C. Wood
+    name: Chris Wood
+    organization: Cloudflare
+    email: caw@heapingbits.net
 
 
 informative:
