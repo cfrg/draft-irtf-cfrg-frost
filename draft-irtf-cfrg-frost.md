@@ -834,8 +834,9 @@ channel can be used to facilitate key generation and signing.
 
 # Contributors
 
-* Chris Wood
 * Isis Lovecruft
+* Deirdre Connolly
+* T. Wilson-Brown
 
 --- back
 
