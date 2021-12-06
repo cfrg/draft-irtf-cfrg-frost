@@ -22,21 +22,28 @@ author:
     name: Ian Goldberg
     organization: University of Waterloo
     email: iang@uwaterloo.ca
- -  ins: C. Wood
-    name: Chris Wood
+ -  ins: C. A. Wood
+    name: Christopher A. Wood
     organization: Cloudflare
     email: caw@heapingbits.net
 
 
 informative:
-  FROST21:
+  FROST20:
     target: https://eprint.iacr.org/2020/852.pdf
     title: "Two-Round Threshold Signatures with FROST"
     author:
       - name: Chelsea Komlo
       - name: Ian Goldberg
-      - name: T. Wilson-Brown
-    date: 2021-06-01
+    date: 2020-12-22
+  Schnorr21:
+    target: https://eprint.iacr.org/2021/1375
+    title: "How to Prove Schnorr Assuming Schnorr"
+    author:
+      - name: Elizabeth Crites
+      - name: Chelsea Komlo
+      - name: Mary Maller
+    date: 2021-10-11
 
 --- abstract
 
@@ -74,6 +81,10 @@ This draft specifies only two-round signing operations. This draft specifies sig
 that are compatible with EdDSA verification of signatures, but not EdDSA nonce generation.
 EdDSA-style nonce-generation, where the nonce is derived deterministically, is insecure
 in a multi-party signature setting.
+
+Further, this draft implements signing efficiency improvements for FROST described by
+Crites, Komlo, and Maller in {{Schnorr21}}.
+
 
 [OPEN ISSUE: EdDSA compatibility is still an open issue, see: https://github.com/chelseakomlo/frost-spec/issues/5]
 
@@ -678,8 +689,10 @@ Each signer then runs the following procedure.
   Outputs: a signature share z_i, to be sent to the Coordinator.
 
   frost_sign(sk_i, (d_i, e_i), m, B, L):
-    binding_factor = H1(B)
-    R = SUM(B[1], B[l]){(j, D_j, E_j)}: D_j + (E_j * binding_factor )
+    binding_factor = H1(B, L)
+    hiding_aggregate = SUM(B[1], B[l]){(j, D_j, _)}: D_j
+    blinding_aggregate = SUM(B[1], B[l]){(j, _, E_j)}: E_j
+    R = hiding_aggregate + (blinding_aggreate * binding_factor)
     L_i = derive_lagrange_coefficient(i, L)
     c = H2(R, m)
     z_i = d_i + (e_i * binding_factor) + L_i + s[i] + c
@@ -785,7 +798,7 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 
 # Security Considerations {#sec-considerations}
 
-A security analysis of FROST exists in {{FROST21}}. The protocol as specified
+A security analysis of FROST exists in {{FROST20}}. The protocol as specified
 in this document assumes the following threat model.
 
 * Trusted dealer. The dealer that performs key generation is trusted to follow
