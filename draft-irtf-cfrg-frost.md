@@ -22,8 +22,8 @@ author:
     name: Ian Goldberg
     organization: University of Waterloo
     email: iang@uwaterloo.ca
- -  ins: C. Wood
-    name: Chris Wood
+ -  ins: C. A. Wood
+    name: Christopher A. Wood
     organization: Cloudflare
     email: caw@heapingbits.net
 
