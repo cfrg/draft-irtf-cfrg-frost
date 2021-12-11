@@ -598,7 +598,7 @@ in order for the protocol to complete. Messages exchanged during signing operati
 the public domain. An attacker masquerading as another participant will result only in an invalid
 signature; see {{sec-considerations}}.
 
-### Round One {#frost-round-one}
+## Round One {#frost-round-one}
 
 Each signer in round one generates a nonce `nonce = (d, e)` and commitment
 `comm = (D, E)` for each signer.
@@ -645,7 +645,7 @@ D
 E
 : The commitment blinding factor encoded as a serialized group element.
 
-### Round Two {#frost-round-two}
+## Round Two {#frost-round-two}
 
 In round two, the Coordinator is responsible for sending the message to be signed, and
 for choosing which signers will participate (of number at least `t`). Signers
@@ -749,7 +749,7 @@ using the following procedure.
     return 0
 ~~~
 
-### Aggregate
+## Aggregate
 
 After signers perform round two and send their signature shares to the Coordinator,
 the Coordinator performs the `aggregate` operation and publishes the resulting
