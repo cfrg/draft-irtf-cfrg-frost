@@ -797,6 +797,19 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
     and in little-endian order.
 - Hash: SHA-512, and Nh = 64.
 
+## FROST(p256, SHA-256) {#recommended-suite}
+
+- Group: P-256 (secp256r1) {{x9.62}}
+  - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
+    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
+    "HashToGroup-" || contextString.
+  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
+    using L = 48, `expand_message_xmd` with SHA-256,
+    DST = "HashToScalar-" || contextString, and
+    prime modulus equal to `Order()`.
+  - Serialization: Elements are serialized as Ne = 33 byte string
+- Hash: SHA-512, and Nh = 64.
+
 # Security Considerations {#sec-considerations}
 
 A security analysis of FROST exists in {{FROST20}}. The protocol as specified
