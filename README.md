@@ -30,6 +30,7 @@ This requires that you have the necessary software installed.  See
 ## Existing Implementations
 
   * `[frost-dalek](https://github.com/isislovecrusft/frost-dalek) (Rust). Status: In-progress.
+  * `[frost-ristretto255](https://github.com/ZcashFoundation/frost/tree/main/frost-ristretto255) (Rust). Status: In-progress.
   * `[frost-redjubjub](https://github.com/zcashfoundation/redjubjub/tree/main/src/frost.rs) (Rust). Status: In-progress.
   * `[frost-ed25519](https://github.com/taurusgroup/frost-ed25519) (Go). Status: Not interoperable.
   * `[multi-party-sig](https://github.com/taurusgroup/multi-party-sig/tree/main/protocols/frost) (Go). Status: Not interoperable.
