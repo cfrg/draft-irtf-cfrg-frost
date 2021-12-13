@@ -26,3 +26,10 @@ $ make
 This requires that you have the necessary software installed.  See
 [the instructions](https://github.com/martinthomson/i-d-template/blob/main/doc/SETUP.md).
 
+
+## Existing Implementations
+
+  * `[frost-dalek](https://github.com/isislovecrusft/frost-dalek) (Rust). Status: In-progress.
+  * `[frost-redjubjub](https://github.com/zcashfoundation/redjubjub/tree/main/src/frost.rs) (Rust). Status: In-progress.
+  * `[frost-ed25519](https://github.com/taurusgroup/frost-ed25519) (Go). Status: Not interoperable.
+  * `[multi-party-sig](https://github.com/taurusgroup/multi-party-sig/tree/main/protocols/frost) (Go). Status: Not interoperable.
