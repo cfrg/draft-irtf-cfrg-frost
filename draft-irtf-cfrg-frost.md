@@ -26,6 +26,10 @@ author:
     name: Christopher A. Wood
     organization: Cloudflare
     email: caw@heapingbits.net
+ -  ins: D. Connolly
+    name: Deirdre Connolly
+    organization: Zcash Foundation
+    email: durumcrustulum@gmail.com
 
 
 informative:
@@ -849,7 +853,6 @@ channel can be used to facilitate key generation and signing.
 # Contributors
 
 * Isis Lovecruft
-* Deirdre Connolly
 * T. Wilson-Brown
 
 --- back
