@@ -14,6 +14,10 @@ smart_quotes: no
 pi: [toc, sortrefs, symrefs]
 
 author:
+ -  ins: D. Connolly
+    name: Deirdre Connolly
+    organization: Zcash Foundation
+    email: durumcrustulum@gmail.com
  -  ins: C. Komlo
     name: Chelsea Komlo
     organization: University of Waterloo, Zcash Foundation
@@ -26,10 +30,6 @@ author:
     name: Christopher A. Wood
     organization: Cloudflare
     email: caw@heapingbits.net
- -  ins: D. Connolly
-    name: Deirdre Connolly
-    organization: Zcash Foundation
-    email: durumcrustulum@gmail.com
 
 
 informative:
@@ -88,9 +88,6 @@ in a multi-party signature setting.
 
 Further, this draft implements signing efficiency improvements for FROST described by
 Crites, Komlo, and Maller in {{Schnorr21}}.
-
-
-[OPEN ISSUE: EdDSA compatibility is still an open issue, see: https://github.com/chelseakomlo/frost-spec/issues/5]
 
 # Change Log
 
@@ -313,7 +310,8 @@ This sections describes these operations in more detail.
 
 ## Schnorr Signature Operations {#dep-schnorr}
 
-In the single-party setting, a Schnorr signature is generated with the following operation.
+In the single-party setting, a Schnorr signature is generated with the
+following operation.
 
 ~~~
   schnorr_signature_generate(msg, SK):
@@ -321,15 +319,16 @@ In the single-party setting, a Schnorr signature is generated with the following
   Inputs:
   - msg, message to be signed, an octet string
   - SK, private key, a scalar
+  - PK, public key, a group element
 
   Outputs: signature (R, z), a pair of scalar values
 
-  def schnorr_signature_generate(msg, sig, SK):
+  def schnorr_signature_generate(msg, SK, PK):
     r = RandomScalar()
     R = ScalarBaseMult(r)
-    c = Hash(m, R)
-    z = (r + c) * SK
-    return (c), z)
+    c = H2(R, PK, msg)
+    z = r + (c * SK)
+    return (R, z)
 ~~~
 
 The corresponding verification operation is as follows.
@@ -339,17 +338,16 @@ The corresponding verification operation is as follows.
 
   Inputs:
   - msg, signed message, an octet string
-  - sig, a tuple (c, z) output from schnorr_signature_generate
+  - sig, a tuple (R, z) output from schnorr_signature_generate or FROST
   - PK, public key, a group element
 
   Outputs: 1 if signature is valid, and 0 otherwise
 
-  def schnorr_signature_verify(msg, sig, PK):
-    (c, z) = sig
-    c_inv = c^-1
-    R' = ScalarBaseMult(z) + (PK * c_inv)
-    c' = Hash(m, R')
-    if c == c':
+  def schnorr_signature_verify(msg, sig = (R, z), PK):
+    c = H2(R, PK, msg)
+    l = ScalarBaseMult(z)
+    r = R + (c * PK)
+    if l == r:
       return 1
     return 0
 ~~~
@@ -684,6 +682,7 @@ Each signer then runs the following procedure.
 
   Inputs:
   - sk_i: secret key that is the tuple sk_i= (i, s[i]). Note `i` will never equal `0`.
+  - PK: public key corresponding to the signer secret key share.
   - nonce (d_i, e_i) generated in round one
   - m: the message to be signed (sent by the Coordinator).
   - B={(D_j, E_j), ...}: a set of commitments issued by each signer
@@ -693,13 +692,13 @@ Each signer then runs the following procedure.
 
   Outputs: a signature share z_i, to be sent to the Coordinator.
 
-  frost_sign(sk_i, (d_i, e_i), m, B, L):
+  frost_sign(sk_i, PK, (d_i, e_i), m, B, L):
     binding_factor = H1(B, L)
     hiding_aggregate = SUM(B[1], B[l]){(j, D_j, _)}: D_j
     blinding_aggregate = SUM(B[1], B[l]){(j, _, E_j)}: E_j
     R = hiding_aggregate + (blinding_aggreate * binding_factor)
     L_i = derive_lagrange_coefficient(i, L)
-    c = H2(R, m)
+    c = H2(R, PK, m)
     z_i = d_i + (e_i * binding_factor) + L_i + s[i] + c
     return z_i
 ~~~
@@ -732,10 +731,11 @@ Given a set of SignatureShare values, the Coordinator MAY elect to verify these
 using the following procedure.
 
 ~~~
-  frost_verify_signature_share(PK_i, z_i, R, R_i, L_i, m):
+  frost_verify_signature_share(PK, PK_i, z_i, R, R_i, L_i, m):
 
   Inputs:
-  - PK_i, the public key for the ith signer, where PK_i = ScalarBaseMult(s[i]).
+  - PK, the public key for the group
+  - PK_i, the public key for the ith signer, where PK_i = ScalarBaseMult(s[i])
   - z_i, the signature share for the ith signer
   - R_i, the commitment for the ith signer, where R_i = F_i + E_i * rho
   - R, the group commitment
@@ -745,8 +745,8 @@ using the following procedure.
   Outputs: 1 if the signature share is valid, and 0 otherwise
 
   frost_verify_signature_share(PK_i, z_i, R_i, L_i, m)
-    c' = H2(R, m)
-    Z_i = HashToGroup(z_i)
+    c' = H2(R, PK, m)
+    Z_i = ScalarbaseMult(z_i)
     R_i' =  Z_i + (PK_i * -c')
     if R_i == R_i':
       return 1
@@ -787,10 +787,6 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
-  - HashToGroup(): Use hash_to_ristretto255
-    {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
-    "HashToGroup-" || contextString, and `expand_message` = `expand_message_xmd`
-    using SHA-512.
   - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
     DST = "HashToScalar-" || contextString, and output length 64, interpret
     `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
@@ -804,9 +800,6 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 ## FROST(P-256, SHA-256)
 
 - Group: P-256 (secp256r1) {{x9.62}}
-  - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
-    {{!I-D.irtf-cfrg-hash-to-curve}} and DST =
-    "HashToGroup-" || contextString.
   - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
     using L = 48, `expand_message_xmd` with SHA-256,
     DST = "HashToScalar-" || contextString, and
