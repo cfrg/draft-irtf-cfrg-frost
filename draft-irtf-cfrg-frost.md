@@ -31,6 +31,15 @@ author:
     organization: Zcash Foundation
     email: durumcrustulum@gmail.com
 
+normative:
+  x9.62:
+    title: "Public Key Cryptography for the Financial Services Industry: the Elliptic Curve Digital Signature Algorithm (ECDSA)"
+    date: Sep, 1998
+    seriesinfo:
+      "ANSI": X9.62-1998
+    author:
+      -
+        org: ANSI
 
 informative:
   FROST20:
@@ -287,17 +296,19 @@ recommendations on hash functions which SHOULD BE used in practice, see
 
 Using H, we introduce two separate domain-separated hashes, H1 and H2, where they are
 domain separated. These hash functions differ per parameter set, so H1 and H2 will
-differ between instantiations of the protocol, for example:
+differ between instantiations of the protocol as follows:
 
 ~~~
-H1(m) = H("FROST-RISTRETTO-SHA512" || "rho" || len(m) || m)
+H1(m) = H(contextString || "rho" || len(m) || m)
 ~~~
 
 and
 
 ~~~
-H2(m) = H("FROST-RISTRETTO-SHA512" || "chal" || len(m) || m)
+H2(m) = H(contextString || "chal" || len(m) || m)
 ~~~
+
+The variable contextString is unique for each ciphersuite defined in {{ciphersuites}}.
 
 # Helper functions {#helpers}
 
@@ -786,6 +797,9 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
+This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function.
+The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
+
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - HashToGroup(): Use hash_to_ristretto255
     {{!I-D.irtf-cfrg-hash-to-curve}} with DST =
@@ -802,6 +816,9 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 - Hash: SHA-512, and Nh = 64.
 
 ## FROST(P-256, SHA-256)
+
+This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function.
+The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
