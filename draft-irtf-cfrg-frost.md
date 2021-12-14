@@ -797,7 +797,7 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
     and in little-endian order.
 - Hash: SHA-512, and Nh = 64.
 
-## FROST(p256, SHA-256) {#recommended-suite}
+## FROST(P-256, SHA-256)
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - HashToGroup(): Use hash_to_curve with suite P256_XMD:SHA-256_SSWU_RO\_
