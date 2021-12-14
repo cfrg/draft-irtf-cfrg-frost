@@ -808,7 +808,7 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Order()`.
   - Serialization: Elements are serialized as Ne = 33 byte string
-- Hash: SHA-512, and Nh = 64.
+- Hash: SHA-256, and Nh = 32.
 
 # Security Considerations {#sec-considerations}
 
