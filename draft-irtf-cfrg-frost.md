@@ -838,7 +838,6 @@ We do not specify what implementations should do when the protocol fails, other 
 the protocol abort. Examples of viable failure include when a verification check returns invalid or
 if the underlying transport failed to deliver the required messages.
 
-
 ## External Requirements / Non-Goals
 
 FROST does not target the following goals.
@@ -849,6 +848,16 @@ FROST does not target the following goals.
 to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
+
+# Removing the Coordinator Role
+
+In some settings, it may be desirable to omit the role of the coordinator entirely. Doing so does not change the security implications of FROST, but instead simply requires each participant to communicate with all other participants. We loosely describe how to perform FROST signing among signers without this coordinator role. We assume that every participant receives as input from an external source the message to be signed prior to performing the protocol.
+
+Every participant begins by performing `frost_commit()` as is done in the setting where a coordinator is used. However, instead of sending the commitment `SigningCommitment` to the coordinator, every participant instead will publish this commitment to every other participant.
+Then, in the second round, instead of receiving a `SigningPackage` from the coordinator, signers will already have sufficient information to perform signing. They will directly perform `frost_sign`. All participants will then publish a `SignatureShare` to one another.
+After having received all signature shares from all other signers, each signer will then perform `frost_verify` and then `frost_aggregate` directly.
+
+
 
 # Contributors
 
