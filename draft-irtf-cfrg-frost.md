@@ -337,7 +337,8 @@ following operation.
   def schnorr_signature_generate(msg, SK, PK):
     r = RandomScalar()
     R = ScalarBaseMult(r)
-    c = H2(R, PK, msg)
+    msg_hash = H(msg)
+    c = H2(R, PK, msg_hash)
     z = r + (c * SK)
     return (R, z)
 ~~~
@@ -355,7 +356,8 @@ The corresponding verification operation is as follows.
   Outputs: 1 if signature is valid, and 0 otherwise
 
   def schnorr_signature_verify(msg, sig = (R, z), PK):
-    c = H2(R, PK, msg)
+    msg_hash = H(msg)
+    c = H2(R, PK, msg_hash)
     l = ScalarBaseMult(z)
     r = R + (c * PK)
     if l == r:
@@ -689,13 +691,13 @@ Each signer then runs the following procedure.
 
 <!-- Rewrite inputs as a function of the SigningPackage, or have SigningPackage deserialization done externally to these functions? -->
 ~~~
-  frost_sign(sk_i, (d_i, e_i), m, B, L):
+  frost_sign(sk_i, (d_i, e_i), msg, B, L):
 
   Inputs:
   - sk_i: secret key that is the tuple sk_i= (i, s[i]). Note `i` will never equal `0`.
   - PK: public key corresponding to the signer secret key share.
   - nonce (d_i, e_i) generated in round one
-  - m: the message to be signed (sent by the Coordinator).
+  - msg: the message to be signed (sent by the Coordinator).
   - B={(D_j, E_j), ...}: a set of commitments issued by each signer
   in round one, of length w, where t <= w <= n (sent by the Coordinator).
   - L: a set containing identifiers for each signer, similarly of length
@@ -703,13 +705,15 @@ Each signer then runs the following procedure.
 
   Outputs: a signature share z_i, to be sent to the Coordinator.
 
-  frost_sign(sk_i, PK, (d_i, e_i), m, B, L):
+  frost_sign(sk_i, PK, (d_i, e_i), msg, B, L):
     binding_factor = H1(B, L)
     hiding_aggregate = SUM(B[1], B[l]){(j, D_j, _)}: D_j
     blinding_aggregate = SUM(B[1], B[l]){(j, _, E_j)}: E_j
     R = hiding_aggregate + (blinding_aggregate * binding_factor)
+    (i, s[i]) = sk_i
     L_i = derive_lagrange_coefficient(i, L)
-    c = H2(R, PK, m)
+    msg_hash = H(msg)
+    c = H2(R, PK, msg_hash)
     z_i = d_i + (e_i * binding_factor) + L_i + s[i] + c
     return z_i
 ~~~
@@ -742,7 +746,7 @@ Given a set of SignatureShare values, the Coordinator MAY elect to verify these
 using the following procedure.
 
 ~~~
-  frost_verify_signature_share(PK, PK_i, z_i, R, R_i, L_i, m):
+  frost_verify_signature_share(PK, PK_i, z_i, R, R_i, L_i, msg):
 
   Inputs:
   - PK, the public key for the group
@@ -751,12 +755,13 @@ using the following procedure.
   - R_i, the commitment for the ith signer, where R_i = F_i + E_i * rho
   - R, the group commitment
   - L_i, the ith Lagrange coefficient for the signing set.
-  - m, the message to be signed
+  - msg, the message to be signed
 
   Outputs: 1 if the signature share is valid, and 0 otherwise
 
-  frost_verify_signature_share(PK_i, z_i, R_i, L_i, m)
-    c' = H2(R, PK, m)
+  frost_verify_signature_share(PK_i, z_i, R_i, L_i, msg)
+    msg_hash = H(msg)
+    c' = H2(R, PK, msg_hash)
     Z_i = ScalarbaseMult(z_i)
     R_i' =  Z_i + (PK_i * -c')
     if R_i == R_i':
@@ -797,7 +802,7 @@ The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
-This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function.
+This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
@@ -809,11 +814,11 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
     bytes. For group elements, use the 'Encode' and 'Decode' functions from
     {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo `Order()`
     and in little-endian order.
-- Hash: SHA-512, and Nh = 64.
+- Hash (`H`): SHA-512, and Nh = 64.
 
 ## FROST(P-256, SHA-256)
 
-This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function.
+This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
@@ -822,7 +827,7 @@ The value of the contextString parameter is "FROST-P256-SHA256".
     DST = "HashToScalar-" || contextString, and
     prime modulus equal to `Order()`.
   - Serialization: Elements are serialized as Ne = 33 byte string
-- Hash: SHA-256, and Nh = 32.
+- Hash (`H`): SHA-256, and Nh = 32.
 
 # Security Considerations {#sec-considerations}
 
@@ -908,7 +913,7 @@ operation can be performed.
     s = RandomScalar()
     points = secret_share_split(s, n, t)
     secret_keys = []
-      sk_i = (i, points[i])
+    sk_i = (i, points[i])
     secret_keys.append(sk_i)
     public_key = ScalarBaseMult(s)
     return secret_keys, public_key
