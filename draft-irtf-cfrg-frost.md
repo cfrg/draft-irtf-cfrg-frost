@@ -707,7 +707,7 @@ Each signer then runs the following procedure.
     binding_factor = H1(B, L)
     hiding_aggregate = SUM(B[1], B[l]){(j, D_j, _)}: D_j
     blinding_aggregate = SUM(B[1], B[l]){(j, _, E_j)}: E_j
-    R = hiding_aggregate + (blinding_aggreate * binding_factor)
+    R = hiding_aggregate + (blinding_aggregate * binding_factor)
     L_i = derive_lagrange_coefficient(i, L)
     c = H2(R, PK, m)
     z_i = d_i + (e_i * binding_factor) + L_i + s[i] + c
