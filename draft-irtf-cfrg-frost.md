@@ -305,6 +305,12 @@ and
 H2(m) = H(contextString || "chal" || len(m) || m)
 ~~~
 
+and 
+
+~~~
+H3(m) = H(m)
+~~~
+
 The variable contextString is unique for each ciphersuite defined in {{ciphersuites}}.
 
 # Helper functions {#helpers}
@@ -337,7 +343,7 @@ following operation.
   def schnorr_signature_generate(msg, SK, PK):
     r = RandomScalar()
     R = ScalarBaseMult(r)
-    msg_hash = H(msg)
+    msg_hash = H3(msg)
     c = H2(R, PK, msg_hash)
     z = r + (c * SK)
     return (R, z)
@@ -356,7 +362,7 @@ The corresponding verification operation is as follows.
   Outputs: 1 if signature is valid, and 0 otherwise
 
   def schnorr_signature_verify(msg, sig = (R, z), PK):
-    msg_hash = H(msg)
+    msg_hash = H3(msg)
     c = H2(R, PK, msg_hash)
     l = ScalarBaseMult(z)
     r = R + (c * PK)
