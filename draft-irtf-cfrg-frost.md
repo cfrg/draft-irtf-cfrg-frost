@@ -857,7 +857,7 @@ Every participant begins by performing `frost_commit()` as is done in the settin
 Then, in the second round, instead of receiving a `SigningPackage` from the coordinator, signers will already have sufficient information to perform signing. They will directly perform `frost_sign`. All participants will then publish a `SignatureShare` to one another.
 After having received all signature shares from all other signers, each signer will then perform `frost_verify` and then `frost_aggregate` directly.
 
-
+The requirements for the underlying network channel remain the same in the setting where all participants play the role of the coordinator, in that all messages that are exchanged are public and so the channel simply must be reliable. However, in the setting that a player attempts to split the view of all other players by sending disjoint values to a subset of players, the signing operation will output an invalid signature. To avoid this denial of service, implementations may wish to define a mechanism where messages are authenticated, so that cheating players can be identified and excluded.
 
 # Contributors
 
