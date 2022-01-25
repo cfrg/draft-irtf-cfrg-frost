@@ -696,15 +696,16 @@ Each signer then runs the following procedure.
   - PK: public key corresponding to the signer secret key share.
   - nonce (d_i, e_i) generated in round one
   - m: the message to be signed (sent by the Coordinator).
-  - B={(D_j, E_j), ...}: a set of commitments issued by each signer
-  in round one, of length w, where t <= w <= n (sent by the Coordinator).
+  - B={(j, D_j, E_j), ...}: a set of commitments issued by each signer
+  in round one, of length w, where t <= w <= n (sent by the Coordinator),
+  along with that signer's identifier.
   - L: a set containing identifiers for each signer, similarly of length
   w (sent by the Coordinator).
 
   Outputs: a signature share z_i, to be sent to the Coordinator.
 
   frost_sign(sk_i, PK, (d_i, e_i), m, B, L):
-    binding_factor = H1(B, L)
+    binding_factor = H1(B)
     hiding_aggregate = SUM(B[1], B[l]){(j, D_j, _)}: D_j
     blinding_aggregate = SUM(B[1], B[l]){(j, _, E_j)}: E_j
     R = hiding_aggregate + (blinding_aggregate * binding_factor)
