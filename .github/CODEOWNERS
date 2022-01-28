@@ -1,2 +1,3 @@
-# Automatically generated CODEOWNERS file.
-draft-irtf-cfrg-frost.md ckomlo@uwaterloo.ca iang@uwaterloo.ca
+# Automatically generated CODEOWNERS
+# Regenerate with `make update-codeowners`
+draft-irtf-cfrg-frost.md durumcrustulum@gmail.com ckomlo@uwaterloo.ca iang@uwaterloo.ca caw@heapingbits.net

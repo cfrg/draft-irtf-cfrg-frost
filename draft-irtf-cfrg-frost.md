@@ -705,16 +705,17 @@ Each signer then runs the following procedure.
   - sk_i: secret key that is the tuple sk_i= (i, s[i]). Note `i` will never equal `0`.
   - PK: public key corresponding to the signer secret key share.
   - nonce (d_i, e_i) generated in round one
-  - msg: the message to be signed (sent by the Coordinator).
-  - B={(D_j, E_j), ...}: a set of commitments issued by each signer
-  in round one, of length w, where t <= w <= n (sent by the Coordinator).
+  - m: the message to be signed (sent by the Coordinator).
+  - B={(j, D_j, E_j), ...}: a set of commitments issued by each signer
+  in round one, of length w, where t <= w <= n (sent by the Coordinator),
+  along with that signer's identifier.
   - L: a set containing identifiers for each signer, similarly of length
   w (sent by the Coordinator).
 
   Outputs: a signature share z_i, to be sent to the Coordinator.
 
-  frost_sign(sk_i, PK, (d_i, e_i), msg, B, L):
-    binding_factor = H1(B, L)
+  frost_sign(sk_i, PK, (d_i, e_i), m, B, L):
+    binding_factor = H1(B)
     hiding_aggregate = SUM(B[1], B[l]){(j, D_j, _)}: D_j
     blinding_aggregate = SUM(B[1], B[l]){(j, _, E_j)}: E_j
     R = hiding_aggregate + (blinding_aggregate * binding_factor)
@@ -874,7 +875,6 @@ We do not specify what implementations should do when the protocol fails, other 
 the protocol abort. Examples of viable failure include when a verification check returns invalid or
 if the underlying transport failed to deliver the required messages.
 
-
 ## External Requirements / Non-Goals
 
 FROST does not target the following goals.
@@ -885,6 +885,16 @@ FROST does not target the following goals.
 to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
+
+# Removing the Coordinator Role
+
+In some settings, it may be desirable to omit the role of the coordinator entirely. Doing so does not change the security implications of FROST, but instead simply requires each participant to communicate with all other participants. We loosely describe how to perform FROST signing among signers without this coordinator role. We assume that every participant receives as input from an external source the message to be signed prior to performing the protocol.
+
+Every participant begins by performing `frost_commit()` as is done in the setting where a coordinator is used. However, instead of sending the commitment `SigningCommitment` to the coordinator, every participant instead will publish this commitment to every other participant.
+Then, in the second round, instead of receiving a `SigningPackage` from the coordinator, signers will already have sufficient information to perform signing. They will directly perform `frost_sign`. All participants will then publish a `SignatureShare` to one another.
+After having received all signature shares from all other signers, each signer will then perform `frost_verify` and then `frost_aggregate` directly.
+
+The requirements for the underlying network channel remain the same in the setting where all participants play the role of the coordinator, in that all messages that are exchanged are public and so the channel simply must be reliable. However, in the setting that a player attempts to split the view of all other players by sending disjoint values to a subset of players, the signing operation will output an invalid signature. To avoid this denial of service, implementations may wish to define a mechanism where messages are authenticated, so that cheating players can be identified and excluded.
 
 # Contributors
 
