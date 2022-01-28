@@ -309,6 +309,8 @@ and
 
 ~~~
 H3(m) = H(m)
+
+Normally this would also include a domain separator, but for backwards compatibility with other Schnorr signatures, we omit it here.
 ~~~
 
 The variable contextString is unique for each ciphersuite defined in {{ciphersuites}}.
