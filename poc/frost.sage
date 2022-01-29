@@ -1,6 +1,7 @@
 #!/usr/bin/sage
 # vim: syntax=python
 
+from hashlib import sha512
 import sys
 
 from hash_to_field import I2OSP
@@ -13,18 +14,32 @@ except ImportError as e:
 _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
 
 class Signer(object):
-    def __init__(self, G, sk, pk):
+    def __init__(self, G, H, sk, pk):
         self.G = G
-        # XXX(caw): the draft wraps (index, sk) into the same data structure -- consider doing the same here
+        self.H = H
         self.index = sk[0]
         self.sk = sk[1]
         self.pk = pk
 
     def H1(self, x):
+        '''
+        H1(m) = H(contextString || "rho" || I2OSP(len(m), 8) || m)
+        '''
         return self.G.hash_to_scalar(x, dst="1")
 
     def H2(self, x):
+        '''
+        H2(m) = H(contextString || "chal" || I2OSP(len(m), 8) || m)
+        '''
         return self.G.hash_to_scalar(x, dst="2")
+
+    def H3(self, x):
+        '''
+        H3(m) = H(m)
+        '''
+        hasher = self.H()
+        hasher.update(x)
+        return hasher.digest()
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-one
     def commit(self):
@@ -34,14 +49,10 @@ class Signer(object):
         E = e * self.G.generator()
         nonce = (d, e)
         comm = (D, E)
-        self.nonce = nonce
-        self.comm = comm
         return nonce, comm
 
-    # B={(j, D_j, E_j), ...}
-    def encode_group_commitment_shares(self, B):
-        # TODO(caw): update based on: https://github.com/cfrg/draft-irtf-cfrg-frost/pull/52
-        B_es = [I2OSP(B[i][0], 4) + self.G.serialize(B[i][1]) + self.G.serialize(B[i][2]) for i in range(1, len(B))]
+    def encode_group_commitment_list(self, commitment_list):
+        B_es = [I2OSP(i, 4) + self.G.serialize(D) + self.G.serialize(E) for (i, D, E) in commitment_list]
         B_e = B_es[0]
         for i, v in enumerate(B_es):
             if i > 0:
@@ -57,17 +68,15 @@ class Signer(object):
         return comm
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-two
-    def sign(self, nonce, comm, m, B, L):
-        assert(nonce == self.nonce)
-        assert(comm == self.comm)
-
-        rho_input = self.encode_group_commitment_shares(B)
+    def sign(self, nonce, comm, msg, commitment_list, L):
+        rho_input = self.encode_group_commitment_list(commitment_list)
         blinding_factor = self.H1(rho_input)
         group_comm = self.group_commitment(B, blinding_factor)
 
+        msg_hash = self.H3(msg)
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
-        challenge_input = bytes(group_comm_enc + pk_enc + m)
+        challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
         c = self.H2(challenge_input)
 
         L_i = derive_lagrange_coefficient(self.G, self.index, L)
@@ -81,10 +90,11 @@ class Signer(object):
         return z_i, R_i
 
     # XXX(caw): move this out to a helper function?
-    def verify_share(self, group_comm, participants, index, signer_key, signer_share, signer_comm, message):
+    def verify_share(self, group_comm, participants, index, signer_key, signer_share, signer_comm, msg):
+        msg_hash = self.H3(message)
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
-        challenge_input = bytes(group_comm_enc + pk_enc + message)
+        challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
         c = self.H2(challenge_input)
 
         l = signer_share * self.G.generator()
@@ -95,9 +105,9 @@ class Signer(object):
         return l == r
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-aggregate
-    def aggregate(self, group_comm, sig_shares, participants, signer_keys, signer_comms, message):
+    def aggregate(self, group_comm, sig_shares, participants, signer_keys, signer_comms, msg):
         for index in participants:
-            assert(self.verify_share(group_comm, participants, index, signer_keys[index-1], sig_shares[index-1], signer_comms[index-1], message))
+            assert(self.verify_share(group_comm, participants, index, signer_keys[index-1], sig_shares[index-1], signer_comms[index-1], msg))
 
         z = 0
         for z_i in sig_shares:
@@ -178,67 +188,76 @@ n = 3 # number of participants
 t = 2 # threshold
 assert(t > 1)
 G = GroupRistretto255()
+H = sha512
 
 # Create all signer keys with the trusted dealer and then instantiate each Signer
 signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, n, t)
 signer_public_keys = [sk_i * G.generator() for (_, sk_i) in signer_keys]
 signers = {}
 for index, signer_key in enumerate(signer_keys):
-    signers[index+1] = Signer(G, signer_key, group_public_key)
+    signers[index+1] = Signer(G, H, signer_key, group_public_key)
 
 # Round one: commitment
 nonces = {}
 comms = {} 
-B = [] # XXX(caw): need a better name for this structure
+commitment_list = [] # XXX(caw): need a better name for this structure
 participants = [i+1 for i in range(t)]
 for index in participants:
     nonce_i, comm_i = signers[index].commit()
     nonces[index] = nonce_i
     comms[index] = comm_i
-    B.append((index, comm_i[0], comm_i[1]))
+    commitment_list.append((index, comm_i[0], comm_i[1]))
 
 # XXX(caw): should this go into round one or two?
-rho_input = signers[1].encode_group_commitment_shares(B)
+rho_input = signers[1].encode_group_commitment_list(commitment_list)
 blinding_factor = signers[1].H1(rho_input)
-group_comm = signers[1].group_commitment(B, blinding_factor)
+group_comm = signers[1].group_commitment(commitment_list, blinding_factor)
 
 # Round two: sign
 message = _as_bytes("test")
 sig_shares = []
 sig_comms = []
 for index in participants:
-    sig_share, sig_comm = signers[index].sign(nonces[index], comms[index], message, B, participants)
+    sig_share, sig_comm = signers[index].sign(nonces[index], comms[index], message, commitment_list, participants)
     sig_shares.append(sig_share)
     sig_comms.append(sig_comm)
 
 # Final set: aggregate
 sig = signers[1].aggregate(group_comm, sig_shares, participants, signer_public_keys, sig_comms, message)
 
-def generate_schnorr_signature(G, s, m):
+def generate_schnorr_signature(G, H, s, m):
     pk = s * G.generator()
     k = G.random_scalar()
     R = k * G.generator()
+
+    hasher = H()
+    hasher.update(m)
+    msg_hash = hasher.digest() # XXX(caw): replace with H3
     group_comm_enc = G.serialize(R)
     pk_enc = G.serialize(pk)
-    challenge_input = bytes(group_comm_enc + pk_enc + m)
+    challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
     c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
+
     z = k + (s * c)
     return (R, z)
 
-def verify_schnorr_signature(G, Y, m, SIG):
+def verify_schnorr_signature(G, H, Y, m, SIG):
     (R, z) = SIG
 
+    hasher = H()
+    hasher.update(m)
+    msg_hash = hasher.digest() # XXX(caw): replace with H3
     comm_enc = G.serialize(R)
     pk_enc = G.serialize(Y)
-    challenge_input = bytes(comm_enc + pk_enc + m)
+    challenge_input = bytes(comm_enc + pk_enc + msg_hash)
     c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
 
     R_prime = (z * G.generator()) + (Y * -c)
     return R == R_prime
 
 # Sanity check verification logic
-single_sig = generate_schnorr_signature(G, group_secret_key, message)
-assert(verify_schnorr_signature(G, group_public_key, message, single_sig))
+single_sig = generate_schnorr_signature(G, H, group_secret_key, message)
+assert(verify_schnorr_signature(G, H, group_public_key, message, single_sig))
 
 # Verify the group signature just the same
-assert(verify_schnorr_signature(G, group_public_key, message, sig))
+assert(verify_schnorr_signature(G, H, group_public_key, message, sig))

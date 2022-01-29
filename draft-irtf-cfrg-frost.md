@@ -286,27 +286,18 @@ recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}. By construction, the hash functions inputs MUST be smaller
 than 2^64 bits.
 
-Using H, we introduce two separate domain-separated hashes, H1 and H2.
-These hash functions differ per parameter set, so H1 and H2 will differ
+Using H, we introduce two separate domain-separated hashes, H1, H2, and H3.
+These hash functions differ per parameter set, so H1, H2, and H3 differ
 between instantiations of the protocol as follows:
 
 ~~~
 H1(m) = H(contextString || "rho" || I2OSP(len(m), 8) || m)
-~~~
-
-and
-
-~~~
 H2(m) = H(contextString || "chal" || I2OSP(len(m), 8) || m)
-~~~
-
-and 
-
-~~~
 H3(m) = H(m)
-
-Normally this would also include a domain separator, but for backwards compatibility with other Schnorr signatures, we omit it here.
 ~~~
+
+Normally H3 would also include a domain separator, but for backwards compatibility
+with {{!RFC8032}}, it is omitted here.
 
 The variable contextString is unique for each ciphersuite defined in {{ciphersuites}}.
 
@@ -339,7 +330,13 @@ following operation.
   def schnorr_signature_generate(msg, SK, PK):
     r = G.RandomScalar()
     R = G.ScalarBaseMult(r)
-    c = H2(R, PK, msg)
+
+    msg_hash = H3(msg)
+    comm_enc = G.SerializeElement(R)
+    pk_enc = G.SerializeElement(PK)
+    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
+    c = H2(challenge_input)
+
     z = r + (c * SK)
     return (R, z)
 ~~~
@@ -358,7 +355,11 @@ The corresponding verification operation is as follows.
 
   def schnorr_signature_verify(msg, sig = (R, z), PK):
     msg_hash = H3(msg)
-    c = H2(R, PK, msg_hash)
+    comm_enc = G.SerializeElement(R)
+    pk_enc = G.SerializeElement(PK)
+    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
+    c = H2(challenge_input)
+
     l = ScalarBaseMult(z)
     r = R + (c * PK)
     if l == r:
@@ -462,14 +463,14 @@ structures into values that can be processed with hash functions.
 
 ~~~
   Inputs:
-  - B = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
+  - commitment_list = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index and their
     two commitment Element values. B MUST be sorted in ascending order
     by signer index.
 
   Outputs: A byte string containing the serialized representation of B.
 
-  def encode_group_commitment_shares(B):
+  def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
     for (j, D_j, E_j) in B:
       encoded_commitment = I2OSP(j, 4) || G.SerializeElement(D_j) || G.SerializeElement(E_j)
@@ -563,8 +564,8 @@ each Signer then runs the following procedure to produce its own signature share
   - group_public_key, public key corresponding to the signer secret key share.
   - nonce_i, pair of Scalar values (d, e) generated in round one.
   - comm_i, pair of Element values (D, E) generated in round one.
-  - m, the message to be signed (sent by the Coordinator).
-  - B = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
+  - msg, the message to be signed (sent by the Coordinator).
+  - commitment_list = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index and their
     two commitment Element values. B MUST be sorted in ascending order
     by signer index.
@@ -573,9 +574,9 @@ each Signer then runs the following procedure to produce its own signature share
 
   Outputs: a signature share z_i and commitment share R_i
 
-  def frost_sign(index, sk, group_public_key, nonce, comm, m, B, L):
+  def frost_sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, L):
     # Compute the blinding factor
-    encoded_commitments = encode_group_commitment_shares(B)
+    encoded_commitments = encode_group_commitment_list(commitment_list)
     blinding_factor = H1(encoded_commitments)
 
     # Compute the group commitment
@@ -586,9 +587,10 @@ each Signer then runs the following procedure to produce its own signature share
     lambda_i = derive_lagrange_coefficient(index, L)
 
     # Compute the per-message challenge
+    msg_hash = H3(msg)
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
-    challenge_input = group_comm_enc || group_public_key_enc || m)
+    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
     c = H2(challenge_input)
 
     # Compute the signature share
@@ -606,7 +608,6 @@ The output of this procedure is a signature share and group commitment share.
 Each signer then sends these shares back to the collector; see
 {{encode-sig-share}} for encoding recommendations.
 
-<!-- this seems like it ought to be mandatory, can we make it so? -->
 Given a set of signature shares, the Coordinator MAY elect to verify these
 using the following procedure.
 
@@ -619,16 +620,17 @@ using the following procedure.
   - z_i, the signature share for the ith signer, computed from the signer
   - R_i, the commitment for the ith signer, computed from the signer
   - R, the group commitment
-  - m, the message to be signed
+  - msg, the message to be signed
   - L, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
   Outputs: 1 if the signature share is valid, and 0 otherwise
 
-  def frost_verify_signature_share(index, PK, PK_i, z_i, R_i, R, m, L):
+  def frost_verify_signature_share(index, PK, PK_i, z_i, R_i, R, msg, L):
+    msg_hash = H3(msg)
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
-    challenge_input = group_comm_enc || group_public_key_enc || m)
+    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
     c = H2(challenge_input)
 
     l = G.ScalarbaseMult(z_i)
