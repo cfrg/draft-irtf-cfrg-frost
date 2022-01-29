@@ -279,8 +279,8 @@ sig = signers[1].aggregate(group_comm, sig_shares, participant_list, signer_publ
 final_output = {
     "sig": {}
 }
-final_output["sig"]["commitment"] = to_hex(G.serialize(sig[0]))
-final_output["sig"]["commitment"] = to_hex(G.serialize_scalar(sig[1]))
+final_output["sig"]["R"] = to_hex(G.serialize(sig[0]))
+final_output["sig"]["z"] = to_hex(G.serialize_scalar(sig[1]))
 
 def generate_schnorr_signature(G, H, sk, msg):
     pk = sk * G.generator()
