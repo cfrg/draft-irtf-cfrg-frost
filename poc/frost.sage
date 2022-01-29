@@ -1,9 +1,10 @@
 #!/usr/bin/sage
 # vim: syntax=python
 
-from hashlib import sha512
 import sys
+import json
 
+from hashlib import sha512
 from hash_to_field import I2OSP
 
 try:
@@ -12,6 +13,14 @@ except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
 _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
+
+def to_hex(octet_string):
+    if isinstance(octet_string, str):
+        return "".join("{:02x}".format(ord(c)) for c in octet_string)
+    if isinstance(octet_string, bytes):
+        return "" + "".join("{:02x}".format(c) for c in octet_string)
+    assert isinstance(octet_string, bytearray)
+    return ''.join(format(x, '02x') for x in octet_string)
 
 class Signer(object):
     def __init__(self, G, H, sk, pk):
@@ -184,24 +193,45 @@ def trusted_dealer_keygen(G, n, t):
     public_key = secret_key * G.generator()
     return secret_keys, secret_key, public_key
 
-n = 3 # number of participants
-t = 2 # threshold
-assert(t > 1)
+# Configure the setting
+NUM_SIGNERS = 3
+THRESHOLD_LIMIT = 2
 G = GroupRistretto255()
 H = sha512
+message = _as_bytes("test")
+participant_list = [i+1 for i in range(THRESHOLD_LIMIT)]
 
-# Create all signer keys with the trusted dealer and then instantiate each Signer
-signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, n, t)
+assert(THRESHOLD_LIMIT > 1)
+assert(THRESHOLD_LIMIT <= NUM_SIGNERS)
+
+config = {}
+config["NUM_SIGNERS"] = str(NUM_SIGNERS)
+config["THRESHOLD_LIMIT"] = str(THRESHOLD_LIMIT)
+config["group"] = G.name
+config["hash"] = H().name.upper()
+
+# Create all inputs, including the group key and individual signer key shares
+signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, NUM_SIGNERS, THRESHOLD_LIMIT)
 signer_public_keys = [sk_i * G.generator() for (_, sk_i) in signer_keys]
 signers = {}
 for index, signer_key in enumerate(signer_keys):
     signers[index+1] = Signer(G, H, signer_key, group_public_key)
 
+inputs = {
+    "group_secret_key": to_hex(G.serialize_scalar(group_secret_key)),
+    "group_public_key": to_hex(G.serialize(group_public_key)),
+    "message": to_hex(message),
+    "signers": {}
+}
+for index in signers:
+    inputs["signers"][str(index)] = {}
+    inputs["signers"][str(index)]["signer_share"] = to_hex(G.serialize_scalar(signers[index].sk))
+
 # Round one: commitment
+# XXX(caw): wrap up nonces and commitments in a data structure
 nonces = {}
 comms = {} 
 commitment_list = [] # XXX(caw): need a better name for this structure
-participant_list = [i+1 for i in range(t)]
 for index in participant_list:
     nonce_i, comm_i = signers[index].commit()
     nonces[index] = nonce_i
@@ -213,46 +243,73 @@ rho_input = signers[1].encode_group_commitment_list(commitment_list)
 blinding_factor = signers[1].H1(rho_input)
 group_comm = signers[1].group_commitment(commitment_list, blinding_factor)
 
+round_one_outputs = {
+    "participants": [str(index) for index in participant_list],
+    "commitment_list": to_hex(rho_input),
+    "group_blinding_factor": to_hex(G.serialize_scalar(blinding_factor)),
+    "outputs": {}
+}
+for index in participant_list:
+    round_one_outputs["outputs"][str(index)] = {}
+    round_one_outputs["outputs"][str(index)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[index][0]))
+    round_one_outputs["outputs"][str(index)]["blinding_nonce"] = to_hex(G.serialize_scalar(nonces[index][1]))
+    round_one_outputs["outputs"][str(index)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[index][0]))
+    round_one_outputs["outputs"][str(index)]["blinding_nonce_commitment"] = to_hex(G.serialize(comms[index][1]))
+
 # Round two: sign
-message = _as_bytes("test")
 sig_shares = []
-sig_comms = []
+comm_shares = []
 for index in participant_list:
     sig_share, sig_comm = signers[index].sign(nonces[index], comms[index], message, commitment_list, participant_list)
     sig_shares.append(sig_share)
-    sig_comms.append(sig_comm)
+    comm_shares.append(sig_comm)
+
+round_two_outputs = {
+    "participants": [str(index) for index in participant_list],
+    "outputs": {}
+}
+for index in participant_list:
+    round_two_outputs["outputs"][str(index)] = {}
+    round_two_outputs["outputs"][str(index)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[index-1]))
+    round_two_outputs["outputs"][str(index)]["group_commitment_share"] = to_hex(G.serialize(comm_shares[index-1]))
 
 # Final set: aggregate
-sig = signers[1].aggregate(group_comm, sig_shares, participant_list, signer_public_keys, sig_comms, message)
+# XXX(caw): wrap up signature in a data structure with a serialize method
+sig = signers[1].aggregate(group_comm, sig_shares, participant_list, signer_public_keys, comm_shares, message)
+final_output = {
+    "sig": {}
+}
+final_output["sig"]["commitment"] = to_hex(G.serialize(sig[0]))
+final_output["sig"]["commitment"] = to_hex(G.serialize_scalar(sig[1]))
 
-def generate_schnorr_signature(G, H, s, m):
-    pk = s * G.generator()
+def generate_schnorr_signature(G, H, sk, msg):
+    pk = sk * G.generator()
     k = G.random_scalar()
     R = k * G.generator()
 
     hasher = H()
-    hasher.update(m)
+    hasher.update(msg)
     msg_hash = hasher.digest() # XXX(caw): replace with H3
     group_comm_enc = G.serialize(R)
     pk_enc = G.serialize(pk)
     challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
     c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
 
-    z = k + (s * c)
+    z = k + (sk * c)
     return (R, z)
 
-def verify_schnorr_signature(G, H, Y, m, SIG):
+def verify_schnorr_signature(G, H, pk, msg, SIG):
     (R, z) = SIG
 
     hasher = H()
-    hasher.update(m)
+    hasher.update(msg)
     msg_hash = hasher.digest() # XXX(caw): replace with H3
     comm_enc = G.serialize(R)
-    pk_enc = G.serialize(Y)
+    pk_enc = G.serialize(pk)
     challenge_input = bytes(comm_enc + pk_enc + msg_hash)
     c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
 
-    R_prime = (z * G.generator()) + (Y * -c)
+    R_prime = (z * G.generator()) + (pk * -c)
     return R == R_prime
 
 # Sanity check verification logic
@@ -261,3 +318,12 @@ assert(verify_schnorr_signature(G, H, group_public_key, message, single_sig))
 
 # Verify the group signature just the same
 assert(verify_schnorr_signature(G, H, group_public_key, message, sig))
+
+vector = {
+    "config": config,
+    "inputs": inputs,
+    "round_one_outputs": round_one_outputs,
+    "round_two_outputs": round_two_outputs,
+    "final_output": final_output,
+}
+print(json.dumps(vector, indent=2))
