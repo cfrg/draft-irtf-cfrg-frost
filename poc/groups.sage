@@ -164,43 +164,6 @@ class GroupP521(GroupNISTCurve):
         gy = 0x11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650
         GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy, 98, hashlib.sha512, expand_message_xmd, 256)
 
-class GroupEd25519(Group):
-    def __init__(self):
-        Group.__init__(self, "ed25519")
-        self.k = 128
-        self.L = 48
-        self.field_bytes_length = 32
-
-    def generator(self):
-        return Ed25519Point().base()
-
-    def order(self):
-        return Ed25519Point().order
-
-    def identity(self):
-        return Ed25519Point().identity()
-
-    def serialize(self, element):
-        return element.encode()
-
-    def deserialize(self, encoded):
-        return Ed25519Point().decode(encoded)
-
-    def serialize_scalar(self, scalar):
-        return I2OSP(scalar % self.order(), self.scalar_byte_length())[::-1]
-
-    def element_byte_length(self):
-        return self.field_bytes_length
-
-    def scalar_byte_length(self):
-        return self.field_bytes_length
-
-    def hash_to_group(self, msg, dst):
-        return Ed25519Point().hash_to_group(msg, dst)
-
-    def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
-
 class GroupRistretto255(Group):
     def __init__(self):
         Group.__init__(self, "ristretto255")
