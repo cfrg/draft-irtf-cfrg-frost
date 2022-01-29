@@ -529,7 +529,7 @@ Each signer in round one generates a nonce `nonce = (d, e)` and commitment
 
   Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs.
 
-  def frost_commit():
+  def commit():
     d = G.RandomScalar()
     e = G.RandomScalar()
     D = G.ScalarBaseMult(d)
@@ -569,12 +569,12 @@ each Signer then runs the following procedure to produce its own signature share
     where each element in the list indicates the signer index and their
     two commitment Element values. B MUST be sorted in ascending order
     by signer index.
-  - L, a set containing identifiers for each signer, similarly of length
+  - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
   Outputs: a signature share z_i and commitment share R_i
 
-  def frost_sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, L):
+  def sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, participant_list):
     # Compute the blinding factor
     encoded_commitments = encode_group_commitment_list(commitment_list)
     blinding_factor = H1(encoded_commitments)
@@ -584,7 +584,7 @@ each Signer then runs the following procedure to produce its own signature share
     for (_, D_i, E_i) in B:
       R = R + (D_i + (E_i * blinding_factor))
 
-    lambda_i = derive_lagrange_coefficient(index, L)
+    lambda_i = derive_lagrange_coefficient(index, participant_list)
 
     # Compute the per-message challenge
     msg_hash = H3(msg)
@@ -608,8 +608,7 @@ The output of this procedure is a signature share and group commitment share.
 Each signer then sends these shares back to the collector; see
 {{encode-sig-share}} for encoding recommendations.
 
-Given a set of signature shares, the Coordinator MAY elect to verify these
-using the following procedure.
+The Coordinator MUST verify the set of signature shares using the following procedure.
 
 <!-- the inputs to this function need to be revisited, things can probably be made simpler -->
 ~~~
@@ -621,12 +620,12 @@ using the following procedure.
   - R_i, the commitment for the ith signer, computed from the signer
   - R, the group commitment
   - msg, the message to be signed
-  - L, a set containing identifiers for each signer, similarly of length
+  - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
   Outputs: 1 if the signature share is valid, and 0 otherwise
 
-  def frost_verify_signature_share(index, PK, PK_i, z_i, R_i, R, msg, L):
+  def verify_signature_share(index, PK, PK_i, z_i, R_i, R, msg, participant_list):
     msg_hash = H3(msg)
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
@@ -635,7 +634,7 @@ using the following procedure.
 
     l = G.ScalarbaseMult(z_i)
 
-    lambda_i = derive_lagrange_coefficient(index, L)
+    lambda_i = derive_lagrange_coefficient(index, participant_list)
     r = R_i + (z_i * c * lambda_i)
 
     return l == r
