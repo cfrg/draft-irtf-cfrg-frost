@@ -60,18 +60,18 @@ class Signer(object):
         return B_e
 
     # XXX(caw): break this out into a separate function in the draft?
-    def group_commitment(self, B, blinding_factor):
+    def group_commitment(self, commitment_list, blinding_factor):
         comm = self.G.identity()
-        for (_, D_i, E_i) in B:
+        for (_, D_i, E_i) in commitment_list:
             comm = comm + (D_i + (E_i * blinding_factor))
 
         return comm
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-two
-    def sign(self, nonce, comm, msg, commitment_list, L):
+    def sign(self, nonce, comm, msg, commitment_list, participant_list):
         rho_input = self.encode_group_commitment_list(commitment_list)
         blinding_factor = self.H1(rho_input)
-        group_comm = self.group_commitment(B, blinding_factor)
+        group_comm = self.group_commitment(commitment_list, blinding_factor)
 
         msg_hash = self.H3(msg)
         group_comm_enc = self.G.serialize(group_comm)
@@ -79,7 +79,7 @@ class Signer(object):
         challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
         c = self.H2(challenge_input)
 
-        L_i = derive_lagrange_coefficient(self.G, self.index, L)
+        L_i = derive_lagrange_coefficient(self.G, self.index, participant_list)
 
         (d_i, e_i) = nonce
         z_i = d_i + (e_i * blinding_factor) + (L_i * self.sk * c)
@@ -90,8 +90,8 @@ class Signer(object):
         return z_i, R_i
 
     # XXX(caw): move this out to a helper function?
-    def verify_share(self, group_comm, participants, index, signer_key, signer_share, signer_comm, msg):
-        msg_hash = self.H3(message)
+    def verify_share(self, group_comm, participant_list, index, signer_key, signer_share, signer_comm, msg):
+        msg_hash = self.H3(msg)
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
         challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
@@ -99,15 +99,15 @@ class Signer(object):
 
         l = signer_share * self.G.generator()
 
-        lambda_i = derive_lagrange_coefficient(self.G, index, participants)
+        lambda_i = derive_lagrange_coefficient(self.G, index, participant_list)
         r = signer_comm + (signer_key * c * lambda_i) 
 
         return l == r
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-aggregate
-    def aggregate(self, group_comm, sig_shares, participants, signer_keys, signer_comms, msg):
-        for index in participants:
-            assert(self.verify_share(group_comm, participants, index, signer_keys[index-1], sig_shares[index-1], signer_comms[index-1], msg))
+    def aggregate(self, group_comm, sig_shares, participant_list, signer_keys, signer_comms, msg):
+        for index in participant_list:
+            assert(self.verify_share(group_comm, participant_list, index, signer_keys[index-1], sig_shares[index-1], signer_comms[index-1], msg))
 
         z = 0
         for z_i in sig_shares:
@@ -201,8 +201,8 @@ for index, signer_key in enumerate(signer_keys):
 nonces = {}
 comms = {} 
 commitment_list = [] # XXX(caw): need a better name for this structure
-participants = [i+1 for i in range(t)]
-for index in participants:
+participant_list = [i+1 for i in range(t)]
+for index in participant_list:
     nonce_i, comm_i = signers[index].commit()
     nonces[index] = nonce_i
     comms[index] = comm_i
@@ -217,13 +217,13 @@ group_comm = signers[1].group_commitment(commitment_list, blinding_factor)
 message = _as_bytes("test")
 sig_shares = []
 sig_comms = []
-for index in participants:
-    sig_share, sig_comm = signers[index].sign(nonces[index], comms[index], message, commitment_list, participants)
+for index in participant_list:
+    sig_share, sig_comm = signers[index].sign(nonces[index], comms[index], message, commitment_list, participant_list)
     sig_shares.append(sig_share)
     sig_comms.append(sig_comm)
 
 # Final set: aggregate
-sig = signers[1].aggregate(group_comm, sig_shares, participants, signer_public_keys, sig_comms, message)
+sig = signers[1].aggregate(group_comm, sig_shares, participant_list, signer_public_keys, sig_comms, message)
 
 def generate_schnorr_signature(G, H, s, m):
     pk = s * G.generator()
