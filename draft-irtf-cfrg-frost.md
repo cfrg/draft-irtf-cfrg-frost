@@ -183,6 +183,7 @@ The following notation and terminology are used throughout this document.
 
 * A participant is an entity that is trusted to hold a secret share.
 * `NUM_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into.
+  This value MUST NOT exceed 2^16-1.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
 at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
@@ -473,7 +474,9 @@ structures into values that can be processed with hash functions.
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
     for (j, D_j, E_j) in B:
-      encoded_commitment = I2OSP(j, 4) || G.SerializeElement(D_j) || G.SerializeElement(E_j)
+      encoded_commitment = I2OSP(j, 2) ||
+                           G.SerializeElement(D_j) ||
+                           G.SerializeElement(E_j)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
     return encoded_group_commitment
 ~~~
