@@ -52,7 +52,7 @@ class Signer(object):
         return nonce, comm
 
     def encode_group_commitment_list(self, commitment_list):
-        B_es = [I2OSP(i, 4) + self.G.serialize(D) + self.G.serialize(E) for (i, D, E) in commitment_list]
+        B_es = [I2OSP(i, 2) + self.G.serialize(D) + self.G.serialize(E) for (i, D, E) in commitment_list]
         B_e = B_es[0]
         for i, v in enumerate(B_es):
             if i > 0:
