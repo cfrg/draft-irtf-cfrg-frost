@@ -27,7 +27,7 @@ else:
     _strxor = lambda str1, str2: ''.join( chr(ord(s1) ^ ord(s2)) for (s1, s2) in zip(str1, str2) )
 
 # Fix a seed so all test vectors are deterministic
-FIXED_SEED = "oprf".encode('utf-8')
+FIXED_SEED = "test".encode('utf-8')
 random.seed(int.from_bytes(hashlib.sha256(FIXED_SEED).digest(), 'big'))
 
 class Group(object):
@@ -163,6 +163,107 @@ class GroupP521(GroupNISTCurve):
         gx = 0xc6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66
         gy = 0x11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650
         GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy, 98, hashlib.sha512, expand_message_xmd, 256)
+
+class GroupEd25519(Group):
+    # Compute corresponding x-coordinate, with low bit corresponding to
+    # sign, or return None on failure
+    def recover_x(y, sign, p, d):
+        def modp_inv(x):
+            return pow(x, p-2, p)
+        if y >= p:
+            return None
+        x2 = (y^2-1) * modp_inv(d*y^2+1)
+        if x2 == 0:
+            if sign:
+                return None
+            else:
+                return 0
+
+        # Compute square root of x2
+        x = int(pow(x2, (p+3) // 8, p))
+        if (x*x - x2) % p != 0:
+            modp_sqrt_m1 = pow(2, (p-1) // 4, p)
+            x = int(x * modp_sqrt_m1 % p)
+        if (x*x - x2) % p != 0:
+            return None
+
+        if (x & 1) != sign:
+            x = p - x
+        return x
+
+    def to_weierstrass(a, d, x, y):
+        return ((5*a + a*y - 5*d*y - d)/(12 - 12*y), (a + a*y - d*y -d)/(4*x - 4*x*y))
+
+    def to_twistededwards(a, d, u, v):
+        y = (5*a - 12*u - d)/(-12*u - a + 5*d)
+        x = (a + a*y - d*y -d)/(4*v - 4*v*y)
+        return (x, y)
+
+    def __init__(self):
+        Group.__init__(self, "ed25519")
+        # Borrowed from: https://neuromancer.sk/std/other/Ed25519
+        p = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed
+        K = GF(p)
+        a = K(0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec)
+        d = 0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3
+        E = EllipticCurve(K, (K(-1/48) * (a^2 + 14*a*d + d^2),K(1/864) * (a + d) * (-a^2 + 34*a*d - d^2)))
+        G = E(*GroupEd25519.to_weierstrass(a, K(d), K(0x216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A), K(0x6666666666666666666666666666666666666666666666666666666666666658)))
+        order = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed * 0x08
+        E.set_order(order)
+
+        self.F = K
+        self.curve = E
+        self.p = p
+        self.group_order = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
+        self.G = G
+        self.a = a
+        self.d = d
+
+    def generator(self):
+        return self.G
+
+    def order(self):
+        return self.group_order
+
+    def identity(self):
+        return self.curve(0)
+
+    def serialize(self, element):
+        (x, y) = element.xy()
+        (u, v) = GroupEd25519.to_twistededwards(self.a, self.d, x, y)
+
+        sign = int(int(u) % 2)
+        return int.to_bytes(int(v) | (sign << 255), 32, "little")
+
+    def deserialize(self, encoded):
+        if len(encoded) != 32:
+            raise Exception("Invalid input length for decompression")
+        y = int.from_bytes(encoded, "little")
+        sign = int(y) >> 255
+        y = int(int(y) & ((1 << 255) - 1))
+
+        x = GroupEd25519.recover_x(y, sign, self.p, self.d)
+        if x is None:
+            return None
+        else:
+            (u, v) = GroupEd25519.to_weierstrass(self.a, self.F(self.d), x, y)
+            return self.curve(u, v)
+
+    def serialize_scalar(self, scalar):
+        return int.to_bytes(int(scalar) % int(self.group_order), 32, "little")
+
+    def element_byte_length(self):
+        return 32
+
+    def scalar_byte_length(self):
+        return 32
+
+    def hash_to_group(self, msg, dst):
+        raise Exception("Not implemented")
+
+    def hash_to_scalar(self, msg, dst=""):
+        # From RFC8032. Note that the DST is ignored.
+        return int.from_bytes(hashlib.sha512(msg).digest(), "little") % self.order()
 
 class GroupRistretto255(Group):
     def __init__(self):

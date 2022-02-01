@@ -6,9 +6,10 @@ import json
 
 from hashlib import sha512
 from hash_to_field import I2OSP
+from ed25519_rfc8032 import verify_ed25519_rfc8032, point_compress, secret_to_public_raw
 
 try:
-    from sagelib.groups import GroupRistretto255, GroupP256
+    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupP256
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -82,10 +83,10 @@ class Signer(object):
         blinding_factor = self.H1(rho_input)
         group_comm = self.group_commitment(commitment_list, blinding_factor)
 
-        msg_hash = self.H3(msg)
+        # msg_hash = self.H3(msg)
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
-        challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
+        challenge_input = bytes(group_comm_enc + pk_enc + msg)
         c = self.H2(challenge_input)
 
         L_i = derive_lagrange_coefficient(self.G, self.index, participant_list)
@@ -100,10 +101,10 @@ class Signer(object):
 
     # XXX(caw): move this out to a helper function?
     def verify_share(self, group_comm, participant_list, index, signer_key, signer_share, signer_comm, msg):
-        msg_hash = self.H3(msg)
+        # msg_hash = self.H3(msg)
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
-        challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
+        challenge_input = bytes(group_comm_enc + pk_enc + msg)
         c = self.H2(challenge_input)
 
         l = signer_share * self.G.generator()
@@ -196,7 +197,7 @@ def trusted_dealer_keygen(G, n, t):
 # Configure the setting
 NUM_SIGNERS = 3
 THRESHOLD_LIMIT = 2
-G = GroupRistretto255()
+G = GroupEd25519() # GroupRistretto255() # GroupP256()
 H = sha512
 message = _as_bytes("test")
 participant_list = [i+1 for i in range(THRESHOLD_LIMIT)]
@@ -282,39 +283,98 @@ final_output = {
 final_output["sig"]["R"] = to_hex(G.serialize(sig[0]))
 final_output["sig"]["z"] = to_hex(G.serialize_scalar(sig[1]))
 
-def generate_schnorr_signature(G, H, sk, msg):
-    pk = sk * G.generator()
+'''
+def sign_ed25519_rfc8032(secret, msg):
+    a, prefix = secret_expand(secret)
+    A = point_compress(point_mul(a, G))
+    r = sha512_modq(prefix + msg)
+    R = point_mul(r, G)
+    Rs = point_compress(R)
+    h = sha512_modq(Rs + A + msg)
+    s = (r + h * a) % q
+    return Rs + int.to_bytes(s, 32, "little")
+'''
+
+def generate_schnorr_signature(G, H, s, m):
+    pk = s * G.generator()
     k = G.random_scalar()
     R = k * G.generator()
 
-    hasher = H()
-    hasher.update(msg)
-    msg_hash = hasher.digest() # XXX(caw): replace with H3
+    # hasher = H()
+    # hasher.update(m)
+    # msg_hash = hasher.digest() # XXX(caw): replace with H3
     group_comm_enc = G.serialize(R)
     pk_enc = G.serialize(pk)
-    challenge_input = bytes(group_comm_enc + pk_enc + msg_hash)
+    challenge_input = bytes(group_comm_enc + pk_enc + m)
     c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
 
-    z = k + (sk * c)
+    z = k + (s * c)
     return (R, z)
 
-def verify_schnorr_signature(G, H, pk, msg, SIG):
+'''
+def verify_ed25519_rfc8032(public, msg, signature):
+    if len(public) != 32:
+        raise Exception("Bad public key length")
+    if len(signature) != 64:
+        Exception("Bad signature length")
+    
+    # try to deserialize
+    A = point_decompress(public)
+    if not A:
+        return False
+    
+    # deserialize the commitment
+    Rs = signature[:32]
+    R = point_decompress(Rs)
+    if not R:
+        return False
+
+    # deserialize s (known as z)
+    s = int.from_bytes(signature[32:], "little")
+    if s >= q: return False
+
+    # c = H(R, PK, m)
+    h = sha512_modq(Rs + public + msg)
+
+    sB = point_mul(s, G)
+    hA = point_mul(h, A)
+    return point_equal(sB, point_add(R, hA))
+'''
+
+def verify_schnorr_signature(G, H, Y, m, SIG):
     (R, z) = SIG
 
     hasher = H()
-    hasher.update(msg)
+    hasher.update(m)
     msg_hash = hasher.digest() # XXX(caw): replace with H3
+
     comm_enc = G.serialize(R)
-    pk_enc = G.serialize(pk)
-    challenge_input = bytes(comm_enc + pk_enc + msg_hash)
+    pk_enc = G.serialize(Y)
+    challenge_input = bytes(comm_enc + pk_enc + m)
     c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
 
-    R_prime = (z * G.generator()) + (pk * -c)
-    return R == R_prime
+    l = z * G.generator()
+    r = (c * Y) + R
+    return l == r
 
 # Sanity check verification logic
 single_sig = generate_schnorr_signature(G, H, group_secret_key, message)
 assert(verify_schnorr_signature(G, H, group_public_key, message, single_sig))
+
+if type(G) == type(GroupEd25519()):
+    # Sanity check of standard encoding/decoding logic
+    import os
+    sk = os.urandom(32)
+    pk_raw = secret_to_public_raw(sk)
+    pk_enc = point_compress(pk_raw)
+    pkk = G.serialize(G.deserialize(pk_enc))
+    assert(pkk == pk_enc)
+
+    rfc8032_sig = G.serialize(single_sig[0]) + G.serialize_scalar(single_sig[1]) # Transform into RFC8032-style signature
+    pk_enc = G.serialize(group_public_key)
+    pk = G.deserialize(pk_enc)
+    assert(pk == group_public_key)
+    assert(verify_ed25519_rfc8032(pk_enc, message, rfc8032_sig))
 
 # Verify the group signature just the same
 assert(verify_schnorr_signature(G, H, group_public_key, message, sig))
@@ -327,3 +387,8 @@ vector = {
     "final_output": final_output,
 }
 print(json.dumps(vector, indent=2))
+
+# Discussion points:
+# - API abstraction boundary: fixed-length bytes or raw values?
+# - Signature verification logic: aligned with RFC8032?
+# - Domain separation for non-interoperable ciphersuites
