@@ -580,7 +580,8 @@ each Signer then runs the following procedure to produce its own signature share
   def sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, participant_list):
     # Compute the blinding factor
     encoded_commitments = encode_group_commitment_list(commitment_list)
-    blinding_factor = H1(encoded_commitments)
+    msg_hash = H3(msg)
+    blinding_factor = H1(encoded_commitments || msg_hash)
 
     # Compute the group commitment
     R = G.Identity()
