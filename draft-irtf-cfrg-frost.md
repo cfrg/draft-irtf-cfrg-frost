@@ -279,9 +279,9 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
 {{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
 H1, H2, and H3, where H1 and H2 map arbitrary inputs to non-zero Scalar elements of
-the prime-order group scalar field, and H3 is an alias for H. The details of
-H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}} for more details
-about each.
+the prime-order group scalar field, and H3 is an alias for H with domain separation
+applied. The details of H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}}
+for more details about each.
 
 # Helper functions {#helpers}
 
