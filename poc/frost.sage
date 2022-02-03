@@ -10,6 +10,7 @@ from ed25519_rfc8032 import verify_ed25519_rfc8032, point_compress, secret_to_pu
 
 try:
     from sagelib.groups import GroupRistretto255, GroupEd25519, GroupP256
+    from sagelib.hash import HashEd25519, HashRistretto255, HashP256
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -31,34 +32,14 @@ class Signer(object):
         self.sk = sk[1]
         self.pk = pk
 
-    def H1(self, x):
-        '''
-        H1(m) = H(contextString || "rho" || I2OSP(len(m), 8) || m)
-        '''
-        return self.G.hash_to_scalar(x, dst="1")
-
-    def H2(self, x):
-        '''
-        H2(m) = H(contextString || "chal" || I2OSP(len(m), 8) || m)
-        '''
-        return self.G.hash_to_scalar(x, dst="2")
-
-    def H3(self, x):
-        '''
-        H3(m) = H(m)
-        '''
-        hasher = self.H()
-        hasher.update(x)
-        return hasher.digest()
-
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-one
     def commit(self):
-        d = self.G.random_scalar()
-        e = self.G.random_scalar()
-        D = d * self.G.generator()
-        E = e * self.G.generator()
-        nonce = (d, e)
-        comm = (D, E)
+        hiding_nonce = self.G.random_scalar()
+        blinding_nonce = self.G.random_scalar()
+        hiding_nonce_commitment = hiding_nonce * self.G.generator()
+        blinding_nonce_commitment = blinding_nonce * self.G.generator()
+        nonce = (hiding_nonce, blinding_nonce)
+        comm = (hiding_nonce_commitment, blinding_nonce_commitment)
         return nonce, comm
 
     def encode_group_commitment_list(self, commitment_list):
@@ -79,17 +60,17 @@ class Signer(object):
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-two
     def sign(self, nonce, comm, msg, commitment_list, participant_list):
-        msg_hash = self.H3(message)
+        msg_hash = self.H.H3(message)
         encoded_comm_list = self.encode_group_commitment_list(commitment_list)
         rho_input = bytes(encoded_comm_list + msg_hash)
 
-        blinding_factor = self.H1(rho_input)
+        blinding_factor = self.H.H1(rho_input)
         group_comm = self.group_commitment(commitment_list, blinding_factor)
 
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
         challenge_input = bytes(group_comm_enc + pk_enc + msg)
-        c = self.H2(challenge_input)
+        c = self.H.H2(challenge_input)
 
         L_i = derive_lagrange_coefficient(self.G, self.index, participant_list)
 
@@ -106,7 +87,7 @@ class Signer(object):
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
         challenge_input = bytes(group_comm_enc + pk_enc + msg)
-        c = self.H2(challenge_input)
+        c = self.H.H2(challenge_input)
 
         l = signer_share * self.G.generator()
 
@@ -201,9 +182,9 @@ THRESHOLD_LIMIT = 2
 message = _as_bytes("test")
 
 ciphersuites = [
-    ("FROST(Ed25519, SHA512)", GroupEd25519(), sha512), 
-    ("FROST(ristretto255, SHA512)", GroupRistretto255(), sha512), 
-    ("FROST(P-256, SHA256)", GroupP256(), sha256),
+    ("FROST(Ed25519, SHA512)", GroupEd25519(), HashEd25519()), 
+    ("FROST(ristretto255, SHA512)", GroupRistretto255(), HashRistretto255()), 
+    ("FROST(P-256, SHA256)", GroupP256(), HashP256()),
 ]
 vectors = {}
 for (name, G, H) in ciphersuites:
@@ -217,7 +198,7 @@ for (name, G, H) in ciphersuites:
     config["THRESHOLD_LIMIT"] = str(THRESHOLD_LIMIT)
     config["name"] = name
     config["group"] = G.name
-    config["hash"] = H().name.upper()
+    config["hash"] = H.name
 
     # Create all inputs, including the group key and individual signer key shares
     signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, NUM_SIGNERS, THRESHOLD_LIMIT)
@@ -248,10 +229,9 @@ for (name, G, H) in ciphersuites:
         commitment_list.append((index, comm_i[0], comm_i[1]))
 
     group_comm_list = signers[1].encode_group_commitment_list(commitment_list)
-    msg_hash = signers[1].H3(message)
+    msg_hash = signers[1].H.H3(message)
     rho_input = bytes(group_comm_list + msg_hash)
-
-    blinding_factor = signers[1].H1(rho_input)
+    blinding_factor = signers[1].H.H1(rho_input)
     group_comm = signers[1].group_commitment(commitment_list, blinding_factor)
 
     round_one_outputs = {
@@ -293,7 +273,7 @@ for (name, G, H) in ciphersuites:
     final_output["sig"]["R"] = to_hex(G.serialize(sig[0]))
     final_output["sig"]["z"] = to_hex(G.serialize_scalar(sig[1]))
 
-    def generate_schnorr_signature(G, s, msg):
+    def generate_schnorr_signature(G, H, s, msg):
         pk = s * G.generator()
         k = G.random_scalar()
         R = k * G.generator()
@@ -301,26 +281,26 @@ for (name, G, H) in ciphersuites:
         group_comm_enc = G.serialize(R)
         pk_enc = G.serialize(pk)
         challenge_input = bytes(group_comm_enc + pk_enc + msg)
-        c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
+        c = H.H2(challenge_input)
 
         z = k + (s * c)
         return (R, z)
 
-    def verify_schnorr_signature(G, Y, msg, SIG):
+    def verify_schnorr_signature(G, H, Y, msg, SIG):
         (R, z) = SIG
 
         comm_enc = G.serialize(R)
         pk_enc = G.serialize(Y)
         challenge_input = bytes(comm_enc + pk_enc + msg)
-        c = G.hash_to_scalar(challenge_input, dst="2") # XXX(caw): replace with H2
+        c = H.H2(challenge_input)
 
         l = z * G.generator()
         r = (c * Y) + R
         return l == r
 
     # Sanity check verification logic
-    single_sig = generate_schnorr_signature(G, group_secret_key, message)
-    assert(verify_schnorr_signature(G, group_public_key, message, single_sig))
+    single_sig = generate_schnorr_signature(G, H, group_secret_key, message)
+    assert(verify_schnorr_signature(G, H, group_public_key, message, single_sig))
 
     if type(G) == type(GroupEd25519()):
         # Sanity check of standard encoding/decoding logic
@@ -338,7 +318,7 @@ for (name, G, H) in ciphersuites:
         assert(verify_ed25519_rfc8032(pk_enc, message, rfc8032_sig))
 
     # Verify the group signature just the same
-    assert(verify_schnorr_signature(G, group_public_key, message, sig))
+    assert(verify_schnorr_signature(G, H, group_public_key, message, sig))
 
     vector = {
         "config": config,
