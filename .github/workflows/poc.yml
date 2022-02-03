@@ -1,6 +1,7 @@
 name: FROST poc CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ $default-branch ]
   pull_request:
