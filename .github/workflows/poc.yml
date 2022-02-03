@@ -1,19 +1,12 @@
 name: FROST poc CI
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
+on: [ push, workflow_dispatch ]
 
 jobs:
 
   poc:
-    name: PoC test
-
     runs-on: ubuntu-latest
-
+    container: sagemath/sagemath:latest
     steps:
       - uses: actions/checkout@v2
 
@@ -23,7 +16,6 @@ jobs:
           python-version: "3.10"
 
       - name: Test with Makefile
-        uses: docker:/sagemath/sagemath:latest
         run: |
           cd poc
           make test
