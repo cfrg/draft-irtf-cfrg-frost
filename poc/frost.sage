@@ -78,7 +78,10 @@ class Signer(object):
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-two
     def sign(self, nonce, comm, msg, commitment_list, participant_list):
-        rho_input = self.encode_group_commitment_list(commitment_list)
+        msg_hash = self.H3(message)
+        encoded_comm_list = self.encode_group_commitment_list(commitment_list)
+        rho_input = bytes(encoded_comm_list + msg_hash)
+
         blinding_factor = self.H1(rho_input)
         group_comm = self.group_commitment(commitment_list, blinding_factor)
 
@@ -109,7 +112,7 @@ class Signer(object):
         l = signer_share * self.G.generator()
 
         lambda_i = derive_lagrange_coefficient(self.G, index, participant_list)
-        r = signer_comm + (signer_key * c * lambda_i) 
+        r = signer_comm + (signer_key * c * lambda_i)
 
         return l == r
 
@@ -230,7 +233,7 @@ for index in signers:
 # Round one: commitment
 # XXX(caw): wrap up nonces and commitments in a data structure
 nonces = {}
-comms = {} 
+comms = {}
 commitment_list = [] # XXX(caw): need a better name for this structure
 for index in participant_list:
     nonce_i, comm_i = signers[index].commit()
@@ -239,7 +242,11 @@ for index in participant_list:
     commitment_list.append((index, comm_i[0], comm_i[1]))
 
 # XXX(caw): should this go into round one or two?
-rho_input = signers[1].encode_group_commitment_list(commitment_list)
+# XXX(chk): round two
+group_comm_list = signers[1].encode_group_commitment_list(commitment_list)
+msg_hash = signers[1].H3(message)
+rho_input = bytes(group_comm_list + msg_hash)
+
 blinding_factor = signers[1].H1(rho_input)
 group_comm = signers[1].group_commitment(commitment_list, blinding_factor)
 
