@@ -78,7 +78,7 @@ class Signer(object):
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-two
     def sign(self, nonce, comm, msg, commitment_list, participant_list):
-        msg_hash = signers[1].H3(message)
+        msg_hash = self.H3(message)
         encoded_comm_list = self.encode_group_commitment_list(commitment_list)
         rho_input = bytes(encoded_comm_list + msg_hash)
 
