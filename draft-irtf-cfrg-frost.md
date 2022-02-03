@@ -445,9 +445,9 @@ structures into values that can be processed with hash functions.
 
 ~~~
   Inputs:
-  - commitment_list = [(i, x, y), ...], a list of commitments issued by each signer,
-    where each element in the list indicates the signer index and their
-    two commitment Element values (x, y). This list MUST be sorted in ascending order
+  - commitment_list = [(i, x_i, y_i), ...], a list of commitments issued by each signer,
+    where each element in the list indicates the signer index i and their
+    two commitment Element values (x_i, y_i). This list MUST be sorted in ascending order
     by signer index.
 
   Outputs: A byte string containing the serialized representation of commitment_list.
@@ -506,7 +506,7 @@ Round one involves each signer generating a pair of nonces and their correspondi
 commitments. A nonce is a pair of Scalar values, and a commitment is a pair of Element values.
 
 Each signer in round one generates a nonce `nonce = (hiding_nonce, blinding_nonce)` and commitment
-`comm = (hiding_nonce_commitment, blinding_nonce_commitment)` for each signer.
+`comm = (hiding_nonce_commitment, blinding_nonce_commitment)`.
 
 ~~~
   Inputs: None
@@ -549,15 +549,15 @@ each Signer then runs the following procedure to produce its own signature share
   - nonce_i, pair of Scalar values (d, e) generated in round one.
   - comm_i, pair of Element values (D, E) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
-  - commitment_list = [(j, x, y), ...], a list of commitments issued by each signer,
-    where each element in the list indicates the signer index and their
-    two commitment Element values (x, y). This list MUST be sorted in ascending order
+  - commitment_list = [(j, x_j, y_j), ...], a list of commitments issued by each signer,
+    where each element in the list indicates the signer index j and their
+    two commitment Element values (x_j, y_j). This list MUST be sorted in ascending order
     by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
   Outputs: a signature share sig_share and commitment share comm_share, which
-           are Element and Scalar values respectively.
+           are Scalar and Element values respectively.
 
   def sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, participant_list):
     # Compute the blinding factor
@@ -567,7 +567,7 @@ each Signer then runs the following procedure to produce its own signature share
 
     # Compute the group commitment
     R = G.Identity()
-    for (_, hiding_nonce_commitment, blinding_nonce_commitment) in B:
+    for (_, hiding_nonce_commitment, blinding_nonce_commitment) in commitment_list:
       R = R + (hiding_nonce_commitment + (blinding_nonce_commitment * blinding_factor))
 
     lambda_i = derive_lagrange_coefficient(index, participant_list)
@@ -577,7 +577,7 @@ each Signer then runs the following procedure to produce its own signature share
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg_hash
-    c = H(challenge_input)
+    c = H2(challenge_input)
 
     # Compute the signature share
     (hiding_nonce, blinding_nonce) = nonce_i
@@ -616,7 +616,7 @@ The Coordinator MUST verify the set of signature shares using the following proc
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg_hash
-    c = H(challenge_input)
+    c = H2(challenge_input)
 
     l = G.ScalarbaseMult(sig_share)
 
@@ -693,7 +693,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
     the output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
     the output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
-  - H3(m): Implemented as an alias for H, i.e., H(m).
+  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
 
 ## FROST(P-256, SHA-256)
 
@@ -715,7 +715,7 @@ The value of the contextString parameter is "FROST-P256-SHA256".
   - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
     prime modulus equal to `Order()`.
-  - H3(m): Implemented as an alias for H, i.e., H(m).
+  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
 
 # Security Considerations {#sec-considerations}
 

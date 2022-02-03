@@ -25,12 +25,7 @@ class Hash(object):
         raise Exception("Not implemented")
 
     def H3(self, m):
-        '''
-        H3(m) = H(m)
-        '''
-        hasher = self.H()
-        hasher.update(m)
-        return hasher.digest()
+        raise Exception("Not implemented")
 
 class HashEd25519(Hash):
     def __init__(self):
@@ -42,6 +37,11 @@ class HashEd25519(Hash):
 
     def H2(self, m):
         return int.from_bytes(sha512(m).digest(), "little") % self.G.order()
+
+    def H3(self, m):
+        hasher = self.H()
+        hasher.update(m)
+        return hasher.digest()
 
 class HashRistretto255(Hash):
     def __init__(self):
@@ -55,6 +55,12 @@ class HashRistretto255(Hash):
         hash_input = _as_bytes("FROST-RISTRETTO255-SHA512 chal") + m
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
+    def H3(self, m):
+        hasher = self.H()
+        hasher.update(_as_bytes("FROST-RISTRETTO255-SHA512 digest"))
+        hasher.update(m)
+        return hasher.digest()
+
 class HashP256(Hash):
     def __init__(self):
         Hash.__init__(self, GroupP256(), sha256, "SHA-256")
@@ -66,3 +72,9 @@ class HashP256(Hash):
     def H2(self, m):
         dst = _as_bytes("FROST-P256-SHA256 chal")
         return self.G.hash_to_scalar(m, dst=dst)
+
+    def H3(self, m):
+        hasher = self.H()
+        hasher.update(_as_bytes("FROST-P256-SHA256 digest"))
+        hasher.update(m)
+        return hasher.digest()
