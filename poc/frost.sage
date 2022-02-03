@@ -35,11 +35,11 @@ class Signer(object):
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-one
     def commit(self):
         hiding_nonce = self.G.random_scalar()
-        blinding_nonce = self.G.random_scalar()
+        binding_nonce = self.G.random_scalar()
         hiding_nonce_commitment = hiding_nonce * self.G.generator()
-        blinding_nonce_commitment = blinding_nonce * self.G.generator()
-        nonce = (hiding_nonce, blinding_nonce)
-        comm = (hiding_nonce_commitment, blinding_nonce_commitment)
+        binding_nonce_commitment = binding_nonce * self.G.generator()
+        nonce = (hiding_nonce, binding_nonce)
+        comm = (hiding_nonce_commitment, binding_nonce_commitment)
         return nonce, comm
 
     def encode_group_commitment_list(self, commitment_list):
@@ -51,10 +51,10 @@ class Signer(object):
         return B_e
 
     # XXX(caw): break this out into a separate function in the draft?
-    def group_commitment(self, commitment_list, blinding_factor):
+    def group_commitment(self, commitment_list, binding_factor):
         comm = self.G.identity()
         for (_, D_i, E_i) in commitment_list:
-            comm = comm + (D_i + (E_i * blinding_factor))
+            comm = comm + (D_i + (E_i * binding_factor))
 
         return comm
 
@@ -64,8 +64,8 @@ class Signer(object):
         encoded_comm_list = self.encode_group_commitment_list(commitment_list)
         rho_input = bytes(encoded_comm_list + msg_hash)
 
-        blinding_factor = self.H.H1(rho_input)
-        group_comm = self.group_commitment(commitment_list, blinding_factor)
+        binding_factor = self.H.H1(rho_input)
+        group_comm = self.group_commitment(commitment_list, binding_factor)
 
         group_comm_enc = self.G.serialize(group_comm)
         pk_enc = self.G.serialize(self.pk)
@@ -75,10 +75,10 @@ class Signer(object):
         L_i = derive_lagrange_coefficient(self.G, self.index, participant_list)
 
         (d_i, e_i) = nonce
-        z_i = d_i + (e_i * blinding_factor) + (L_i * self.sk * c)
+        z_i = d_i + (e_i * binding_factor) + (L_i * self.sk * c)
 
         (D_i, E_i) = comm
-        R_i = D_i + (E_i * blinding_factor)
+        R_i = D_i + (E_i * binding_factor)
 
         return z_i, R_i
 
@@ -182,8 +182,8 @@ THRESHOLD_LIMIT = 2
 message = _as_bytes("test")
 
 ciphersuites = [
-    ("FROST(Ed25519, SHA512)", GroupEd25519(), HashEd25519()), 
-    ("FROST(ristretto255, SHA512)", GroupRistretto255(), HashRistretto255()), 
+    ("FROST(Ed25519, SHA512)", GroupEd25519(), HashEd25519()),
+    ("FROST(ristretto255, SHA512)", GroupRistretto255(), HashRistretto255()),
     ("FROST(P-256, SHA256)", GroupP256(), HashP256()),
 ]
 vectors = {}
@@ -231,21 +231,21 @@ for (name, G, H) in ciphersuites:
     group_comm_list = signers[1].encode_group_commitment_list(commitment_list)
     msg_hash = signers[1].H.H3(message)
     rho_input = bytes(group_comm_list + msg_hash)
-    blinding_factor = signers[1].H.H1(rho_input)
-    group_comm = signers[1].group_commitment(commitment_list, blinding_factor)
+    binding_factor = signers[1].H.H1(rho_input)
+    group_comm = signers[1].group_commitment(commitment_list, binding_factor)
 
     round_one_outputs = {
         "participants": [str(index) for index in participant_list],
         "commitment_list": to_hex(rho_input),
-        "group_blinding_factor": to_hex(G.serialize_scalar(blinding_factor)),
+        "group_binding_factor": to_hex(G.serialize_scalar(binding_factor)),
         "outputs": {}
     }
     for index in participant_list:
         round_one_outputs["outputs"][str(index)] = {}
         round_one_outputs["outputs"][str(index)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[index][0]))
-        round_one_outputs["outputs"][str(index)]["blinding_nonce"] = to_hex(G.serialize_scalar(nonces[index][1]))
+        round_one_outputs["outputs"][str(index)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[index][1]))
         round_one_outputs["outputs"][str(index)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[index][0]))
-        round_one_outputs["outputs"][str(index)]["blinding_nonce_commitment"] = to_hex(G.serialize(comms[index][1]))
+        round_one_outputs["outputs"][str(index)]["binding_nonce_commitment"] = to_hex(G.serialize(comms[index][1]))
 
     # Round two: sign
     sig_shares = []
