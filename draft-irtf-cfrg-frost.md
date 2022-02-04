@@ -40,7 +40,10 @@ normative:
     author:
       -
         org: ANSI
-
+  SECG:
+    title: "Elliptic Curve Cryptography, Standards for Efficient Cryptography Group, ver. 2"
+    target: https://secg.org/sec1-v2.pdf
+    date: 2009
 informative:
   FROST20:
     target: https://eprint.iacr.org/2020/852.pdf
@@ -239,9 +242,6 @@ We now detail a number of member functions that can be invoked on a prime-order 
 
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
-- HashToScalar(x): A member function of `G` that deterministically maps
-  an array of bytes `x` to an element in GF(p). This function is optionally
-  parameterized by a DST.
 - RandomScalar(): A member function of `G` that chooses at random a
   non-zero element in GF(p).
 - SerializeElement(A): A member function of `G` that maps a group element `A`
@@ -252,13 +252,6 @@ We now detail a number of member functions that can be invoked on a prime-order 
   byte representation of an element. This function can raise a
   DeserializeError if deserialization fails or `A` is the identity element
   of the group; see {{input-validation}}.
-- SerializeScalar(s): A member function of `G` that maps a scalar element `s`
-  to a unique byte array `buf` of fixed length `Ns`. The output type of this
-  function is `SerializedScalar`.
-- DeserializeScalar(buf): A member function of `G` that maps a byte array
-  `buf` to a scalar `s`, or fails if the input is not a valid byte
-  representation of a scalar. This function can raise a
-  DeserializeError if deserialization fails; see {{input-validation}}.
 
 ### Input Validation {#input-validation}
 
@@ -284,23 +277,11 @@ little-endian integer, is a value greater than or equal to 0, and less than `Ord
 FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD BE used in practice, see
-{{ciphersuites}}. By construction, the hash functions inputs MUST be smaller
-than 2^64 bits.
-
-Using H, we introduce two separate domain-separated hashes, H1, H2, and H3.
-These hash functions differ per parameter set, so H1, H2, and H3 differ
-between instantiations of the protocol as follows:
-
-~~~
-H1(m) = H(contextString || "rho" || I2OSP(len(m), 8) || m)
-H2(m) = H(contextString || "chal" || I2OSP(len(m), 8) || m)
-H3(m) = H(m)
-~~~
-
-Normally H3 would also include a domain separator, but for backwards compatibility
-with {{!RFC8032}}, it is omitted here.
-
-The variable contextString is unique for each ciphersuite defined in {{ciphersuites}}.
+{{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
+H1, H2, and H3, where H1 and H2 map arbitrary inputs to non-zero Scalar elements of
+the prime-order group scalar field, and H3 is an alias for H with domain separation
+applied. The details of H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}}
+for more details about each.
 
 # Helper functions {#helpers}
 
@@ -464,19 +445,19 @@ structures into values that can be processed with hash functions.
 
 ~~~
   Inputs:
-  - commitment_list = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
-    where each element in the list indicates the signer index and their
-    two commitment Element values. B MUST be sorted in ascending order
+  - commitment_list = [(i, x_i, y_i), ...], a list of commitments issued by each signer,
+    where each element in the list indicates the signer index i and their
+    two commitment Element values (x_i, y_i). This list MUST be sorted in ascending order
     by signer index.
 
-  Outputs: A byte string containing the serialized representation of B.
+  Outputs: A byte string containing the serialized representation of commitment_list.
 
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
-    for (j, D_j, E_j) in B:
-      encoded_commitment = I2OSP(j, 2) ||
-                           G.SerializeElement(D_j) ||
-                           G.SerializeElement(E_j)
+    for (index, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+      encoded_commitment = I2OSP(index, 2) ||
+                           G.SerializeElement(hiding_nonce_commitment) ||
+                           G.SerializeElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
     return encoded_group_commitment
 ~~~
@@ -524,8 +505,8 @@ signature; see {{sec-considerations}}.
 Round one involves each signer generating a pair of nonces and their corresponding public
 commitments. A nonce is a pair of Scalar values, and a commitment is a pair of Element values.
 
-Each signer in round one generates a nonce `nonce = (d, e)` and commitment
-`comm = (D, E)` for each signer.
+Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce)` and commitment
+`comm = (hiding_nonce_commitment, binding_nonce_commitment)`.
 
 ~~~
   Inputs: None
@@ -533,16 +514,16 @@ Each signer in round one generates a nonce `nonce = (d, e)` and commitment
   Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs.
 
   def commit():
-    d = G.RandomScalar()
-    e = G.RandomScalar()
-    D = G.ScalarBaseMult(d)
-    E = G.ScalarBaseMult(e)
-    nonce = (d, e)
-    comm = (D, E)
-    return nonce, comm
+    hiding_nonce = G.RandomScalar()
+    binding_nonce = G.RandomScalar()
+    hiding_nonce_commitment = G.ScalarBaseMult(hiding_nonce)
+    binding_nonce_commitment = G.ScalarBaseMult(binding_nonce)
+    nonce = (hiding_nonce, binding_nonce)
+    comm = (hiding_nonce_commitment, binding_nonce_commitment)
+    return (nonce, comm)
 ~~~
 
-The output `nonce` from Participant `P_i` is stored locally and kept private
+The private output `nonce` from Participant `P_i` is stored locally and kept private
 for use in the second round. The public output `comm` from Participant `P_i`
 is sent to the Coordinator; see {{encode-commitment}} for encoding recommendations.
 
@@ -568,25 +549,26 @@ each Signer then runs the following procedure to produce its own signature share
   - nonce_i, pair of Scalar values (d, e) generated in round one.
   - comm_i, pair of Element values (D, E) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
-  - commitment_list = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
-    where each element in the list indicates the signer index and their
-    two commitment Element values. B MUST be sorted in ascending order
+  - commitment_list = [(j, x_j, y_j), ...], a list of commitments issued by each signer,
+    where each element in the list indicates the signer index j and their
+    two commitment Element values (x_j, y_j). This list MUST be sorted in ascending order
     by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
-  Outputs: a signature share z_i and commitment share R_i
+  Outputs: a signature share sig_share and commitment share comm_share, which
+           are Scalar and Element values respectively.
 
   def sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, participant_list):
-    # Compute the blinding factor
+    # Compute the binding factor
     encoded_commitments = encode_group_commitment_list(commitment_list)
     msg_hash = H3(msg)
-    blinding_factor = H1(encoded_commitments || msg_hash)
+    binding_factor = H1(encoded_commitments || msg_hash)
 
     # Compute the group commitment
     R = G.Identity()
-    for (_, D_i, E_i) in B:
-      R = R + (D_i + (E_i * blinding_factor))
+    for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+      R = R + (hiding_nonce_commitment + (binding_nonce_commitment * binding_factor))
 
     lambda_i = derive_lagrange_coefficient(index, participant_list)
 
@@ -598,14 +580,14 @@ each Signer then runs the following procedure to produce its own signature share
     c = H2(challenge_input)
 
     # Compute the signature share
-    (d, e) = nonce_i
-    z_i = d + (e * blinding_factor) + (lambda_i * sk_i * c)
+    (hiding_nonce, binding_nonce) = nonce_i
+    sig_share = hiding_nonce + (binding_nonce * binding_factor) + (lambda_i * sk_i * c)
 
     # Compute the commitment share
-    (D, E) = comm_i
-    R_i = D + (E * blinding_factor)
+    (hiding_nonce_commitment, binding_nonce_commitment) = comm_i
+    comm_share = hiding_nonce_commitment + (binding_nonce_commitment * binding_factor)
 
-    return z_i, R_i
+    return sig_share, comm_share
 ~~~
 
 The output of this procedure is a signature share and group commitment share.
@@ -620,26 +602,26 @@ The Coordinator MUST verify the set of signature shares using the following proc
   - index, Index `i` of the signer. Note index will never equal `0`.
   - PK, the public key for the group
   - PK_i, the public key for the ith signer, where PK_i = ScalarBaseMult(s[i])
-  - z_i, the signature share for the ith signer, computed from the signer
-  - R_i, the commitment for the ith signer, computed from the signer
+  - sig_share, the signature share for the ith signer, computed from the signer
+  - comm_share, the commitment for the ith signer, computed from the signer
   - R, the group commitment
   - msg, the message to be signed
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
-  Outputs: 1 if the signature share is valid, and 0 otherwise
+  Outputs: 1 if the signature share is valid, and 0 otherwise.
 
-  def verify_signature_share(index, PK, PK_i, z_i, R_i, R, msg, participant_list):
+  def verify_signature_share(index, PK, PK_i, sig_share, comm_share, R, msg, participant_list):
     msg_hash = H3(msg)
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg_hash
     c = H2(challenge_input)
 
-    l = G.ScalarbaseMult(z_i)
+    l = G.ScalarbaseMult(sig_share)
 
     lambda_i = derive_lagrange_coefficient(index, participant_list)
-    r = R_i + (z_i * c * lambda_i)
+    r = comm_share + (sig_share * c * lambda_i)
 
     return l == r
 ~~~
@@ -674,6 +656,29 @@ A FROST ciphersuite must specify the underlying prime-order group details
 and cryptographic hash function. Each ciphersuite is denoted as (Group, Hash),
 e.g., (ristretto255, SHA-512). This section contains some ciphersuites.
 The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
+The (edwards25519, SHA-512) ciphersuite is included for backwards compatibility
+with {{!RFC8032}}.
+
+## FROST(edwards25519, SHA-512)
+
+This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
+meant to produce signatures indistinguishable from Ed25519 as specified in {{!RFC8032}}.
+The value of the contextString parameter is empty.
+
+- Group: ed25519 {{!RFC8032}}
+  - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
+  - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
+- Hash (`H`): SHA-512, and Nh = 64.
+  - H1(m): Implemented by computing H("rho" || m), interpreting the lower
+    32 bytes as a little-endian integer, and reducing the resulting integer modulo
+    L = 2^252+27742317777372353535851937790883648493.
+  - H2(m): Implemented by computing H(m), interpreting the lower 32 bytes
+    as a little-endian integer, and reducing the resulting integer modulo
+    L = 2^252+27742317777372353535851937790883648493.
+  - H3(m): Implemented as an alias for H, i.e., H(m).
+
+Normally H2 would also include a domain separator, but for backwards compatibility
+with {{!RFC8032}}, it is omitted.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
@@ -681,15 +686,14 @@ This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash functi
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
-  - HashToScalar(): Compute `uniform_bytes` using `expand_message` = `expand_message_xmd`,
-    DST = "HashToScalar-" || contextString, and output length 64, interpret
-    `uniform_bytes` as a 512-bit integer in little-endian order, and reduce the integer
-    modulo `Order()`.
-  - Serialization: Both group elements and scalars are encoded in Ne = Ns = 32
-    bytes. For group elements, use the 'Encode' and 'Decode' functions from
-    {{!RISTRETTO}}. For scalars, ensure they are fully reduced modulo `Order()`
-    and in little-endian order.
+  - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
+  - DeserializElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
 - Hash (`H`): SHA-512, and Nh = 64.
+  - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
+    the output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
+  - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
+    the output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
+  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
 
 ## FROST(P-256, SHA-256)
 
@@ -697,12 +701,21 @@ This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
-  - HashToScalar(): Use hash_to_field from {{!I-D.irtf-cfrg-hash-to-curve}}
-    using L = 48, `expand_message_xmd` with SHA-256,
-    DST = "HashToScalar-" || contextString, and
-    prime modulus equal to `Order()`.
+  - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SECG}}.
+  - DeserializeElement: Implemented by attempting to deserialize a public key using
+    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
+    and then performs partial public-key validation as defined in section 5.6.2.3.4 of
+    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}.
   - Serialization: Elements are serialized as Ne = 33 byte string
 - Hash (`H`): SHA-256, and Nh = 32.
+  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
+    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
+    prime modulus equal to `Order()`.
+  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
+    prime modulus equal to `Order()`.
+  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
 
 # Security Considerations {#sec-considerations}
 
@@ -971,7 +984,7 @@ D
 : The commitment hiding factor encoded as a serialized group element.
 
 E
-: The commitment blinding factor encoded as a serialized group element.
+: The commitment binding factor encoded as a serialized group element.
 
 ## Signing Packages {#encode-package}
 
