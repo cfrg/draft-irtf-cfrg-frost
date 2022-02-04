@@ -110,7 +110,6 @@ def format_vector_final_output(name, vector):
         for final_output_key in vector["final_output"]:
             if key == final_output_key:
                 wrap_print(key + ":", vector["final_output"][key])
-    print("")
 
 def format_vector(name, vector):
     format_vector_config(name, vector)
@@ -124,4 +123,6 @@ with open(sys.argv[1], "r") as fh:
     for name in vectors:
         vector = vectors[name]
         print("## " + name + "\n")
+        print("~~~")
         format_vector(name, vector)
+        print("~~~")

@@ -1055,6 +1055,7 @@ Each test vector consists of the following information.
 
 ## FROST(Ed25519, SHA512)
 
+~~~
 // Configuration information
 MAX_SIGNERS: 3
 THRESHOLD_LIMIT: 2
@@ -1119,9 +1120,10 @@ S2 group_commitment_share: 4af85179d17ed031b767ab579e59c7018dac09ae40
 
 sig: ebe7efbb42c4b1c55106b5536fb5e9ac7a6d0803ea4ae9c8c629ca51e05c230e
 78b139d3a5305af087c8a6783a32b4b7c45bdd82b60546876803b0e3ca19ff0c
-
+~~~
 ## FROST(ristretto255, SHA512)
 
+~~~
 // Configuration information
 MAX_SIGNERS: 3
 THRESHOLD_LIMIT: 2
@@ -1186,9 +1188,10 @@ S2 group_commitment_share: 62e97479cb0df12293aadfa88e5d1caa7f82d548f7
 
 sig: 56604a3b6ca135e56f5d68d2f6496e3e0e9b9ec691a3790f5e8311d24d75ce13
 1747acc75336637a6f532a8a42aa40801d273e336569043e77e730a9b887c90f
-
+~~~
 ## FROST(P-256, SHA256)
 
+~~~
 // Configuration information
 MAX_SIGNERS: 3
 THRESHOLD_LIMIT: 2
@@ -1253,3 +1256,4 @@ S2 group_commitment_share: 024e8a66e7c565b72c3e5f423a73921353371ce0c7
 
 sig: 03bf586eabe39ca2c49a6b46262b072c3da3945c72dc63278c887cf975fcf329
 8aa85b2efa0312ed0e316ad7c311c798269aa0cc94fb9e030087e1ffd88b997445
+~~~
