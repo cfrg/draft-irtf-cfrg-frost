@@ -5,8 +5,8 @@ on: [ push, workflow_dispatch ]
 jobs:
 
   poc:
-    runs-on: ubuntu-latest
-    container: sagemath/sagemath:latest
+    runs-on: macos-latest
+
     steps:
       - uses: actions/checkout@v2
 
@@ -14,6 +14,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.10"
+
+      - name: Set up Sage
+        run: |
+          brew install sage
 
       - name: Test with Makefile
         run: |
