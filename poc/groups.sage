@@ -59,6 +59,7 @@ class Group(object):
         pass
 
     def hash_to_group(self, x):
+        raise Exception("not implemented")
         return None
 
     def hash_to_scalar(self, x):
@@ -68,6 +69,7 @@ class Group(object):
         return random.randint(1, self.order() - 1)
 
     def key_gen(self):
+        raise Exception("not implemented")
         skS = ZZ(self.random_scalar())
         pkS = self.generator() * skS
         return skS, pkS
@@ -148,21 +150,21 @@ class GroupP256(GroupNISTCurve):
         # See FIPS 186-3, section D.2.3
         gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
         gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
-        GroupNISTCurve.__init__(self, "P256_XMD:SHA-256_SSWU_RO_", p256_sswu_ro, p256_F, p256_A, p256_B, p256_p, p256_order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
+        GroupNISTCurve.__init__(self, "P-256", p256_sswu_ro, p256_F, p256_A, p256_B, p256_p, p256_order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
 
 class GroupP384(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.4
         gx = 0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7
         gy = 0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5f
-        GroupNISTCurve.__init__(self, "P384_XMD:SHA-512_SSWU_RO_", p384_sswu_ro, p384_F, p384_A, p384_B, p384_p, p384_order, gx, gy, 72, hashlib.sha512, expand_message_xmd, 192)
+        GroupNISTCurve.__init__(self, "P-384", p384_sswu_ro, p384_F, p384_A, p384_B, p384_p, p384_order, gx, gy, 72, hashlib.sha512, expand_message_xmd, 192)
 
 class GroupP521(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.5
         gx = 0xc6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66
         gy = 0x11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650
-        GroupNISTCurve.__init__(self, "P521_XMD:SHA-512_SSWU_RO_", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy, 98, hashlib.sha512, expand_message_xmd, 256)
+        GroupNISTCurve.__init__(self, "P-521", p521_sswu_ro, p521_F, p521_A, p521_B, p521_p, p521_order, gx, gy, 98, hashlib.sha512, expand_message_xmd, 256)
 
 class GroupEd25519(Group):
     # Compute corresponding x-coordinate, with low bit corresponding to
