@@ -3,10 +3,10 @@
 
 import sys
 
-from hashlib import sha512, sha256
+from hashlib import sha512, sha256, shake_256
 
 try:
-    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupP256
+    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupEd448, GroupP256
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -42,6 +42,22 @@ class HashEd25519(Hash):
         hasher = self.H()
         hasher.update(m)
         return hasher.digest()
+
+class HashEd448(Hash):
+    def __init__(self):
+        Hash.__init__(self, GroupEd448(), shake_256, "SHAKE256")
+
+    def H1(self, m):
+        hash_input = _as_bytes("rho") + m
+        return int.from_bytes(shake_256(hash_input).digest(int(114)), "little") % self.G.order()
+
+    def H2(self, m):
+        return int.from_bytes(shake_256(m).digest(int(114)), "little") % self.G.order()
+
+    def H3(self, m):
+        hasher = self.H()
+        hasher.update(m)
+        return hasher.digest(int(114))
 
 class HashRistretto255(Hash):
     def __init__(self):

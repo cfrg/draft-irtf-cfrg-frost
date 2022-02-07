@@ -267,6 +267,96 @@ class GroupEd25519(Group):
         # From RFC8032. Note that the DST is ignored.
         return int.from_bytes(hashlib.sha512(msg).digest(), "little") % self.order()
 
+class GroupEd448(Group):
+    # Compute corresponding x-coordinate, with low bit corresponding to
+    # sign, or return None on failure
+    # https://datatracker.ietf.org/doc/html/rfc8032#section-5.2.3
+    def recover_x(y, sign, p, d):
+        if y >= p:
+            return None
+        u = y^2 - 1
+        v = (d * y^2) - 1
+        x = (u / v) ^ ((p+1) / 4)
+        if (v * x^2) != u:
+            return None
+        if (int(x) & int(1)) != sign:
+            x = p - x
+        return x
+
+    def to_weierstrass(a, d, x, y):
+        return ((5*a + a*y - 5*d*y - d)/(12 - 12*y), (a + a*y - d*y -d)/(4*x - 4*x*y))
+
+    def to_twistededwards(a, d, u, v):
+        y = (5*a - 12*u - d)/(-12*u - a + 5*d)
+        x = (a + a*y - d*y -d)/(4*v - 4*v*y)
+        return (x, y)
+
+    def __init__(self):
+        Group.__init__(self, "ed448")
+        # Borrowed from: https://neuromancer.sk/std/other/Ed448#
+        p = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        K = GF(p)
+        a = K(0x01)
+        d = K(0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffffffffffffffffffffffffffffffffffffffffffffffff6756)
+        E = EllipticCurve(K, (K(-1/48) * (a^2 + 14*a*d + d^2),K(1/864) * (a + d) * (-a^2 + 34*a*d - d^2)))
+        G = E(*GroupEd448.to_weierstrass(a, d, K(0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa955555555555555555555555555555555555555555555555555555555), K(0xae05e9634ad7048db359d6205086c2b0036ed7a035884dd7b7e36d728ad8c4b80d6565833a2a3098bbbcb2bed1cda06bdaeafbcdea9386ed)))
+        order = 0x3fffffffffffffffffffffffffffffffffffffffffffffffffffffff7cca23e9c44edb49aed63690216cc2728dc58f552378c292ab5844f3 * 0x04
+        E.set_order(order)
+
+        self.F = K
+        self.curve = E
+        self.p = p
+        self.group_order = 0x3fffffffffffffffffffffffffffffffffffffffffffffffffffffff7cca23e9c44edb49aed63690216cc2728dc58f552378c292ab5844f3
+        self.G = G
+        self.a = a
+        self.d = d
+
+    def generator(self):
+        return self.G
+
+    def order(self):
+        return self.group_order
+
+    def identity(self):
+        return self.curve(0)
+
+    def serialize(self, element):
+        (x, y) = element.xy()
+        (u, v) = GroupEd448.to_twistededwards(self.a, self.d, x, y)
+
+        sign = int(int(u) % 2)
+        return int.to_bytes(int(v) | (sign << 455), 57, "little")
+
+    def deserialize(self, encoded):
+        if len(encoded) != 57:
+            raise Exception("Invalid input length for decompression")
+        y = int.from_bytes(encoded, "little")
+        sign = int(y) >> 455
+        y = int(int(y) & ((1 << 455) - 1))
+
+        x = GroupEd448.recover_x(y, sign, self.p, self.d)
+        if x is None:
+            return None
+        else:
+            (u, v) = GroupEd448.to_weierstrass(self.a, self.F(self.d), x, y)
+            return self.curve(u, v)
+
+    def serialize_scalar(self, scalar):
+        return int.to_bytes(int(scalar) % int(self.group_order), 57, "little")
+
+    def element_byte_length(self):
+        return 57
+
+    def scalar_byte_length(self):
+        return 57
+
+    def hash_to_group(self, msg, dst):
+        raise Exception("Not implemented")
+
+    def hash_to_scalar(self, msg, dst=""):
+        # From RFC8032. Note that the DST is ignored.
+        return int.from_bytes(hashlib.shake_256(msg).digest(int(114)), "little") % self.order()
+
 class GroupRistretto255(Group):
     def __init__(self):
         Group.__init__(self, "ristretto255")

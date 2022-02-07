@@ -4,13 +4,12 @@
 import sys
 import json
 
-from hashlib import sha512, sha256
 from hash_to_field import I2OSP
 from ed25519_rfc8032 import verify_ed25519_rfc8032, point_compress, secret_to_public_raw
 
 try:
-    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupP256
-    from sagelib.hash import HashEd25519, HashRistretto255, HashP256
+    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupEd448, GroupP256
+    from sagelib.hash import HashEd25519, HashEd448, HashRistretto255, HashP256
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -193,6 +192,7 @@ message = _as_bytes("test")
 
 ciphersuites = [
     ("FROST(Ed25519, SHA512)", GroupEd25519(), HashEd25519()),
+    ("FROST(Ed448, SHAKE256)", GroupEd448(), HashEd448()),
     ("FROST(ristretto255, SHA512)", GroupRistretto255(), HashRistretto255()),
     ("FROST(P-256, SHA256)", GroupP256(), HashP256()),
 ]
@@ -214,6 +214,12 @@ for (name, G, H) in ciphersuites:
 
     # Create all inputs, including the group key and individual signer key shares
     signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, MAX_SIGNERS, THRESHOLD_LIMIT)
+
+    group_public_key_enc = G.serialize(group_public_key)
+    recovered_group_public_key = G.deserialize(group_public_key_enc)
+    assert(group_public_key == recovered_group_public_key)
+
+    # Create signers
     signer_public_keys = [sk_i * G.generator() for (_, sk_i) in signer_keys]
     signers = {}
     for index, signer_key in enumerate(signer_keys):
