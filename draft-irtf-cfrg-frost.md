@@ -316,7 +316,7 @@ following operation.
     msg_hash = H3(msg)
     comm_enc = G.SerializeElement(R)
     pk_enc = G.SerializeElement(PK)
-    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
+    challenge_input = comm_enc || pk_enc || msg_hash
     c = H2(challenge_input)
 
     z = r + (c * SK)
@@ -339,7 +339,7 @@ The corresponding verification operation is as follows.
     msg_hash = H3(msg)
     comm_enc = G.SerializeElement(R)
     pk_enc = G.SerializeElement(PK)
-    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
+    challenge_input = comm_enc || pk_enc || msg_hash
     c = H2(challenge_input)
 
     l = ScalarBaseMult(z)
