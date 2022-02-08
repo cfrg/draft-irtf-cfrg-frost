@@ -1050,7 +1050,7 @@ Each test vector consists of the following information.
   encoded as described in {{dep-encoding}}, and group binding factor as computed in {{frost-round-two}}).
 - Round two parameters and outputs: This lists the NUM_SIGNERS participants engaged
   in the protocol, identified by their integer index, along with their corresponding
-  output signature and commitment share as produced in {{frost-round-two}}.
+  output signature share and group commitment share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
 
 ## FROST(Ed25519, SHA512)
