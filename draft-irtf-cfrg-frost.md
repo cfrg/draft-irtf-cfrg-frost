@@ -695,6 +695,27 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
     the output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
 
+## FROST(edwards448, SHAKE256)
+
+This ciphersuite uses edwards448 for the Group and SHA256 for the Hash function `H`
+meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
+The value of the contextString parameter is empty.
+
+- Group: ed448 {{!RFC8032}}
+  - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
+  - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
+- Hash (`H`): SHAKE256, and Nh = 117.
+  - H1(m): Implemented by computing H("rho" || m), interpreting the lower
+    57 bytes as a little-endian integer, and reducing the resulting integer modulo
+    L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+  - H2(m): Implemented by computing H(m), interpreting the lower 57 bytes
+    as a little-endian integer, and reducing the resulting integer modulo
+    L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+  - H3(m): Implemented as an alias for H, i.e., H(m).
+
+Normally H2 would also include a domain separator, but for backwards compatibility
+with {{!RFC8032}}, it is omitted.
+
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
@@ -1053,6 +1074,7 @@ Each test vector consists of the following information.
   output signature share and group commitment share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
 
+
 ## FROST(Ed25519, SHA512)
 
 ~~~
@@ -1121,6 +1143,89 @@ S2 group_commitment_share: 4af85179d17ed031b767ab579e59c7018dac09ae40
 sig: ebe7efbb42c4b1c55106b5536fb5e9ac7a6d0803ea4ae9c8c629ca51e05c230e
 78b139d3a5305af087c8a6783a32b4b7c45bdd82b60546876803b0e3ca19ff0c
 ~~~
+
+## FROST(Ed448, SHAKE256)
+
+~~~
+// Configuration information
+MAX_SIGNERS: 3
+THRESHOLD_LIMIT: 2
+NUM_SIGNERS: 2
+
+// Group input parameters
+group_secret_key: cef4a803a21d82fa90692e86541e08d878c9f688e5d71a2bd35
+4a9a3af62b8c7c89753055949cab8fd044c17c94211f167672b053659420b00
+group_public_key: 005f23508a78131aee4d6cb027f967d89557ec5f24dc3ebeede
+b550466fcc1411283ff5d9c605d9a8b36e6eea36b67ceba047d57968896db80
+message: 74657374
+
+// Signer input parameters
+S1 signer_share: d408a2f1d9ead0cc4b4b9b2e84a22f8e2aa2ab4ee715febe7a08
+175d4298dd6bbe2e1c0b29aaa972c78555ea3b3d7308b248994780219e0800
+S2 signer_share: da1c9bdf11b81f9f062d08d7b3265744dc7a6014e953e15222bc
+8416d5cd0210b4c5e410f90a892c91065fbdae37d51ffc29078acae9f90500
+S3 signer_share: e03094cd49856e71c10e757fe3aa7efa8d5315daea91c4e6c96f
+f2cf670328b4a95cad16c96b68e65a87689021323737460b75cc14b2550300
+
+// Round one parameters
+participants: 1,2
+commitment_list: 00016d8ef55145bab18c129311f1d07bef2110d0b6841aae919e
+b6abf5e523d26f819d3695d78f8aa246c6b6d6fd6c2b8a63dd1cf8e8c89a870400a0c
+29f750605b10c52e347fc538af0d4ebddd23a1e0300482a7d98a39d408356b9041d5f
+baa274c2dc3f248601f21cee912e2f5700c1753a80000242c2fdc11e5f726d4c897ed
+118f668a27bfb0d5946b5f513e975638b7c4b0a46cf5184d4a9c1f6310fd3c10f84d9
+de704a33aab2af976d60804fa4ecba88458bcf7677a3952f540e20556d5e90d5aa7e8
+f226d303ef7b88fb33a63f6cac6a9d638089b1739a5d2564d15fb3e43e1b0b28a80b5
+4ff7255705a71ee2925e4a3e30e41aed489a579d5595e0df13e32e1e4dd202a7c7f68
+b31d6418d9845eb4d757adda6ab189e1bb340db818e5b3bc725d992faf63e9b0500db
+10517fe09d3f566fba3a80e46a403e0c7d41548fbf75cf2662b00225b502961f98d8c
+9ff937de0b24c231845
+group_binding_factor: 2716e157c3da80b65149b1c2cb546723516272ccf75e111
+334533e2840a9bf85f3c71478ade11be26d26d8e4b9a1667af88f7df61670f60a00
+
+// Signer round one outputs
+S1 hiding_nonce: 04eccfe12348a5a2e4b30e95efcf4e494ce64b89f6504de46b3d
+67a5341baaa931e455c57c6c5c81f4895e333da9d71f7d119fcfbd0d7d2000
+S1 binding_nonce: 80bcd1b09e82d7d2ff6dd433b0f81e012cadd4661011c44d929
+1269cf24820f5c5086d4363dc67450f24ebe560eb4c2059883545d54aa43a00
+S1 hiding_nonce_commitment: 6d8ef55145bab18c129311f1d07bef2110d0b6841
+aae919eb6abf5e523d26f819d3695d78f8aa246c6b6d6fd6c2b8a63dd1cf8e8c89a87
+0400
+S1 binding_nonce_commitment: a0c29f750605b10c52e347fc538af0d4ebddd23a
+1e0300482a7d98a39d408356b9041d5fbaa274c2dc3f248601f21cee912e2f5700c17
+53a80
+S2 hiding_nonce: 3b3bbe82babf2a67ded81b308ba45f73b88f6cf3f6aaa4442256
+b7a0354d1567478cfde0a2bba98ba4c3e65645e1b77386eb4063f925e00700
+S2 binding_nonce: bcbd112a88bebf463e3509076c5ef280304cb4f1b3a7499cca1
+d5e282cc2010a92ff56a3bdcf5ba352e0f4241ba2e54c1431a895c19fff0600
+S2 hiding_nonce_commitment: 42c2fdc11e5f726d4c897ed118f668a27bfb0d594
+6b5f513e975638b7c4b0a46cf5184d4a9c1f6310fd3c10f84d9de704a33aab2af976d
+6080
+S2 binding_nonce_commitment: 4fa4ecba88458bcf7677a3952f540e20556d5e90
+d5aa7e8f226d303ef7b88fb33a63f6cac6a9d638089b1739a5d2564d15fb3e43e1b0b
+28a80
+
+// Round two parameters
+participants: 1,2
+
+// Signer round two outputs
+S1 sig_share: ad41cd3320c82edd20c344769bd7b250105d9d0516109b7f774c297
+faaf8b3b6065b19bbae2afb6c34cce460b40e15655fb8ad0bcc26e21e00
+S1 group_commitment_share: 086d4d2ff2555fab65afc8eb473cc708f37cdb9c5d
+e74d8e12a1a9d1a086a8914175e4db77e5d281f10441913aa680fedb207c954afdd88
+380
+S2 sig_share: 5dcc0aec7d0a71eddd5ba2dd0f185ba7990bcd39b6fc0e4b0470c35
+6ed0deb736d7f2652e87e932a0c176cc4bc5ba0ef756cc62081e4f51900
+S2 group_commitment_share: 7e91f66097b6450c52c89c14400a506ee1d37f5e52
+a8d4c3fc9733c23d0b27cd6cfce55a8aee692262e5815be341e8d0b9d240a9630c9f0
+600
+
+sig: 4d9883057726b029d042418600abe88ad3fec06d6a48dca289482e9d51c10353
+37e4d1aae5fd1c73a55701133238602f423886fc134a3c65800a0ed81f9ed29fcafe1
+ee753abef0df8a9686a3fcc0caaca7bbcecd597069f2a74da3f0d97a98e9740e35025
+716ab554d524742c4d0bd83800
+~~~
+
 ## FROST(ristretto255, SHA512)
 
 ~~~
@@ -1130,65 +1235,66 @@ THRESHOLD_LIMIT: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
-group_secret_key: ca8009d372fa61174ae16d422a216ff503eccfe12348a5a2e4b
-30e95fdd92909
-group_public_key: 6acc470751d8954bc4bf3581c3f0d25d4d65ef818318de89f95
-00d288d8dcf05
+group_secret_key: b120be204b5e758960458ca9c4675b56b12a8faff2be9c94891
+d5e1cd75c880e
+group_public_key: 563b80013f337deaa2a282af7b281bd70d2f501928a89c1aa48
+b379a5ac4202b
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 1767555c694baffbb51ed5e75e3c199f35d025a7a0b40124d93d
-6dc824cf240d
-S2 signer_share: 7779ab884539ea874bbf44eab45de43367b47b6c1d215ea5cdc7
-cbfb4bc41f01
-S3 signer_share: c45ff7113c8a376cb7fcab8fe9788edd9898d1319a8dba26c251
-2a2f73b91a05
+S1 signer_share: 94ae65bb90030a89507fa00fff08dfed841cf996de5a0c574f1f
+4693ddcb6705
+S2 signer_share: 641003b3f00bb1e01656ac1818a4419a580e637ecaf67b191521
+2e0ae43a470c
+S3 signer_share: 479eaa4d36b145e00690c07e5245c5312c00cd65b692ebdbda22
+1681eaa92603
 
 // Round one parameters
 participants: 1,2
-commitment_list: 00013294581c296781c6fdb2696b2a8d08f961311e15b4bc3614
-daec6a19a78cd77a42a3cfa235deb33e7f99a21f4e22b7090d9c278f2613664dff607
-115cecedf58000208659fe4a31c1775caa4488f669324460b5d972df8983a6cf8e624
-f79906a639285fd985bb44d53b28b6523aa1c459a94bface28ab2f4fcdbc5215df5d9
-be234f226c1530c93fbfe1a29f34aa2e13da14ace01b6e6412e36d5e01baba2c78e49
+commitment_list: 0001824e9eddddf02b2a9caf5859825e999d791ca094f65b814a
+8bca6013d9cc312774c7e1271d2939a84a9a867e3a06579b4d25659b427439ccf0d74
+5b43f75b76600028013834ff4d48e7d6b76c2e732bc611f54720ef8933c4ca4de7eaa
+a77ff5cd125e056ecc4f7c4657d3a742354430d768f945db229c335d258e9622ad99f
+3e758f226c1530c93fbfe1a29f34aa2e13da14ace01b6e6412e36d5e01baba2c78e49
 21dc1c0b7143210bb0fc42553c3a9490ba011e30250727c0189372a38632591f
-group_binding_factor: 190c206d7368cc7cdf8539680f45a82836889db034464d9
-f9cc13c970fc9d20e
+group_binding_factor: f49fbf1a092173b9338394b5818966480c0413c5f90e2a7
+65aabc1a10cfb3908
 
 // Signer round one outputs
-S1 hiding_nonce: 7e119fcff436f4817fbcd1b09e82d7d2ff6dd433b0f81e012cad
-d4662282b809
-S1 binding_nonce: 3b3bbe82babf2a67ded81b308ba45f73b88f6cf3f6aaa444225
-6b7a0a6a9e20c
-S1 hiding_nonce_commitment: 3294581c296781c6fdb2696b2a8d08f961311e15b
-4bc3614daec6a19a78cd77a
-S1 binding_nonce_commitment: 42a3cfa235deb33e7f99a21f4e22b7090d9c278f
-2613664dff607115cecedf58
-S2 hiding_nonce: 488cfde0a2bba98ba4c3e65645e1b77386eb4063e497801fbbbd
-112ad1f7d708
-S2 binding_nonce: f33b7cd25041000d7935823cb0c99503afac2860b1c099435eb
-472bb29329e02
-S2 hiding_nonce_commitment: 08659fe4a31c1775caa4488f669324460b5d972df
-8983a6cf8e624f79906a639
-S2 binding_nonce_commitment: 285fd985bb44d53b28b6523aa1c459a94bface28
-ab2f4fcdbc5215df5d9be234
+S1 hiding_nonce: 349b3bb8464a1d87f7d6b56f4559a3f9a6335261a3266089a9b1
+2d9d6f6ce209
+S1 binding_nonce: ce7406016a854be4291f03e7d24fe30e77994c3465de031515a
+4c116f22ca901
+S1 hiding_nonce_commitment: 824e9eddddf02b2a9caf5859825e999d791ca094f
+65b814a8bca6013d9cc3127
+S1 binding_nonce_commitment: 74c7e1271d2939a84a9a867e3a06579b4d25659b
+427439ccf0d745b43f75b766
+S2 hiding_nonce: 4d66d319f20a728ec3d491cbf260cc6be687bd87cc2b5fdb4d5f
+528f65fd650d
+S2 binding_nonce: 278b9b1e04632e6af3f1a3c144d07922ffcf5efd3a341b47abc
+19c43f48ce306
+S2 hiding_nonce_commitment: 8013834ff4d48e7d6b76c2e732bc611f54720ef89
+33c4ca4de7eaaa77ff5cd12
+S2 binding_nonce_commitment: 5e056ecc4f7c4657d3a742354430d768f945db22
+9c335d258e9622ad99f3e758
 
 // Round two parameters
 participants: 1,2
 
 // Signer round two outputs
-S1 sig_share: 0f03834e01fc2447135f694a5d1d6493f7a21fcf6fc41191118000e
-8b9a29306
-S1 group_commitment_share: 76818272e9bd5d71f062dce08687919850aaf4b8cf
-d135ad70e50e0267d87246
-S2 sig_share: 08442979523a3e335cf4c03fe58cdcec25841e64f5a4f2ac656730c
-1fee43509
-S2 group_commitment_share: 62e97479cb0df12293aadfa88e5d1caa7f82d548f7
-7eaa2408fe4bca61916439
+S1 sig_share: 503c943f6af38f3ad2271de3d792c4756c5d9c483989e2005add0e8
+9b504dc01
+S1 group_commitment_share: 40587ff15e9cba4fe601c4378b40ae4babe2ea6f0b
+549a6712d84837166b954d
+S2 sig_share: eee969c17354ec84933723b45ac9965d2874e21c3a50cd31648f708
+bfb9f160b
+S2 group_commitment_share: 70661957faf398410a9da3e20cfd6f1233b368548e
+44ffccee3143a42b691844
 
-sig: 56604a3b6ca135e56f5d68d2f6496e3e0e9b9ec691a3790f5e8311d24d75ce13
-1747acc75336637a6f532a8a42aa40801d273e336569043e77e730a9b887c90f
+sig: 90ac875023a311624948b2660bc5524f690ae9e14fcd6541959bee2e868d8c32
+3e26fe00de477cbf655f4097325c5bd394d17e6573d9af32be6c7f14b1a4f20c
 ~~~
+
 ## FROST(P-256, SHA256)
 
 ~~~
@@ -1198,62 +1304,62 @@ THRESHOLD_LIMIT: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
-group_secret_key: 949cbef2af8f2ab1565b67c4a98c456089755e4b20be20b09cc
-49a943b20e293
-group_public_key: 026368c1d8eb8da1b95bcfc10b8b1d01d87730299c92870b640
-4178ae0ce91a4ac
+group_secret_key: 6f090d1393ff53bbcbba036c00b8830ab4546c251dece199eb0
+3a6a51a5a5929
+group_public_key: 03db0945167b62e6472ad46373b6cbbca88e2a9a4883071f0b3
+fde4b2b6d7b6ba6
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: cc70526752b166b47cb72c2f4177c7795d348c9f606c74421107
-8152577f001d
-S2 signer_share: 0443e5dcf5d3a2b6a312f099d9634992740cc045f903294e9190
-9d4d7779f856
-S3 signer_share: 3c17795198f5deb9c96eb504714ecbab47cbee9a38b17ce005d3
-840b93d815e0
+S1 signer_share: 738552e18ea4f2090597aca6c23c1666845c21c676813f9e2678
+6f1e410dcecf
+S2 signer_share: 780198af894a90563f7555e183bfa9c25463d767cf159da261ed
+379767c14475
+S3 signer_share: 7c7dde7d83f02ea37952ff1c45433d1e246b8d0927a9fba69d62
+00108e74ba1b
 
 // Round one parameters
 participants: 1,2
-commitment_list: 000102d672c0206c0f0500c00db74a6d743e58a65bdc601a1fd2
-8cae91d895b5cfbb6702f82b18a80d1b0a2a29f70d5caaf80e31d7277b2e7503fded0
-fcc42987ffeb9a000020263625b86d512f22fcf327f3b9f451fa146d7d5cceb576a32
-cb36174cae57971d03dac43c989f56425601215cd269640a293b51544f602b29528cd
-6cad937d1642fbce8e9dd076882537d47858b7ed704e0029ea004fbeb28a46d1ba698
+commitment_list: 000102f34caab210d59324e12ba41f0802d9545f7f7029069307
+66b86c462bb8ff7f3402b724640ea9e262469f401c9006991ba3247c2c91b97cdb1f0
+eeab1a777e24e1e0002037f8a998dfc2e60a7ad63bc987cb27b8abf78a68bd924ec6a
+db9f251850cbe711024a4e90422a19dd8463214e997042206c39d3df56168b4585924
+62090c89dbcf8bce8e9dd076882537d47858b7ed704e0029ea004fbeb28a46d1ba698
 cc0099a3
-group_binding_factor: 1f26a9814df6c8664875bb072d7dbcf367a462ec982e19a
-d5893d2e5ef4cf00e
+group_binding_factor: 9c649ba6084d89db49dafb28f4b50fda14fd8263b3fe907
+97ca4258714d581eb
 
 // Signer round one outputs
-S1 hiding_nonce: baa1a30522fb9361ff76b1402d9b5614e5da3c4ba5b0e743afa4
-ffd0b7a98245
-S1 binding_nonce: 0b58e879921d3abf89ac90834916d4e31ac522d7ad8e498cd53
-201e139ee496f
-S1 hiding_nonce_commitment: 02d672c0206c0f0500c00db74a6d743e58a65bdc6
-01a1fd28cae91d895b5cfbb67
-S1 binding_nonce_commitment: 02f82b18a80d1b0a2a29f70d5caaf80e31d7277b
-2e7503fded0fcc42987ffeb9a0
-S2 hiding_nonce: c26f9bebe769f1d3ac629b19090bd6c657a7085ff79d61cf9074
-1b354fc5a50a
-S2 binding_nonce: 896026a3615233a6f9a359456fb5d6f7871d4a46b83b9b3336f
-b783576e801c6
-S2 hiding_nonce_commitment: 0263625b86d512f22fcf327f3b9f451fa146d7d5c
-ceb576a32cb36174cae57971d
-S2 binding_nonce_commitment: 03dac43c989f56425601215cd269640a293b5154
-4f602b29528cd6cad937d1642f
+S1 hiding_nonce: 3da92a503cf7e3f72f62dabedbb3ffcc9f555f1c1e78527940fe
+3fed6d45e56f
+S1 binding_nonce: ec97c41fc77ae7e795067976b2edd8b679f792abb062e4d0c33
+f0f37d2e363eb
+S1 hiding_nonce_commitment: 02f34caab210d59324e12ba41f0802d9545f7f702
+906930766b86c462bb8ff7f34
+S1 binding_nonce_commitment: 02b724640ea9e262469f401c9006991ba3247c2c
+91b97cdb1f0eeab1a777e24e1e
+S2 hiding_nonce: 06cb4425031e695d1f8ac61320717d63918d3edc7a02fcd3f23a
+de47532b1fd9
+S2 binding_nonce: 2d965a4ea73115b8065c98c1d95c7085db247168012a834d828
+5a7c02f11e3e0
+S2 hiding_nonce_commitment: 037f8a998dfc2e60a7ad63bc987cb27b8abf78a68
+bd924ec6adb9f251850cbe711
+S2 binding_nonce_commitment: 024a4e90422a19dd8463214e997042206c39d3df
+56168b458592462090c89dbcf8
 
 // Round two parameters
 participants: 1,2
 
 // Signer round two outputs
-S1 sig_share: 4c0d3c95be8895192f97958c31875e4743f647a5ae0d3ffc7c22948
-b2ba879ec
-S1 group_commitment_share: 02794fb94cd7b4009aa30888ab90e1bba6b4f60d7d
-9e550ba83421cffe179498ff
-S2 sig_share: 5c4df264448a57f501d34236e04039df56aa84ef4d90c3040bbf6b4
-d5ff0fa59
-S2 group_commitment_share: 024e8a66e7c565b72c3e5f423a73921353371ce0c7
-48ca5325771119776d5019f5
+S1 sig_share: 0400c1ba4351343192777323e20847b4fd9067af35e0261f6af0413
+c7e4bbd26
+S1 group_commitment_share: 03208d89db28e4946b02c9942a5245140014c930d8
+7ec9b89b1a783abb2422df9b
+S2 sig_share: 54d1dbea644a643ca91948398c40f20f12a00f15075b9614095ecfb
+f685e421d
+S2 group_commitment_share: 026842e4516527c3f47b9c5300d231ae0b61a13ede
+858174596855753575567a08
 
-sig: 03bf586eabe39ca2c49a6b46262b072c3da3945c72dc63278c887cf975fcf329
-8aa85b2efa0312ed0e316ad7c311c798269aa0cc94fb9e030087e1ffd88b997445
+sig: 03f8bda19543758dab107009bd44f2bfb0f6192c8fd1d0eded6bdbee3169a78e
+0658d29da4a79b986e3b90bb5d6e4939c4103076c43d3bbc33744f10fbe6a9ff43
 ~~~

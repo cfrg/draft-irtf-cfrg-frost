@@ -122,6 +122,7 @@ with open(sys.argv[1], "r") as fh:
     vectors = json.loads(fh.read())
     for name in vectors:
         vector = vectors[name]
+        print("")
         print("## " + name + "\n")
         print("~~~")
         format_vector(name, vector)
