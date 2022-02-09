@@ -191,10 +191,10 @@ NUM_SIGNERS = THRESHOLD_LIMIT
 message = _as_bytes("test")
 
 ciphersuites = [
-    ("FROST(Ed25519, SHA512)", GroupEd25519(), HashEd25519()),
+    ("FROST(Ed25519, SHA-512)", GroupEd25519(), HashEd25519()),
     ("FROST(Ed448, SHAKE256)", GroupEd448(), HashEd448()),
-    ("FROST(ristretto255, SHA512)", GroupRistretto255(), HashRistretto255()),
-    ("FROST(P-256, SHA256)", GroupP256(), HashP256()),
+    ("FROST(ristretto255, SHA-512)", GroupRistretto255(), HashRistretto255()),
+    ("FROST(P-256, SHA-256)", GroupP256(), HashP256()),
 ]
 vectors = {}
 for (name, G, H) in ciphersuites:
