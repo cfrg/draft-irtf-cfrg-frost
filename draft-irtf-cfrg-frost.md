@@ -894,7 +894,7 @@ secret `s` is as follows.
   Inputs:
   - shares, a list of t secret shares, each a tuple (i, f(i))
 
-  Outputs: A list of n secret shares, each of which is an element of F
+  Outputs: The resulting secret s, that was previously split into shares
 
   Errors:
   - "invalid parameters", if less than t input shares are provided
