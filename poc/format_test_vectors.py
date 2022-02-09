@@ -21,7 +21,7 @@ input_signer_keys = [
 
 round_one_keys = [
     "participants",
-    "commitment_list",
+    "group_binding_factor_input",
     "group_binding_factor",
 ]
 

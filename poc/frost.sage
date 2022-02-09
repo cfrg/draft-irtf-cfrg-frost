@@ -191,10 +191,10 @@ NUM_SIGNERS = THRESHOLD_LIMIT
 message = _as_bytes("test")
 
 ciphersuites = [
-    ("FROST(Ed25519, SHA512)", GroupEd25519(), HashEd25519()),
+    ("FROST(Ed25519, SHA-512)", GroupEd25519(), HashEd25519()),
     ("FROST(Ed448, SHAKE256)", GroupEd448(), HashEd448()),
-    ("FROST(ristretto255, SHA512)", GroupRistretto255(), HashRistretto255()),
-    ("FROST(P-256, SHA256)", GroupP256(), HashP256()),
+    ("FROST(ristretto255, SHA-512)", GroupRistretto255(), HashRistretto255()),
+    ("FROST(P-256, SHA-256)", GroupP256(), HashP256()),
 ]
 vectors = {}
 for (name, G, H) in ciphersuites:
@@ -254,7 +254,7 @@ for (name, G, H) in ciphersuites:
 
     round_one_outputs = {
         "participants": ",".join([str(index) for index in participant_list]),
-        "commitment_list": to_hex(rho_input),
+        "group_binding_factor_input": to_hex(rho_input),
         "group_binding_factor": to_hex(G.serialize_scalar(binding_factor)),
         "signers": {}
     }
