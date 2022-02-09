@@ -698,7 +698,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 ## FROST(edwards448, SHAKE256)
 
 This ciphersuite uses edwards448 for the Group and SHA256 for the Hash function `H`
-meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
+meant to produce signatures compatible with Ed448 as specified in {{!RFC8032}}.
 The value of the contextString parameter is empty.
 
 - Group: ed448 {{!RFC8032}}
