@@ -66,13 +66,10 @@ informative:
 In this draft, we present a two-round signing variant of FROST, a Flexible Round-Optimized
 Schnorr Threshold signature scheme. FROST signatures can be issued after a threshold number
 of entities cooperate to issue a signature, allowing for improved distribution of trust and
-redundancy with respect to a secret key.
-Further, this draft specifies signatures that are compatible with EdDSA verification of
-signatures. However, this draft does not generate deterministic nonces as defined by EdDSA,
-to ensure protection against a key-recovery attack that is possible when even only one
-participant is malicious.
-
-<!-- I don't think this EdDSA compatibility claim holds right now, we need to check! -->
+redundancy with respect to a secret key. Further, this draft specifies signatures that are
+compatible with {{!RFC8032}}. However, unlike {{!RFC8032}}, the protocol for producing
+signatures in this draft is not deterministic, so as to ensure protection against a
+key-recovery attack that is possible when even only one participant is malicious.
 
 --- middle
 
@@ -87,23 +84,24 @@ well.
 
 Unlike signatures in a single-party setting, threshold signatures
 require cooperation among a threshold number of signers each holding a share
-of a common private key.  The security of threshold schemes in general assume
+of a common private key. The security of threshold schemes in general assume
 that an adversary can corrupt strictly fewer than a threshold number of participants.
 
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
 signature scheme. FROST reduces network overhead during threshold signing operations while
 employing a novel technique to protect against forgery attacks applicable to prior
-Schnorr-based threshold signature constructions.
+Schnorr-based threshold signature constructions. FROST requires two rounds to compute
+a signature.
 
-This draft specifies only two-round signing operations. This draft specifies signatures
-that are compatible with EdDSA verification of signatures, but not EdDSA nonce generation.
-EdDSA-style nonce-generation, where the nonce is derived deterministically, is insecure
-in a multi-party signature setting.
+For select ciphersuites, the signatures produced by this draft are compatible with
+{{!RFC8032}}. However, unlike {{!RFC8032}}, signatures produced by FROST are not
+deterministic, since deriving nonces deterministically, is insecure in a multi-party
+signature setting.
 
 Further, this draft implements signing efficiency improvements for FROST described by
 Crites, Komlo, and Maller in {{Schnorr21}}.
 
-# Change Log
+## Change Log
 
 draft-01
 
@@ -114,73 +112,9 @@ draft-00
 - Submitted a basic draft after adoption of draft-komlo-frost as a working
   group item.
 
-# Terminology
+# Conventions and Definitions
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in
-BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
-capitals, as shown here.
-
-# Overview
-
-FROST is a threshold signature protocol involving the following parties:
-
-- Signers: Entities with signing key shares that participate in the threshold
-  signing protocol
-- Coordinator: An entity responsible for performing coordination among signers
-  and for aggregating signature shares at the end of the protocol, resulting
-  in the final signature. This party may be a signer themselves or an external
-  party.
-
-FROST assumes the selection of all participants, including the dealer, signer, and
-Coordinator are all chosen external to the protocol.
-
-In FROST, Signers participate in two rounds to sign an input message and produce
-a single, aggregate signature. All signers are assumed to have the group state and
-their corresponding signing keys; see {{frost-spec}} for details about how this state
-is generated. At the end of the second round, the Coordinator performs an aggregation
-function to produce the final signature This is sketched below.
-
-~~~
-        (group info)             (group info,     (group info,
-            |                     signing key)     signing key)
-            |                         |                |
-            v                         v                v
-        Coordinator               Signer-1   ...   Signer-n
-    ------------------------------------------------------------
-   message
------------->
-            |
-      == Round 1 (Commitment) ==
-            |    SigningCommitment   |                 |
-            |<-----------------------+                 |
-            |          ...                             |
-            |    SigningCommitment                     |
-            |<-----------------------------------------+
-
-      == Round 2 (Signing) ==
-            |
-            |    SigningPackage      |                 |
-            +------------------------>                 |
-            |    SignatureShare      |                 |
-            |<-----------------------+                 |
-            |          ...                             |
-            |    SigningPackage                        |
-            +------------------------------------------>
-            |    SignatureShare                        |
-            <------------------------------------------+
-            |
-      == Aggregation ==
-            |
-  signature |
-<-----------+
-~~~
-
-Details about each of these rounds and the corresponding protocol
-messages is in {{frost-spec}}.
-
-# Conventions and Terminology
+{::boilerplate bcp14}
 
 The following notation and terminology are used throughout this document.
 
@@ -199,21 +133,6 @@ at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
 Unless otherwise stated, we assume that secrets are sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG); see
 {{?RFC4086}} for additional guidance on the generation of random numbers.
-
-Let `B` be a generator, or distiguished element, of `G`, a finite group of with
-order `l`, a large prime.  Throughout this document, and in practice, we assume
-this group to be instantiated as an arbitrary abstraction of an elliptic curve
-subgroup, defined over a finite field; however, that does not restrict an
-implementation from instantiating FROST signatures over other groups, provided
-their order be prime.
-
-We denote group elements with capital Roman letters, and scalars with
-lower-cased Roman letters.  We use `+` to denote the group operation, and `-` to
-denote inversion.  We use `*` to denote multiplication of a scalar by a group
-element, that is, the group element added to itself in succession a number of
-times equal to the value of the scalar. Testing equality between two group elements
-is denoted as `?=`, where it is assumed that the elements are in some canonical,
-serialised form.
 
 # Cryptographic Dependencies
 
@@ -464,9 +383,22 @@ structures into values that can be processed with hash functions.
 
 # Two-Round FROST {#frost-spec}
 
-The FROST protocol produces a standard Schnorr signature over an input message
-of at most 2^16-1 bytes long. The protocol assumes that each participant `P_i`
-knows the following:
+FROST is a two-round threshold signature protocol for producing Schnorr signatures.
+It involves signer participants and a coordinator. Signing participants are
+entities with signing key shares that participate in the threshold signing
+protocol. The coordinator is a distinguished signer with the following responsibilities:
+
+1. Determining which signers will participate (at least THRESHOLD_LIMIT in number);
+2. Coordinating rounds (receiving and forwarding inputs among participants); and
+3. Aggregating signature shares output by each participant, and publishing the resulting signature.
+
+FROST assumes the selection of all participants, including the dealer, signer, and
+Coordinator are all chosen external to the protocol. Note that it is possible to
+deploy the protocol without a distinguished Coordinator; see {{no-coordinator}} for
+more information.
+
+In FROST, all signers are assumed to have the group state and their corresponding signing
+key shares. In particular, FROST assumes that each signing participant `P_i` knows the following:
 
 - Group public key, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`.
 - Participant i signing key, which is the i-th secret share of `s`.
@@ -479,22 +411,54 @@ a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
 in {{dep-dealer}}, for reference.
 
-FROST assumes the existence of a *Coordinator*, which is a Signer responsible for the following:
-
-1. Determining which signers will participate (at least THRESHOLD_LIMIT in number);
-2. Coordinating rounds (receiving and forwarding inputs among participants); and
-3. Aggregating signature shares output by each participant, and publishing the resulting signature.
-
-Selection of the Coordinator is outside the scope of this specification.
-
-We describe the protocol in two rounds: commitment and signing. The first round serves for each
-participant to issue a commitment. The second round receives commitments for all signers as well
+There are two rounds in FROST: commitment and signature share generation. The first round serves
+for each participant to issue a commitment. The second round receives commitments for all signers as well
 as the message, and issues a signature share. The Coordinator performs the coordination of each
-of these rounds. The Coordinator then performs an aggregation round at the end and outputs the
-final signature.
+of these rounds. At the end of the second round, the Coordinator then performs an aggregation
+round at the end and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
 
-This protocol assumes reliable message delivery between Coordinator and signing participants
-in order for the protocol to complete. Messages exchanged during signing operations are all within
+~~~
+        (group info)             (group info,     (group info,
+            |                     signing key)     signing key)
+            |                         |                |
+            v                         v                v
+        Coordinator               Signer-1   ...   Signer-n
+    ------------------------------------------------------------
+   message
+------------>
+            |
+      == Round 1 (Commitment) ==
+            |    signer commitment   |                 |
+            |<-----------------------+                 |
+            |          ...                             |
+            |    signer commitment                     |
+            |<-----------------------------------------+
+
+      == Round 2 (Signature Share Generation) ==
+            |
+            |     signer input       |                 |
+            +------------------------>                 |
+            |     signature share    |                 |
+            |<-----------------------+                 |
+            |          ...                             |
+            |     signer input                         |
+            +------------------------------------------>
+            |     signature share                      |
+            <------------------------------------------+
+            |
+      == Aggregation ==
+            |
+  signature |
+<-----------+
+~~~
+{: #fig-frost title="FROST signature overview" }
+
+Details for round one are described in {{frost-round-one}}, and details for round two
+are described in {{frost-round-two}}. The final Aggregation step is described in
+{{aggregation}}.
+
+FROST assumes reliable message delivery between Coordinator and signing participants in
+order for the protocol to complete. Messages exchanged during signing operations are all within
 the public domain. An attacker masquerading as another participant will result only in an invalid
 signature; see {{sec-considerations}}.
 
@@ -540,7 +504,6 @@ The Coordinator begins by sending each signer the message to be signed along wit
 set of signing commitments for other signers in the participant list. Upon receipt,
 each Signer then runs the following procedure to produce its own signature share.
 
-<!-- Rewrite inputs as a function of the SigningPackage, or have SigningPackage deserialization done externally to these functions? -->
 ~~~
   Inputs:
   - index, Index `i` of the signer. Note index will never equal `0`.
@@ -626,7 +589,7 @@ The Coordinator MUST verify the set of signature shares using the following proc
     return l == r
 ~~~
 
-## Signature Share Aggregation
+## Signature Share Aggregation {#aggregation}
 
 After signers perform round two and send their signature shares to the Coordinator,
 the Coordinator performs the `aggregate` operation and publishes the resulting
@@ -737,6 +700,14 @@ such as messages or the set of individual commitments. Note that the Coordinator
 is *not* trusted with any private information and communication at the time of signing
 can be performed over a public but reliable channel.
 
+The protocol as specified in this document does not target the following goals.
+
+* Post quantum security. FROST requires the hardness of the Discrete Logarithm Problem.
+* Robustness. In the case of failure, FROST requires aborting the protocol.
+* Downgrade prevention. The sender and receiver are assumed to agree on what algorithms to use.
+* Metadata protection. If protection for metadata is desired, a higher-level communication
+channel can be used to facilitate key generation and signing.
+
 The rest of this section documents issues particular to implementations or deployments.
 
 ## Nonce Reuse Attacks
@@ -754,18 +725,7 @@ We do not specify what implementations should do when the protocol fails, other 
 the protocol abort. Examples of viable failure include when a verification check returns invalid or
 if the underlying transport failed to deliver the required messages.
 
-## External Requirements / Non-Goals
-
-FROST does not target the following goals.
-
-* Post quantum security. FROST requires the hardness of the Discrete Logarithm Problem.
-* Robustness. In the case of failure, FROST requires aborting the protocol.
-* Downgrade prevention. The sender and receiver are assumed to agree on what algorithms
-to use.
-* Metadata protection. If protection for metadata is desired, a higher-level communication
-channel can be used to facilitate key generation and signing.
-
-# Removing the Coordinator Role
+## Removing the Coordinator Role {#no-coordinator}
 
 In some settings, it may be desirable to omit the role of the coordinator entirely.
 Doing so does not change the security implications of FROST, but instead simply
