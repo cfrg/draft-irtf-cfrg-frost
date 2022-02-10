@@ -72,8 +72,6 @@ signatures. However, this draft does not generate deterministic nonces as define
 to ensure protection against a key-recovery attack that is possible when even only one
 participant is malicious.
 
-<!-- I don't think this EdDSA compatibility claim holds right now, we need to check! -->
-
 --- middle
 
 # Introduction
@@ -1067,15 +1065,15 @@ Each test vector consists of the following information.
   NUM_SIGNERS signers.
 - Round one parameters and outputs: This lists the NUM_SIGNERS participants engaged
   in the protocol, identified by their integer index, the hiding and binding commitment
-  values produced in {{frost-round-one}}, as well as the resulting group commitment list,
-  encoded as described in {{dep-encoding}}, and group binding factor as computed in {{frost-round-two}}).
+  values produced in {{frost-round-one}}, as well as the resulting group binding factor input,
+  computed in part from the group commitment list encoded as described in {{dep-encoding}},
+  and group binding factor as computed in {{frost-round-two}}).
 - Round two parameters and outputs: This lists the NUM_SIGNERS participants engaged
   in the protocol, identified by their integer index, along with their corresponding
   output signature share and group commitment share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
 
-
-## FROST(Ed25519, SHA512)
+## FROST(Ed25519, SHA-512)
 
 ~~~
 // Configuration information
@@ -1100,12 +1098,13 @@ bdea643a9a02
 
 // Round one parameters
 participants: 1,2
-commitment_list: 000178e175d15cb5cec1257e0d84d797ba8c3dd9b4c7bc50f3fa
-527c200bcc6c4a954cdad16ae67ac5919159d655b681bd038574383bab423614f8967
-396ee12ca62000288a4e6c3d8353dc3f4aca2e10d10a75fb98d9fbea98981bfb25375
-996c5767c932bbf10c41feb17d41cc6433e69f16cceccc42a00aedf72feb5f44929fd
-f2e2fee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a5d4940e0db2
-7ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f50028a8ff
+group_binding_factor_input: 000178e175d15cb5cec1257e0d84d797ba8c3dd9b
+4c7bc50f3fa527c200bcc6c4a954cdad16ae67ac5919159d655b681bd038574383bab
+423614f8967396ee12ca62000288a4e6c3d8353dc3f4aca2e10d10a75fb98d9fbea98
+981bfb25375996c5767c932bbf10c41feb17d41cc6433e69f16cceccc42a00aedf72f
+eb5f44929fdf2e2fee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a
+5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f500
+28a8ff
 group_binding_factor: c4d7668d793ff4c6ec424fb493cdab3ef5b625eefffe775
 71ff28a345e5f700a
 
@@ -1143,7 +1142,6 @@ S2 group_commitment_share: 4af85179d17ed031b767ab579e59c7018dac09ae40
 sig: ebe7efbb42c4b1c55106b5536fb5e9ac7a6d0803ea4ae9c8c629ca51e05c230e
 78b139d3a5305af087c8a6783a32b4b7c45bdd82b60546876803b0e3ca19ff0c
 ~~~
-
 ## FROST(Ed448, SHAKE256)
 
 ~~~
@@ -1169,17 +1167,17 @@ f2cf670328b4a95cad16c96b68e65a87689021323737460b75cc14b2550300
 
 // Round one parameters
 participants: 1,2
-commitment_list: 00016d8ef55145bab18c129311f1d07bef2110d0b6841aae919e
-b6abf5e523d26f819d3695d78f8aa246c6b6d6fd6c2b8a63dd1cf8e8c89a870400a0c
-29f750605b10c52e347fc538af0d4ebddd23a1e0300482a7d98a39d408356b9041d5f
-baa274c2dc3f248601f21cee912e2f5700c1753a80000242c2fdc11e5f726d4c897ed
-118f668a27bfb0d5946b5f513e975638b7c4b0a46cf5184d4a9c1f6310fd3c10f84d9
-de704a33aab2af976d60804fa4ecba88458bcf7677a3952f540e20556d5e90d5aa7e8
-f226d303ef7b88fb33a63f6cac6a9d638089b1739a5d2564d15fb3e43e1b0b28a80b5
-4ff7255705a71ee2925e4a3e30e41aed489a579d5595e0df13e32e1e4dd202a7c7f68
-b31d6418d9845eb4d757adda6ab189e1bb340db818e5b3bc725d992faf63e9b0500db
-10517fe09d3f566fba3a80e46a403e0c7d41548fbf75cf2662b00225b502961f98d8c
-9ff937de0b24c231845
+group_binding_factor_input: 00016d8ef55145bab18c129311f1d07bef2110d0b
+6841aae919eb6abf5e523d26f819d3695d78f8aa246c6b6d6fd6c2b8a63dd1cf8e8c8
+9a870400a0c29f750605b10c52e347fc538af0d4ebddd23a1e0300482a7d98a39d408
+356b9041d5fbaa274c2dc3f248601f21cee912e2f5700c1753a80000242c2fdc11e5f
+726d4c897ed118f668a27bfb0d5946b5f513e975638b7c4b0a46cf5184d4a9c1f6310
+fd3c10f84d9de704a33aab2af976d60804fa4ecba88458bcf7677a3952f540e20556d
+5e90d5aa7e8f226d303ef7b88fb33a63f6cac6a9d638089b1739a5d2564d15fb3e43e
+1b0b28a80b54ff7255705a71ee2925e4a3e30e41aed489a579d5595e0df13e32e1e4d
+d202a7c7f68b31d6418d9845eb4d757adda6ab189e1bb340db818e5b3bc725d992faf
+63e9b0500db10517fe09d3f566fba3a80e46a403e0c7d41548fbf75cf2662b00225b5
+02961f98d8c9ff937de0b24c231845
 group_binding_factor: 2716e157c3da80b65149b1c2cb546723516272ccf75e111
 334533e2840a9bf85f3c71478ade11be26d26d8e4b9a1667af88f7df61670f60a00
 
@@ -1225,8 +1223,7 @@ sig: 4d9883057726b029d042418600abe88ad3fec06d6a48dca289482e9d51c10353
 ee753abef0df8a9686a3fcc0caaca7bbcecd597069f2a74da3f0d97a98e9740e35025
 716ab554d524742c4d0bd83800
 ~~~
-
-## FROST(ristretto255, SHA512)
+## FROST(ristretto255, SHA-512)
 
 ~~~
 // Configuration information
@@ -1251,12 +1248,13 @@ S3 signer_share: 479eaa4d36b145e00690c07e5245c5312c00cd65b692ebdbda22
 
 // Round one parameters
 participants: 1,2
-commitment_list: 0001824e9eddddf02b2a9caf5859825e999d791ca094f65b814a
-8bca6013d9cc312774c7e1271d2939a84a9a867e3a06579b4d25659b427439ccf0d74
-5b43f75b76600028013834ff4d48e7d6b76c2e732bc611f54720ef8933c4ca4de7eaa
-a77ff5cd125e056ecc4f7c4657d3a742354430d768f945db229c335d258e9622ad99f
-3e758f226c1530c93fbfe1a29f34aa2e13da14ace01b6e6412e36d5e01baba2c78e49
-21dc1c0b7143210bb0fc42553c3a9490ba011e30250727c0189372a38632591f
+group_binding_factor_input: 0001824e9eddddf02b2a9caf5859825e999d791ca
+094f65b814a8bca6013d9cc312774c7e1271d2939a84a9a867e3a06579b4d25659b42
+7439ccf0d745b43f75b76600028013834ff4d48e7d6b76c2e732bc611f54720ef8933
+c4ca4de7eaaa77ff5cd125e056ecc4f7c4657d3a742354430d768f945db229c335d25
+8e9622ad99f3e758f226c1530c93fbfe1a29f34aa2e13da14ace01b6e6412e36d5e01
+baba2c78e4921dc1c0b7143210bb0fc42553c3a9490ba011e30250727c0189372a386
+32591f
 group_binding_factor: f49fbf1a092173b9338394b5818966480c0413c5f90e2a7
 65aabc1a10cfb3908
 
@@ -1294,8 +1292,7 @@ S2 group_commitment_share: 70661957faf398410a9da3e20cfd6f1233b368548e
 sig: 90ac875023a311624948b2660bc5524f690ae9e14fcd6541959bee2e868d8c32
 3e26fe00de477cbf655f4097325c5bd394d17e6573d9af32be6c7f14b1a4f20c
 ~~~
-
-## FROST(P-256, SHA256)
+## FROST(P-256, SHA-256)
 
 ~~~
 // Configuration information
@@ -1320,12 +1317,12 @@ S3 signer_share: 7c7dde7d83f02ea37952ff1c45433d1e246b8d0927a9fba69d62
 
 // Round one parameters
 participants: 1,2
-commitment_list: 000102f34caab210d59324e12ba41f0802d9545f7f7029069307
-66b86c462bb8ff7f3402b724640ea9e262469f401c9006991ba3247c2c91b97cdb1f0
-eeab1a777e24e1e0002037f8a998dfc2e60a7ad63bc987cb27b8abf78a68bd924ec6a
-db9f251850cbe711024a4e90422a19dd8463214e997042206c39d3df56168b4585924
-62090c89dbcf8bce8e9dd076882537d47858b7ed704e0029ea004fbeb28a46d1ba698
-cc0099a3
+group_binding_factor_input: 000102f34caab210d59324e12ba41f0802d9545f7
+f702906930766b86c462bb8ff7f3402b724640ea9e262469f401c9006991ba3247c2c
+91b97cdb1f0eeab1a777e24e1e0002037f8a998dfc2e60a7ad63bc987cb27b8abf78a
+68bd924ec6adb9f251850cbe711024a4e90422a19dd8463214e997042206c39d3df56
+168b458592462090c89dbcf8bce8e9dd076882537d47858b7ed704e0029ea004fbeb2
+8a46d1ba698cc0099a3
 group_binding_factor: 9c649ba6084d89db49dafb28f4b50fda14fd8263b3fe907
 97ca4258714d581eb
 
