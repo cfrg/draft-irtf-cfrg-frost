@@ -656,16 +656,16 @@ A FROST ciphersuite must specify the underlying prime-order group details
 and cryptographic hash function. Each ciphersuite is denoted as (Group, Hash),
 e.g., (ristretto255, SHA-512). This section contains some ciphersuites.
 The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
-The (edwards25519, SHA-512) ciphersuite is included for backwards compatibility
+The (Ed25519, SHA-512) ciphersuite is included for backwards compatibility
 with {{!RFC8032}}.
 
-## FROST(edwards25519, SHA-512)
+## FROST(Ed25519, SHA-512)
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed25519 as specified in {{!RFC8032}}.
 The value of the contextString parameter is empty.
 
-- Group: ed25519 {{!RFC8032}}
+- Group: edwards25519 {{!RFC8032}}
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
 - Hash (`H`): SHA-512, and Nh = 64.
@@ -695,13 +695,13 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
     the output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
 
-## FROST(edwards448, SHAKE256)
+## FROST(Ed448, SHAKE256)
 
 This ciphersuite uses edwards448 for the Group and SHA256 for the Hash function `H`
-meant to produce signatures compatible with Ed448 as specified in {{!RFC8032}}.
+meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
 The value of the contextString parameter is empty.
 
-- Group: ed448 {{!RFC8032}}
+- Group: edwards448 {{!RFC8032}}
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
 - Hash (`H`): SHAKE256, and Nh = 117.

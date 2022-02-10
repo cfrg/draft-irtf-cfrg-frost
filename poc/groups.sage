@@ -113,7 +113,7 @@ class GroupNISTCurve(Group):
         byte = 2 if sgn == 0 else 3
         return I2OSP(byte, 1) + I2OSP(x, self.field_bytes_length)
 
-   # this is using point compression
+    # this is using point compression
     def deserialize(self, encoded):
         # 0x02 | 0x03 || x
         pve = encoded[0] == 0x02
