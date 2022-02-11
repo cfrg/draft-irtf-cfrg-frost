@@ -1,5 +1,5 @@
 ---
-title: "Two-Round Threshold Signatures with FROST"
+title: "Two-Round Threshold Schnorr Signatures with FROST"
 abbrev: "FROST"
 docname: draft-irtf-cfrg-frost-latest
 category: info

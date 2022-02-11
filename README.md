@@ -1,6 +1,6 @@
-# Two-Round Threshold Signatures with FROST
+# Two-Round Threshold Schnorr Signatures with FROST
 
-This is the working area for the individual Internet-Draft, "Two-Round Threshold Signatures with FROST".
+This is the working area for the individual Internet-Draft, "Two-Round Threshold Schnorr Signatures with FROST".
 
 * [Editor's Copy](https://cfrg.github.io/draft-irtf-cfrg-frost/#go.draft-irtf-cfrg-frost.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost)
