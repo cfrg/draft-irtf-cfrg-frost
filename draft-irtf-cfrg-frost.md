@@ -391,21 +391,21 @@ Lagrange coefficients are used in FROST to evaluate a polynomial
 represented as a set of coefficients.
 
 ~~~
-  derive_lagrange_coefficient(i, L):
+  derive_lagrange_coefficient(x_i, L):
 
   Inputs:
-  - i, an index contained in L, a scalar
+  - x_i, an x-coordinate contained in L, a scalar
   - L, the set of x-coordinates, each a scalar
 
   Outputs: L_i, the i-th Lagrange coefficient
 
-  def derive_lagrange_coefficient(i, L):
+  def derive_lagrange_coefficient(x_i, L):
     numerator = 1
     denominator = 1
-    for j in L:
-      if j == i: continue
-      numerator *= j
-      denominator *= j - i
+    for x_j in L:
+      if x_j == x_i: continue
+      numerator *= x_j
+      denominator *= x_j - x_i
 
     L_i = numerator / denominator
     return L_i
