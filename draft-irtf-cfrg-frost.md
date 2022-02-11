@@ -702,7 +702,7 @@ can be performed over a public but reliable channel.
 
 The protocol as specified in this document does not target the following goals:
 
-* Post quantum security. FROST requires the hardness of the Discrete Logarithm Problem.
+* Post quantum security. FROST, like generic Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
 * Downgrade prevention. The sender and receiver are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
