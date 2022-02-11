@@ -700,7 +700,7 @@ such as messages or the set of individual commitments. Note that the Coordinator
 is *not* trusted with any private information and communication at the time of signing
 can be performed over a public but reliable channel.
 
-The protocol as specified in this document does not target the following goals.
+The protocol as specified in this document does not target the following goals:
 
 * Post quantum security. FROST requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
