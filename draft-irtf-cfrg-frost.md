@@ -401,7 +401,7 @@ In FROST, all signers are assumed to have the group state and their correspondin
 key shares. In particular, FROST assumes that each signing participant `P_i` knows the following:
 
 - Group public key, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`.
-- Participant i signing key, which is the i-th secret share of `s`.
+- Participant `i`s signing key, which is the i-th secret share of `s`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
