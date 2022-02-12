@@ -588,7 +588,7 @@ The Coordinator MUST verify the set of signature shares using the following proc
     return l == r
 ~~~
 
-## Signature Share Aggregation {#aggregation}
+## Signature Share Aggregation {#frost-aggregation}
 
 After signers perform round two and send their signature shares to the Coordinator,
 the Coordinator performs the `aggregate` operation and publishes the resulting
