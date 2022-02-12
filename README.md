@@ -1,12 +1,17 @@
-# Two-Round Threshold Signatures with FROST
+# Two-Round Threshold Schnorr Signatures with FROST
 
-This is the working area for the individual Internet-Draft, "Two-Round Threshold Signatures with FROST".
+This is the working area for the individual Internet-Draft, "Two-Round Threshold Schnorr Signatures with FROST".
 
 * [Editor's Copy](https://cfrg.github.io/draft-irtf-cfrg-frost/#go.draft-irtf-cfrg-frost.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost)
 * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-frost)
 * [Compare Editor's Copy to Individual Draft](https://cfrg.github.io/draft-irtf-cfrg-frost/#go.draft-irtf-cfrg-frost.diff)
 
+# Existing implementations
+
+| Implementation                                                             | Language | Ciphersuites                   | Version |
+| -------------------------------------------------------------------------- | :------- | :------------------------------| :------ |
+| [Reference](https://github.com/cfrg/draft-irtf-cfrg-frost/tree/master/poc) | Sage     | All                            | main    |
 
 ## Contributing
 

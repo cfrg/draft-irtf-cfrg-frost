@@ -1,3 +1,4 @@
+TESTVECTORS := "test-vectors"
 SAGEFILES := $(basename $(notdir $(wildcard *.sage)))
 PYFILES := $(addprefix sagelib/, $(addsuffix .py,$(SAGEFILES)))
 .PRECIOUS: $(PYFILES)
@@ -15,7 +16,11 @@ sagelib/%.py: %.sage
 	@mv $<.py $@
 
 test: pyfiles
-	sage frost.sage
+	@sage frost.sage
+
+vectors: test
+	@sage frost.sage > $(TESTVECTORS).json
+	@python3 format_test_vectors.py $(TESTVECTORS).json > $(TESTVECTORS).txt
 
 .PHONY: clean
 clean:

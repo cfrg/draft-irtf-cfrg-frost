@@ -4,13 +4,12 @@
 import sys
 import json
 
-from hashlib import sha512, sha256
 from hash_to_field import I2OSP
 from ed25519_rfc8032 import verify_ed25519_rfc8032, point_compress, secret_to_public_raw
 
 try:
-    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupP256
-    from sagelib.hash import HashEd25519, HashRistretto255, HashP256
+    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupEd448, GroupP256
+    from sagelib.hash import HashEd25519, HashEd448, HashRistretto255, HashP256
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -23,6 +22,15 @@ def to_hex(octet_string):
         return "" + "".join("{:02x}".format(c) for c in octet_string)
     assert isinstance(octet_string, bytearray)
     return ''.join(format(x, '02x') for x in octet_string)
+
+class Signature(object):
+    def __init__(self, G, R, z):
+        self.G = G
+        self.R = R
+        self.z = z
+
+    def encode(self):
+        return self.G.serialize(self.R) + self.G.serialize_scalar(self.z)
 
 class Signer(object):
     def __init__(self, G, H, sk, pk):
@@ -105,7 +113,7 @@ class Signer(object):
         for z_i in sig_shares:
             z = z + z_i
 
-        return (group_comm, z)
+        return Signature(self.G, group_comm, z)
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-lagrange-coefficients
 def derive_lagrange_coefficient(G, i, L):
@@ -177,23 +185,27 @@ def trusted_dealer_keygen(G, n, t):
     return secret_keys, secret_key, public_key
 
 # Configure the setting
-NUM_SIGNERS = 3
+MAX_SIGNERS = 3
 THRESHOLD_LIMIT = 2
+NUM_SIGNERS = THRESHOLD_LIMIT
 message = _as_bytes("test")
 
 ciphersuites = [
-    ("FROST(Ed25519, SHA512)", GroupEd25519(), HashEd25519()),
-    ("FROST(ristretto255, SHA512)", GroupRistretto255(), HashRistretto255()),
-    ("FROST(P-256, SHA256)", GroupP256(), HashP256()),
+    ("FROST(Ed25519, SHA-512)", GroupEd25519(), HashEd25519()),
+    ("FROST(Ed448, SHAKE256)", GroupEd448(), HashEd448()),
+    ("FROST(ristretto255, SHA-512)", GroupRistretto255(), HashRistretto255()),
+    ("FROST(P-256, SHA-256)", GroupP256(), HashP256()),
 ]
 vectors = {}
 for (name, G, H) in ciphersuites:
-    participant_list = [i+1 for i in range(THRESHOLD_LIMIT)]
+    participant_list = [i+1 for i in range(NUM_SIGNERS)]
 
     assert(THRESHOLD_LIMIT > 1)
     assert(THRESHOLD_LIMIT <= NUM_SIGNERS)
+    assert(NUM_SIGNERS <= MAX_SIGNERS)
 
     config = {}
+    config["MAX_SIGNERS"] = str(MAX_SIGNERS)
     config["NUM_SIGNERS"] = str(NUM_SIGNERS)
     config["THRESHOLD_LIMIT"] = str(THRESHOLD_LIMIT)
     config["name"] = name
@@ -201,7 +213,13 @@ for (name, G, H) in ciphersuites:
     config["hash"] = H.name
 
     # Create all inputs, including the group key and individual signer key shares
-    signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, NUM_SIGNERS, THRESHOLD_LIMIT)
+    signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, MAX_SIGNERS, THRESHOLD_LIMIT)
+
+    group_public_key_enc = G.serialize(group_public_key)
+    recovered_group_public_key = G.deserialize(group_public_key_enc)
+    assert(group_public_key == recovered_group_public_key)
+
+    # Create signers
     signer_public_keys = [sk_i * G.generator() for (_, sk_i) in signer_keys]
     signers = {}
     for index, signer_key in enumerate(signer_keys):
@@ -235,17 +253,17 @@ for (name, G, H) in ciphersuites:
     group_comm = signers[1].group_commitment(commitment_list, binding_factor)
 
     round_one_outputs = {
-        "participants": [str(index) for index in participant_list],
-        "commitment_list": to_hex(rho_input),
+        "participants": ",".join([str(index) for index in participant_list]),
+        "group_binding_factor_input": to_hex(rho_input),
         "group_binding_factor": to_hex(G.serialize_scalar(binding_factor)),
-        "outputs": {}
+        "signers": {}
     }
     for index in participant_list:
-        round_one_outputs["outputs"][str(index)] = {}
-        round_one_outputs["outputs"][str(index)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[index][0]))
-        round_one_outputs["outputs"][str(index)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[index][1]))
-        round_one_outputs["outputs"][str(index)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[index][0]))
-        round_one_outputs["outputs"][str(index)]["binding_nonce_commitment"] = to_hex(G.serialize(comms[index][1]))
+        round_one_outputs["signers"][str(index)] = {}
+        round_one_outputs["signers"][str(index)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[index][0]))
+        round_one_outputs["signers"][str(index)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[index][1]))
+        round_one_outputs["signers"][str(index)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[index][0]))
+        round_one_outputs["signers"][str(index)]["binding_nonce_commitment"] = to_hex(G.serialize(comms[index][1]))
 
     # Round two: sign
     sig_shares = []
@@ -256,22 +274,20 @@ for (name, G, H) in ciphersuites:
         comm_shares.append(sig_comm)
 
     round_two_outputs = {
-        "participants": [str(index) for index in participant_list],
-        "outputs": {}
+        "participants": ",".join([str(index) for index in participant_list]),
+        "signers": {}
     }
     for index in participant_list:
-        round_two_outputs["outputs"][str(index)] = {}
-        round_two_outputs["outputs"][str(index)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[index-1]))
-        round_two_outputs["outputs"][str(index)]["group_commitment_share"] = to_hex(G.serialize(comm_shares[index-1]))
+        round_two_outputs["signers"][str(index)] = {}
+        round_two_outputs["signers"][str(index)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[index-1]))
+        round_two_outputs["signers"][str(index)]["group_commitment_share"] = to_hex(G.serialize(comm_shares[index-1]))
 
     # Final set: aggregate
     # XXX(caw): wrap up signature in a data structure with a serialize method
     sig = signers[1].aggregate(group_comm, sig_shares, participant_list, signer_public_keys, comm_shares, message)
     final_output = {
-        "sig": {}
+        "sig": to_hex(sig.encode())
     }
-    final_output["sig"]["R"] = to_hex(G.serialize(sig[0]))
-    final_output["sig"]["z"] = to_hex(G.serialize_scalar(sig[1]))
 
     def generate_schnorr_signature(G, H, s, msg):
         pk = s * G.generator()
@@ -284,10 +300,10 @@ for (name, G, H) in ciphersuites:
         c = H.H2(challenge_input)
 
         z = k + (s * c)
-        return (R, z)
+        return Signature(G, R, z)
 
-    def verify_schnorr_signature(G, H, Y, msg, SIG):
-        (R, z) = SIG
+    def verify_schnorr_signature(G, H, Y, msg, sig):
+        R, z = sig.R, sig.z
 
         comm_enc = G.serialize(R)
         pk_enc = G.serialize(Y)
@@ -311,7 +327,7 @@ for (name, G, H) in ciphersuites:
         pkk = G.serialize(G.deserialize(pk_enc))
         assert(pkk == pk_enc)
 
-        rfc8032_sig = G.serialize(single_sig[0]) + G.serialize_scalar(single_sig[1]) # Transform into RFC8032-style signature
+        rfc8032_sig = sig.encode()
         pk_enc = G.serialize(group_public_key)
         pk = G.deserialize(pk_enc)
         assert(pk == group_public_key)
