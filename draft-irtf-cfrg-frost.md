@@ -103,14 +103,19 @@ Crites, Komlo, and Maller in {{Schnorr21}}.
 
 ## Change Log
 
+draft-02
+
+- Fully specify both rounds of FROST, as well as trusted dealer key generation.
+- Add ciphersuites and corresponding test vectors, including suites for RFC8032 compatibility.
+- Refactor document for editorial clarity.
+
 draft-01
 
-- Submitted a draft that specifies operations, notation and cryptographic dependencies.
+- Specify operations, notation and cryptographic dependencies.
 
 draft-00
 
-- Submitted a basic draft after adoption of draft-komlo-frost as a working
-  group item.
+- Outline CFRG draft based on draft-komlo-frost.
 
 # Conventions and Definitions
 
