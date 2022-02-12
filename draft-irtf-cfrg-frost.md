@@ -547,9 +547,9 @@ each Signer then runs the following procedure to produce its own signature share
   - nonce_i, pair of Scalar values (d, e) generated in round one.
   - comm_i, pair of Element values (D, E) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
-  - commitment_list = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
+  - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index j and their
-    two commitment Element values (D_j, E_j). This list MUST be sorted in ascending order
+    two commitment Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j). This list MUST be sorted in ascending order
     by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
@@ -568,7 +568,6 @@ each Signer then runs the following procedure to produce its own signature share
     for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       R = R + (hiding_nonce_commitment + (binding_nonce_commitment * binding_factor))
 
-    # Interpret index and participant_list's elements as x-coordinate scalars in GF(p)
     lambda_i = derive_lagrange_coefficient(index, participant_list)
 
     # Compute the per-message challenge
