@@ -455,7 +455,7 @@ step at the end and outputs the final signature. This complete interaction is sh
 
 Details for round one are described in {{frost-round-one}}, and details for round two
 are described in {{frost-round-two}}. The final Aggregation step is described in
-{{aggregation}}.
+{{frost-aggregation}}.
 
 FROST assumes reliable message delivery between Coordinator and signing participants in
 order for the protocol to complete. Messages exchanged during signing operations are all within
