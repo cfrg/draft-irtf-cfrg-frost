@@ -557,7 +557,7 @@ each Signer then runs the following procedure to produce its own signature share
   Outputs: a signature share sig_share and commitment share comm_share, which
            are Scalar and Element values respectively.
 
-  def sign(index, sk, group_public_key, nonce_i, comm_i, msg, commitment_list, participant_list):
+  def sign(index, sk_i, group_public_key, nonce_i, comm_i, msg, commitment_list, participant_list):
     # Compute the binding factor
     encoded_commitments = encode_group_commitment_list(commitment_list)
     msg_hash = H3(msg)
