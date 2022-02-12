@@ -443,9 +443,9 @@ structures into values that can be processed with hash functions.
 
 ~~~
   Inputs:
-  - commitment_list = [(i, x_i, y_i), ...], a list of commitments issued by each signer,
+  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index i and their
-    two commitment Element values (x_i, y_i). This list MUST be sorted in ascending order
+    two commitment Element values (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted in ascending order
     by signer index.
 
   Outputs: A byte string containing the serialized representation of commitment_list.
@@ -544,12 +544,12 @@ each Signer then runs the following procedure to produce its own signature share
   - index, Index `i` of the signer. Note index will never equal `0`.
   - sk_i, Signer secret key share.
   - group_public_key, public key corresponding to the signer secret key share.
-  - nonce_i, pair of Scalar values (d, e) generated in round one.
-  - comm_i, pair of Element values (D, E) generated in round one.
+  - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in round one.
+  - comm_i, pair of Element values (hiding_nonce_commitment, binding_nonce_commitment) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
-  - commitment_list = [(j, x_j, y_j), ...], a list of commitments issued by each signer,
+  - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index j and their
-    two commitment Element values (x_j, y_j). This list MUST be sorted in ascending order
+    two commitment Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j). This list MUST be sorted in ascending order
     by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
@@ -557,7 +557,7 @@ each Signer then runs the following procedure to produce its own signature share
   Outputs: a signature share sig_share and commitment share comm_share, which
            are Scalar and Element values respectively.
 
-  def sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, participant_list):
+  def sign(index, sk_i, group_public_key, nonce_i, comm_i, msg, commitment_list, participant_list):
     # Compute the binding factor
     encoded_commitments = encode_group_commitment_list(commitment_list)
     msg_hash = H3(msg)
@@ -571,7 +571,6 @@ each Signer then runs the following procedure to produce its own signature share
     lambda_i = derive_lagrange_coefficient(index, participant_list)
 
     # Compute the per-message challenge
-    msg_hash = H3(msg)
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg_hash
