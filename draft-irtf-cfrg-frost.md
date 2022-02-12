@@ -443,9 +443,9 @@ structures into values that can be processed with hash functions.
 
 ~~~
   Inputs:
-  - commitment_list = [(i, x_i, y_i), ...], a list of commitments issued by each signer,
+  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index i and their
-    two commitment Element values (x_i, y_i). This list MUST be sorted in ascending order
+    two commitment Element values (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted in ascending order
     by signer index.
 
   Outputs: A byte string containing the serialized representation of commitment_list.
@@ -544,8 +544,8 @@ each Signer then runs the following procedure to produce its own signature share
   - index, Index `i` of the signer. Note index will never equal `0`.
   - sk_i, Signer secret key share.
   - group_public_key, public key corresponding to the signer secret key share.
-  - nonce_i, pair of Scalar values (d, e) generated in round one.
-  - comm_i, pair of Element values (D, E) generated in round one.
+  - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in round one.
+  - comm_i, pair of Element values (hiding_nonce_commitment, binding_nonce_commitment) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index j and their
