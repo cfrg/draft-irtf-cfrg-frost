@@ -547,9 +547,9 @@ each Signer then runs the following procedure to produce its own signature share
   - nonce_i, pair of Scalar values (d, e) generated in round one.
   - comm_i, pair of Element values (D, E) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
-  - commitment_list = [(j, x_j, y_j), ...], a list of commitments issued by each signer,
+  - commitment_list = [(j, D_j, E_j), ...], a list of commitments issued by each signer,
     where each element in the list indicates the signer index j and their
-    two commitment Element values (x_j, y_j). This list MUST be sorted in ascending order
+    two commitment Element values (D_j, E_j). This list MUST be sorted in ascending order
     by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
@@ -557,7 +557,7 @@ each Signer then runs the following procedure to produce its own signature share
   Outputs: a signature share sig_share and commitment share comm_share, which
            are Scalar and Element values respectively.
 
-  def sign(index, sk, group_public_key, nonce, comm, msg, commitment_list, participant_list):
+  def sign(index, sk, group_public_key, nonce_i, comm_i, msg, commitment_list, participant_list):
     # Compute the binding factor
     encoded_commitments = encode_group_commitment_list(commitment_list)
     msg_hash = H3(msg)
@@ -568,10 +568,10 @@ each Signer then runs the following procedure to produce its own signature share
     for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       R = R + (hiding_nonce_commitment + (binding_nonce_commitment * binding_factor))
 
+    # Interpret index and participant_list's elements as x-coordinate scalars in GF(p)
     lambda_i = derive_lagrange_coefficient(index, participant_list)
 
     # Compute the per-message challenge
-    msg_hash = H3(msg)
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg_hash
