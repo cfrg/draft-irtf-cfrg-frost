@@ -415,11 +415,11 @@ There are two rounds in FROST: commitment and signature share generation. The fi
 for each participant to issue a commitment. The second round receives commitments for all signers as well
 as the message, and issues a signature share. The Coordinator performs the coordination of each
 of these rounds. At the end of the second round, the Coordinator then performs an aggregation
-round at the end and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
+step at the end and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
 
 ~~~
         (group info)             (group info,     (group info,
-            |                     signing key)     signing key)
+            |               signing key share)   signing key share)
             |                         |                |
             v                         v                v
         Coordinator               Signer-1   ...   Signer-n
