@@ -229,13 +229,13 @@ following operation.
   Inputs:
   - msg, message to be signed, an octet string
   - SK, private key, a scalar
-  - PK, public key, a group element
 
   Outputs: signature (R, z), a pair of scalar values
 
-  def schnorr_signature_generate(msg, SK, PK):
-    r = G.RandomScalar()
-    R = G.ScalarBaseMult(r)
+  def schnorr_signature_generate(msg, SK):
+    PK = G.ScalarBaseMult(SK)
+    k = G.RandomScalar()
+    R = G.ScalarBaseMult(k)
 
     msg_hash = H3(msg)
     comm_enc = G.SerializeElement(R)
@@ -243,7 +243,7 @@ following operation.
     challenge_input = comm_enc || pk_enc || msg_hash
     c = H2(challenge_input)
 
-    z = r + (c * SK)
+    z = k + (c * SK)
     return (R, z)
 ~~~
 
