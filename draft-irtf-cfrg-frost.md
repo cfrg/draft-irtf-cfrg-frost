@@ -233,7 +233,7 @@ following operation.
   Outputs: signature (R, z), a pair of scalar values
 
   def schnorr_signature_generate(msg, SK):
-    PK = G.ScalarBaseMult(s)
+    PK = G.ScalarBaseMult(SK)
     k = G.RandomScalar()
     R = G.ScalarBaseMult(k)
 
