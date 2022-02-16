@@ -154,7 +154,7 @@ def secret_share_combine(G, t, shares):
     return s
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
-def secret_share_split(G, s, n, t):
+def secret_share_shard(G, s, n, t):
     if t > n:
         raise Exception("invalid parameters")
 
@@ -174,7 +174,7 @@ def secret_share_split(G, s, n, t):
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-trusted-dealer-key-generati
 def trusted_dealer_keygen(G, n, t):
     secret_key = G.random_scalar()
-    points = secret_share_split(G, secret_key, n, t)
+    points = secret_share_shard(G, secret_key, n, t)
     recovered_key = secret_share_combine(G, t, points)
     assert(secret_key == recovered_key)
     secret_keys = []

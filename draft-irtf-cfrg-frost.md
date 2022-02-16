@@ -808,8 +808,8 @@ operation can be performed.
 
   def trusted_dealer_keygen(n, t):
     secret_key = G.RandomScalar()
-    secret_key_shares = secret_share_split(secret_key, n, t)
-    public_key = G.ScalarBaseMult(s)
+    secret_key_shares = secret_share_shard(secret_key, n, t)
+    public_key = G.ScalarBaseMult(secret_key)
     return secret_key, public_key, secret_key_shares
 ~~~
 
@@ -833,7 +833,7 @@ the scalar field of the prime-order group `G`.
 The procedure for splitting a secret into shares is as follows.
 
 ~~~
-  secret_share_split(s, n, t):
+  secret_share_shard(s, n, t):
 
   Inputs:
   - s, secret to be shared, an element of F
@@ -845,7 +845,7 @@ The procedure for splitting a secret into shares is as follows.
   Errors:
   - "invalid parameters", if t > n
 
-  def secret_share(s, n, t):
+  def secret_share_shard(s, n, t):
     if t > n:
       raise "invalid parameters"
 
@@ -853,11 +853,11 @@ The procedure for splitting a secret into shares is as follows.
     # a polynomial of degree (t - 1)
     coefficients = [s]
     for i in range(t - 1):
-      coefficients.append(RandomScalar())
+      coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
     points = []
-    for x_i in range(1, n+1):
+    for x_i in range(1, n + 1):
       y_i = polynomial_evaluate(x_i, coefficients)
       point_i = (x_i, y_i)
       points.append(point_i)
