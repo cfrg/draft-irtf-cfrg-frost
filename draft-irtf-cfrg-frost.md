@@ -167,34 +167,21 @@ We now detail a number of member functions that can be invoked on a prime-order 
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - RandomScalar(): A member function of `G` that chooses at random a
-  non-zero element in GF(p).
-- SerializeElement(A): A member function of `G` that maps a group element `A`
-  to a unique byte array `buf` of fixed length `Ne`. The output type of
-  this function is `SerializedElement`.
-- DeserializeElement(buf): A member function of `G` that maps a byte array
-  `buf` to a group element `A`, or fails if the input is not a valid
-  byte representation of an element. This function can raise a
-  DeserializeError if deserialization fails or `A` is the identity element
-  of the group; see {{input-validation}}.
-
-### Input Validation {#input-validation}
-
-The DeserializeElement function recovers a group element from an arbitrary
-byte array. This function validates that the element is a proper member
-of the group and is not the identity element, and returns an error if either
-condition is not met.
-
-For ristretto255, elements are deserialized by invoking the Decode
-function from {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448, Section 4.3.1}},
-which returns false if the element is invalid. If this function returns false,
-deserialization returns an error.
-
-The DeserializeScalar function recovers a scalar field element from an arbitrary
-byte array. Like DeserializeElement, this function validates that the element
-is a member of the scalar field and returns an error if this condition is not met.
-
-For ristretto255, this function ensures that the input, when treated as a
-little-endian integer, is a value greater than or equal to 0, and less than `Order()`.
+  non-zero Scalar element in GF(p).
+- SerializeElement(A): A member function of `G` that maps an Element `A`
+  to a unique byte array `buf` of fixed length `Ne`.
+- DeserializeElement(buf): A member function of `G` that attempts to map a
+  byte array `buf` to an Element `A`, and fails if the input is not a
+  valid byte representation of an element of the group. This function can
+  raise a DeserializeError if deserialization fails or `A` is the identity
+  element of the group; see {{ciphersuites}} for group-specific input validation
+  steps.
+- SerializeScalar(s): A member function of `G` that maps a Scalar `s`
+  to a unique byte array `buf` of fixed length `Ns`.
+- DeserializeScalar(buf): A member function of `G` that attempts to map a
+  byte array `buf` to a Scalar `s`. This function can raise a
+  DeserializeError if deserialization fails; see {{ciphersuites}} for
+  group-specific input validation steps.
 
 ## Cryptographic Hash Function {#dep-hash}
 
@@ -506,8 +493,14 @@ additionally require locally held data; specifically, their private key and the
 nonces corresponding to their commitment issued in round one.
 
 The Coordinator begins by sending each signer the message to be signed along with the
-set of signing commitments for other signers in the participant list. Upon receipt,
-each Signer then runs the following procedure to produce its own signature share.
+set of signing commitments for other signers in the participant list. Each signer
+MUST validate the inputs before processing the Coordinator's request. In particular,
+the Signer MUST validate commitment_list, deserializing each group Element in the
+list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
+MUST abort the protocol.
+
+Upon receipt and successful input validation, each Signer then runs the following procedure
+to produce its own signature share.
 
 ~~~
   Inputs:
@@ -561,7 +554,10 @@ The output of this procedure is a signature share and group commitment share.
 Each signer then sends these shares back to the collector; see
 {{encode-sig-share}} for encoding recommendations.
 
-The Coordinator MUST verify the set of signature shares using the following procedure.
+Upon reciept from each Signer, the Coordinator MUST validate the input
+signature and commitment shares using DeserializeElement for each. If validation
+fails, the Coordinator MUST abort the protocol. If validation succeeds, the
+Coordinator then verifies the set of signature shares using the following procedure.
 
 <!-- the inputs to this function need to be revisited, things can probably be made simpler -->
 ~~~
@@ -597,10 +593,8 @@ The Coordinator MUST verify the set of signature shares using the following proc
 
 After signers perform round two and send their signature shares to the Coordinator,
 the Coordinator performs the `aggregate` operation and publishes the resulting
-signature. Note that here we do not specify the Coordinator as validating each
-signature schare, as if any signature share is invalid, the resulting joint
-signature will similarly be invalid. Deployments that wish to validate signature
-shares can do so using the `verify_signature_share` function in {{frost-round-two}}
+signature. As described in {{frost-round-two}}, the Coordinator MUST validate each
+Signer's signature share before aggregation.
 
 ~~~
   Inputs:
@@ -617,14 +611,33 @@ shares can do so using the `verify_signature_share` function in {{frost-round-tw
     return (R, z)
 ~~~
 
+The output signature (R, z) from the aggregation step MUST be encoded as follows:
+
+~~~
+  struct {
+    opaque R_encoded[Ne];
+    opaque z_encoded[Ns];
+  } Signature;
+~~~
+
+Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
+`G.SerializeScalar(z)`.
+
 # Ciphersuites {#ciphersuites}
 
 A FROST ciphersuite must specify the underlying prime-order group details
 and cryptographic hash function. Each ciphersuite is denoted as (Group, Hash),
 e.g., (ristretto255, SHA-512). This section contains some ciphersuites.
+
 The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 The (Ed25519, SHA-512) ciphersuite is included for backwards compatibility
 with {{!RFC8032}}.
+
+The DeserializeElement and DeserializeScalar functions instantiated for a
+particular prime-order group corresponding to a ciphersuite MUST adhere
+to the description in {{dep-pog}}. Validation steps for these functions
+are described for each the ciphersuites below. Future ciphersuites MUST
+describe how input validation is done for DeserializeElement and DeserializeScalar.
 
 ## FROST(Ed25519, SHA-512)
 
@@ -635,6 +648,13 @@ The value of the contextString parameter is empty.
 - Group: edwards25519 {{!RFC8032}}
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element.
+  - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
+    the Scalar value.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
+    string. This function can fail if the input does not represent a Scalar between
+    the value 0 and `G.Order() - 1`.
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H("rho" || m), interpreting the lower
     32 bytes as a little-endian integer, and reducing the resulting integer modulo
@@ -655,6 +675,11 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
+  - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
+    the Scalar value.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
+    string. This function can fail if the input does not represent a Scalar between
+    the value 0 and `G.Order() - 1`.
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
     the output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
@@ -671,6 +696,13 @@ The value of the contextString parameter is empty.
 - Group: edwards448 {{!RFC8032}}
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element.
+  - SerializeScalar: Implemented by outputting the little-endian 48-byte encoding of
+    the Scalar value.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 48-byte
+    string. This function can fail if the input does not represent a Scalar between
+    the value 0 and `G.Order() - 1`.
 - Hash (`H`): SHAKE256, and Nh = 117.
   - H1(m): Implemented by computing H("rho" || m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
@@ -694,8 +726,16 @@ The value of the contextString parameter is "FROST-P256-SHA256".
   - DeserializeElement: Implemented by attempting to deserialize a public key using
     the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
-    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}.
-  - Serialization: Elements are serialized as Ne = 33 byte string
+    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
+    coordinates of the resulting point are in the correct range, that the point is on
+    the curve, and that the point is not the point at infinity. Additionally, this function
+    validates  that the resulting element is not the group identity element.
+    If these checks fail, deserialization returns an error.
+  - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
+    according to {{SECG}}.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
+    string using Octet-String-to-Field-Element from {{SECG}}. This function can fail if the
+    input does not represent a Scalar between the value 0 and `G.Order() - 1`.
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
