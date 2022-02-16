@@ -845,7 +845,7 @@ The procedure for splitting a secret into shares is as follows.
   Errors:
   - "invalid parameters", if t > n
 
-  def secret_share(s, n, t):
+  def secret_share_split(s, n, t):
     if t > n:
       raise "invalid parameters"
 
@@ -853,11 +853,11 @@ The procedure for splitting a secret into shares is as follows.
     # a polynomial of degree (t - 1)
     coefficients = [s]
     for i in range(t - 1):
-      coefficients.append(RandomScalar())
+      coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
     points = []
-    for x_i in range(1, n+1):
+    for x_i in range(1, n + 1):
       y_i = polynomial_evaluate(x_i, coefficients)
       point_i = (x_i, y_i)
       points.append(point_i)
