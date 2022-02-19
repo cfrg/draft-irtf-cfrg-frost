@@ -554,7 +554,7 @@ The output of this procedure is a signature share and group commitment share.
 Each signer then sends these shares back to the collector; see
 {{encode-sig-share}} for encoding recommendations.
 
-Upon reciept from each Signer, the Coordinator MUST validate the input
+Upon receipt from each Signer, the Coordinator MUST validate the input
 signature and commitment shares using DeserializeElement for each. If validation
 fails, the Coordinator MUST abort the protocol. If validation succeeds, the
 Coordinator then verifies the set of signature shares using the following procedure.
