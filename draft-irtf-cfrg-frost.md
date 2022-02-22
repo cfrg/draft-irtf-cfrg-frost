@@ -497,12 +497,12 @@ set of signing commitments for other signers in the participant list. Each signe
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol.
+MUST abort the protocol. Further, the signer MUST ensure that the message to be signed
+is in fact appropriate. However, doing so requires application-level logic, and so we
+omit this check here.
 
 Upon receipt and successful input validation, each Signer then runs the following procedure
 to produce its own signature share.
-Each signer should also verify that the message to be signed is in fact valid;
-however, this check is application-specific and so we omit this step below.
 
 ~~~
   Inputs:
