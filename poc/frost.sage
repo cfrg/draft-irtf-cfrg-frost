@@ -91,23 +91,23 @@ class Signer(object):
         return z_i, R_i
 
     # XXX(caw): move this out to a helper function?
-    def verify_share(self, group_comm, participant_list, index, signer_key, signer_share, signer_comm, msg):
+    def verify_signature_share(self, group_comm, participant_list, index, group_public_key, public_key_share, sig_share, comm_share, msg):
         group_comm_enc = self.G.serialize(group_comm)
-        pk_enc = self.G.serialize(self.pk)
-        challenge_input = bytes(group_comm_enc + pk_enc + msg)
+        group_public_key_enc = self.G.serialize(group_public_key)
+        challenge_input = bytes(group_comm_enc + group_public_key_enc + msg)
         c = self.H.H2(challenge_input)
 
-        l = signer_share * self.G.generator()
+        l = sig_share * self.G.generator()
 
         lambda_i = derive_lagrange_coefficient(self.G, index, participant_list)
-        r = signer_comm + (signer_key * c * lambda_i)
+        r = comm_share + (public_key_share * c * lambda_i)
 
         return l == r
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-aggregate
-    def aggregate(self, group_comm, sig_shares, participant_list, signer_keys, signer_comms, msg):
+    def aggregate(self, group_comm, sig_shares, participant_list, public_key_shares, comm_shares, msg):
         for index in participant_list:
-            assert(self.verify_share(group_comm, participant_list, index, signer_keys[index-1], sig_shares[index-1], signer_comms[index-1], msg))
+            assert(self.verify_signature_share(group_comm, participant_list, index, self.pk, public_key_shares[index-1], sig_shares[index-1], comm_shares[index-1], msg))
 
         z = 0
         for z_i in sig_shares:
