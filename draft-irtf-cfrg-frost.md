@@ -562,21 +562,20 @@ Coordinator then verifies the set of signature shares using the following proced
 <!-- the inputs to this function need to be revisited, things can probably be made simpler -->
 ~~~
   Inputs:
-  - index, Index `i` of the signer. Note index will never equal `0`.
-  - PK, the public key for the group
-  - PK_i, the public key for the ith signer, where PK_i = ScalarBaseMult(s[i])
-  - sig_share, the signature share for the ith signer, computed from the signer
-  - comm_share, the commitment for the ith signer, computed from the signer
-  - R, the group commitment
-  - msg, the message to be signed
+  - group_comm, the group commitment
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
+  - index, Index `i` of the signer. Note index will never equal `0`.
+  - group_public_key, the public key for the group
+  - public_key_share, the public key for the ith signer, where PK_i = ScalarBaseMult(s[i])
+  - sig_share, the signature share for the ith signer, computed from the signer
+  - comm_share, the commitment for the ith signer, computed from the signer
+  - msg, the message to be signed
 
   Outputs: 1 if the signature share is valid, and 0 otherwise.
 
-  def verify_signature_share(index, PK, PK_i, sig_share, comm_share, R, msg, participant_list):
-    msg_hash = H3(msg)
-    group_comm_enc = G.SerializeElement(R)
+  def verify_signature_share(group_comm, participant_list, index, group_public_key, public_key_share, sig_share, comm_share, msg):
+    group_comm_enc = G.SerializeElement(group_comm)
     group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg_hash
     c = H2(challenge_input)
@@ -584,7 +583,7 @@ Coordinator then verifies the set of signature shares using the following proced
     l = G.ScalarbaseMult(sig_share)
 
     lambda_i = derive_lagrange_coefficient(index, participant_list)
-    r = comm_share + (sig_share * c * lambda_i)
+    r = comm_share + (public_key_share * c * lambda_i)
 
     return l == r
 ~~~
