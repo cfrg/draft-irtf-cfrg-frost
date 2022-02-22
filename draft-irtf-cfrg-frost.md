@@ -501,6 +501,8 @@ MUST abort the protocol.
 
 Upon receipt and successful input validation, each Signer then runs the following procedure
 to produce its own signature share.
+Each signer should also verify that the message to be signed is in fact valid;
+however, this check is application-specific and so we omit this step below.
 
 ~~~
   Inputs:
