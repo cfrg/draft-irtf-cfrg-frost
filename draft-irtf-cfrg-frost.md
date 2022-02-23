@@ -497,10 +497,12 @@ set of signing commitments for other signers in the participant list. Each signe
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol.
+MUST abort the protocol. Applications which require that signers not process arbitrary
+input messages are also required to also perform relevant application-layer input
+validation checks; see {{message-validation}} for more details.
 
-Upon receipt and successful input validation, each Signer then runs the following procedure
-to produce its own signature share.
+Upon receipt and successful input validation, each Signer then runs the following
+procedure to produce its own signature share.
 
 ~~~
   Inputs:
@@ -816,6 +818,22 @@ sending disjoint values to a subset of players, the signing operation will outpu
 an invalid signature. To avoid this denial of service, implementations may wish
 to define a mechanism where messages are authenticated, so that cheating players
 can be identified and excluded.
+
+## Input Message Validation {#message-validation}
+
+Some applications may require that signers only process messages of a certain
+structure. For example, in digital currency applications wherein multiple
+signers may collectively sign a transaction, it is reasonable to require that
+each signer check the input message to be a syntactically valid transaction.
+As another example, use of threshold signatures in TLS {{?TLS=RFC8446}} to produce
+signatures of transcript hashes might require that signers check that the input
+message is a valid TLS transcript from which the corresponding transcript hash
+can be derived.
+
+In general, input message validation is an application-specific consideration
+that varies based on the use case and threat model. However, it is RECOMMENDED
+that applications take additional precautions and validate inputs so that signers
+do not operate as signing oracles for arbitrary messages.
 
 # Contributors
 
