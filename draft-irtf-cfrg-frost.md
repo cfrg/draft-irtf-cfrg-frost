@@ -251,7 +251,7 @@ The corresponding verification operation is as follows.
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
-    l = ScalarBaseMult(z)
+    l = G.ScalarBaseMult(z)
     r = R + (c * PK)
     if l == r:
       return 1
@@ -565,7 +565,7 @@ Coordinator then verifies the set of signature shares using the following proced
     NUM_SIGNERS (sent by the Coordinator).
   - index, Index `i` of the signer. Note index will never equal `0`.
   - group_public_key, the public key for the group
-  - public_key_share, the public key for the ith signer, where PK_i = ScalarBaseMult(s[i])
+  - public_key_share, the public key for the ith signer, where public_key_share = G.ScalarBaseMult(s[i])
   - sig_share, the signature share for the ith signer, computed from the signer
   - comm_share, the commitment for the ith signer, computed from the signer
   - msg, the message to be signed
@@ -578,7 +578,7 @@ Coordinator then verifies the set of signature shares using the following proced
     challenge_input = group_comm_enc || group_public_key_enc || msg
     c = H2(challenge_input)
 
-    l = G.ScalarbaseMult(sig_share)
+    l = G.ScalarBaseMult(sig_share)
 
     lambda_i = derive_lagrange_coefficient(index, participant_list)
     r = comm_share + (public_key_share * c * lambda_i)
