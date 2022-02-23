@@ -224,10 +224,9 @@ following operation.
     k = G.RandomScalar()
     R = G.ScalarBaseMult(k)
 
-    msg_hash = H3(msg)
     comm_enc = G.SerializeElement(R)
     pk_enc = G.SerializeElement(PK)
-    challenge_input = comm_enc || pk_enc || msg_hash
+    challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
     z = k + (c * SK)
@@ -247,10 +246,9 @@ The corresponding verification operation is as follows.
   Outputs: 1 if signature is valid, and 0 otherwise
 
   def schnorr_signature_verify(msg, sig = (R, z), PK):
-    msg_hash = H3(msg)
     comm_enc = G.SerializeElement(R)
     pk_enc = G.SerializeElement(PK)
-    challenge_input = comm_enc || pk_enc || msg_hash
+    challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
     l = ScalarBaseMult(z)
@@ -577,7 +575,7 @@ Coordinator then verifies the set of signature shares using the following proced
   def verify_signature_share(group_comm, participant_list, index, group_public_key, public_key_share, sig_share, comm_share, msg):
     group_comm_enc = G.SerializeElement(group_comm)
     group_public_key_enc = G.SerializeElement(group_public_key)
-    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
+    challenge_input = group_comm_enc || group_public_key_enc || msg
     c = H2(challenge_input)
 
     l = G.ScalarbaseMult(sig_share)
