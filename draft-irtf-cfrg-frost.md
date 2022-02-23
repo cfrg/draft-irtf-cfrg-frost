@@ -1067,6 +1067,9 @@ id
 signature_share
 : The signature share from this signer encoded as a serialized scalar.
 
+commitmentshare
+: The signature commitment share from this signer encoded as a serialized element.
+
 # Test Vectors
 
 This section contains test vectors for all ciphersuites listed in {{ciphersuites}}.
