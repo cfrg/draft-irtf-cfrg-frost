@@ -1067,7 +1067,7 @@ id
 signature_share
 : The signature share from this signer encoded as a serialized scalar.
 
-commitmentshare
+commitment_share
 : The signature commitment share from this signer encoded as a serialized element.
 
 # Test Vectors
