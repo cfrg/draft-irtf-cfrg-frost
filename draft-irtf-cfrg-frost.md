@@ -536,7 +536,7 @@ procedure to produce its own signature share.
     # Compute the per-message challenge
     group_comm_enc = G.SerializeElement(R)
     group_public_key_enc = G.SerializeElement(group_public_key)
-    challenge_input = group_comm_enc || group_public_key_enc || msg_hash
+    challenge_input = group_comm_enc || group_public_key_enc || msg
     c = H2(challenge_input)
 
     # Compute the signature share
