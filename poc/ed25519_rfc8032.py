@@ -141,15 +141,6 @@ def sign_ed25519_rfc8032(secret, msg):
 
 ## And finally the verification function.
 
-# XXX(caw): remove when done debugging
-def to_hex(octet_string):
-    if isinstance(octet_string, str):
-        return "".join("{:02x}".format(ord(c)) for c in octet_string)
-    if isinstance(octet_string, bytes):
-        return "" + "".join("{:02x}".format(c) for c in octet_string)
-    assert isinstance(octet_string, bytearray)
-    return ''.join(format(x, '02x') for x in octet_string)
-
 def verify_ed25519_rfc8032(public, msg, signature):
     if len(public) != 32:
         raise Exception("Bad public key length")
