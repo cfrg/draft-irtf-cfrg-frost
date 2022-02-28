@@ -618,7 +618,7 @@ After signers perform round two and send their signature shares to the Coordinat
 the Coordinator verifies each signature share for correctness. In particular,
 for each signer, the Coordinator uses commitment pairs generated during round
 one and the signature share generated during round two, along with other group
-parameters, to check that the signature share is correct using the following procedure.
+parameters, to check that the signature share is valid using the following procedure.
 
 ~~~
   Inputs:
