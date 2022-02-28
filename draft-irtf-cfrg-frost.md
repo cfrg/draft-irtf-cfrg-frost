@@ -590,7 +590,7 @@ procedure to produce its own signature share.
     # Compute the group commitment
     group_commitment = compute_group_commitment(commitment_list, binding_factor)
 
-    # Compute Lagrangian coefficient
+    # Compute Lagrange coefficient
     lambda_i = derive_lagrange_coefficient(index, participant_list)
 
     # Compute the per-message challenge
