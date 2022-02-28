@@ -130,7 +130,7 @@ The following notation and terminology are used throughout this document.
 at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
-  big-endian byte string.
+  big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * \|\| denotes contatenation, i.e., x \|\| y = xy.
 
 Unless otherwise stated, we assume that secrets are sampled uniformly at random
