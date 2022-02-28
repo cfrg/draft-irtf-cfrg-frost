@@ -628,7 +628,7 @@ parameters, to check that the signature share is correct using the following pro
     in round one from the ith signer.
   - sig_share_i, a Scalar value indicating the signature share as produced in round two from the ith signer.
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a list of commitments
-    issued by each signer, where each element in the list indicates the signer index j and their
+    issued in Round 1 by each signer, where each element in the list indicates the signer index j and their
     two commitment Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
