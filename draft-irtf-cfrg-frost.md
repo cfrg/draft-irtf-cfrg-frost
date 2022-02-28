@@ -129,10 +129,8 @@ The following notation and terminology are used throughout this document.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
 at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
-* `I2OSP(x, w)`: Convert non-negative integer `x` to a `w`-length,
-  big-endian byte string as described in {{!RFC8017}}.
-* `OS2IP(s)`: Convert byte string `s` to a non-negative integer as
-  described in {{!RFC8017}}, assuming big-endian byte order.
+* `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
+  big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * \|\| denotes contatenation, i.e., x \|\| y = xy.
 
 Unless otherwise stated, we assume that secrets are sampled uniformly at random
@@ -364,7 +362,7 @@ commitments into a bytestring that is used in the FROST protocol.
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
     for (index, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      encoded_commitment = I2OSP(index, 2) ||
+      encoded_commitment = encode_uint16(index) ||
                            G.SerializeElement(hiding_nonce_commitment) ||
                            G.SerializeElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
@@ -540,8 +538,10 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 ~~~
 
 The private output `nonce` from Participant `P_i` is stored locally and kept private
-for use in the second round. The public output `comm` from Participant `P_i`
-is sent to the Coordinator; see {{encode-commitment}} for encoding recommendations.
+for use in the second round. This nonce MUST NOT be reused in more than one invocation
+of FROST, and it MUST be generated from a source of secure randomness. The public output
+`comm` from Participant `P_i` is sent to the Coordinator; see {{encode-commitment}}
+for encoding recommendations.
 
 <!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
 
@@ -605,7 +605,8 @@ procedure to produce its own signature share.
 
 The output of this procedure is a signature share and group commitment share.
 Each signer then sends these shares back to the collector; see
-{{encode-sig-share}} for encoding recommendations.
+{{encode-sig-share}} for encoding recommendations. Each signer MUST delete
+the nonce and corresponding commitment after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
 signature and commitment shares using DeserializeElement for each. If validation
@@ -944,8 +945,8 @@ operation can be performed.
     return secret_key, public_key, secret_key_shares
 ~~~
 
-It is assumed the dealer then sends one secret key to each of the NUM_SIGNERS participants,
-and afterwards deletes the secrets from their local device.
+It is assumed the dealer then sends one secret key to each of the NUM_SIGNERS participants.
+The trusted dealer MUST delete all secrets upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
 between Coordinator and participants, wherein the channel provides confidentiality

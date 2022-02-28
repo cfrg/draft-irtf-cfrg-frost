@@ -145,7 +145,7 @@ def verify_signature_share(G, H, index, public_key_share, comm, sig_share, commi
     # Compute the challenge
     challenge = compute_challenge(H, group_commitment, group_public_key, msg)
 
-    # Compute Lagrangian coefficient
+    # Compute Lagrange coefficient
     lambda_i = derive_lagrange_coefficient(G, index, participant_list)
 
     # Compute relation values
@@ -183,7 +183,7 @@ class Signer(object):
         # Compute the group commitment
         group_comm = compute_group_commitment(self.G, commitment_list, binding_factor)
 
-        # Compute Lagrangian coefficient
+        # Compute Lagrange coefficient
         lambda_i = derive_lagrange_coefficient(self.G, self.index, participant_list)
 
         # Compute the per-message challenge
