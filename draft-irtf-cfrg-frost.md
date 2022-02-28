@@ -656,7 +656,7 @@ parameters, to check that the signature share is correct using the following pro
     # Compute the challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
 
-    # Compute Lagrangian coefficient
+    # Compute Lagrange coefficient
     lambda_i = derive_lagrange_coefficient(index, participant_list)
 
     # Compute relation values
