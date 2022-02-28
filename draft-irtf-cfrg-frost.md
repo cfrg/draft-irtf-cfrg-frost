@@ -129,10 +129,8 @@ The following notation and terminology are used throughout this document.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
 at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
-* `I2OSP(x, w)`: Convert non-negative integer `x` to a `w`-length,
-  big-endian byte string as described in {{!RFC8017}}.
-* `OS2IP(s)`: Convert byte string `s` to a non-negative integer as
-  described in {{!RFC8017}}, assuming big-endian byte order.
+* `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
+  big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * \|\| denotes contatenation, i.e., x \|\| y = xy.
 
 Unless otherwise stated, we assume that secrets are sampled uniformly at random
@@ -364,7 +362,7 @@ structures into values that can be processed with hash functions.
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
     for (index, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      encoded_commitment = I2OSP(index, 2) ||
+      encoded_commitment = encode_uint16(index) ||
                            G.SerializeElement(hiding_nonce_commitment) ||
                            G.SerializeElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment

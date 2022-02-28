@@ -23,6 +23,9 @@ def to_hex(octet_string):
     assert isinstance(octet_string, bytearray)
     return ''.join(format(x, '02x') for x in octet_string)
 
+def encode_uint16(x):
+    return int(x).to_bytes(2, byteorder='big')
+
 class Signature(object):
     def __init__(self, G, R, z):
         self.G = G
@@ -51,7 +54,7 @@ class Signer(object):
         return nonce, comm
 
     def encode_group_commitment_list(self, commitment_list):
-        B_es = [I2OSP(i, 2) + self.G.serialize(D) + self.G.serialize(E) for (i, D, E) in commitment_list]
+        B_es = [encode_uint16(i) + self.G.serialize(D) + self.G.serialize(E) for (i, D, E) in commitment_list]
         B_e = B_es[0]
         for i, v in enumerate(B_es):
             if i > 0:
