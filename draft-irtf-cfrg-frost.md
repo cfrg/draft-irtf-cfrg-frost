@@ -552,7 +552,8 @@ procedure to produce its own signature share.
 
 The output of this procedure is a signature share and group commitment share.
 Each signer then sends these shares back to the collector; see
-{{encode-sig-share}} for encoding recommendations.
+{{encode-sig-share}} for encoding recommendations. Each signer MUST delete
+the nonce and corresponding commitment after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
 signature and commitment shares using DeserializeElement for each. If validation
@@ -868,8 +869,8 @@ operation can be performed.
     return secret_key, public_key, secret_key_shares
 ~~~
 
-It is assumed the dealer then sends one secret key to each of the NUM_SIGNERS participants,
-and afterwards deletes the secrets from their local device.
+It is assumed the dealer then sends one secret key to each of the NUM_SIGNERS participants.
+The trusted dealer MUST delete all secrets upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
 between Coordinator and participants, wherein the channel provides confidentiality
