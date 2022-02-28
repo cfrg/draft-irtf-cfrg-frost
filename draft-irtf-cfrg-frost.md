@@ -95,7 +95,7 @@ a signature.
 
 For select ciphersuites, the signatures produced by this draft are compatible with
 {{!RFC8032}}. However, unlike {{!RFC8032}}, signatures produced by FROST are not
-deterministic, since deriving nonces deterministically, is insecure in a multi-party
+deterministic, since deriving nonces deterministically is insecure in a multi-party
 signature setting.
 
 Further, this draft implements signing efficiency improvements for FROST described by
