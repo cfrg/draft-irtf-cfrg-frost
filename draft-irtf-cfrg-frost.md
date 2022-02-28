@@ -572,7 +572,7 @@ procedure to produce its own signature share.
   - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
-    list of commitments issued by each signer, where each element in the list indicates the signer index j and their
+    list of commitments issued in Round 1 by each signer, where each element in the list indicates the signer index j and their
     two commitment Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
