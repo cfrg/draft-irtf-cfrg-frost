@@ -476,8 +476,10 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 ~~~
 
 The private output `nonce` from Participant `P_i` is stored locally and kept private
-for use in the second round. The public output `comm` from Participant `P_i`
-is sent to the Coordinator; see {{encode-commitment}} for encoding recommendations.
+for use in the second round. This nonce MUST NOT be reused in more than one invocation
+of FROST, and it MUST be generated from a source of secure randomness. The public output
+`comm` from Participant `P_i` is sent to the Coordinator; see {{encode-commitment}}
+for encoding recommendations.
 
 <!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
 
