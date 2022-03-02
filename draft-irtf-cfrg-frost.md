@@ -674,7 +674,7 @@ signature.
 
 ~~~
   Inputs:
-  - group_commitment, the group commitment.
+  - group_commitment, the group commitment returned by compute_group_commitment
   - sig_shares, a set of signature shares z_i for each signer, of length NUM_SIGNERS,
   where THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
 
