@@ -47,12 +47,10 @@
       "participants": "1,2",
       "signers": {
         "1": {
-          "sig_share": "f8bbaf924e1c90e11dec1eb679194aade084f92fbf52fdd436ba0a07f71ab708",
-          "group_commitment_share": "11bb9777aa393b92e814e415039adf62687a0be543c2322d817e4934bc5a7cf2"
+          "sig_share": "f8bbaf924e1c90e11dec1eb679194aade084f92fbf52fdd436ba0a07f71ab708"
         },
         "2": {
-          "sig_share": "80f589405714ca0e6adc87c2c0186a0ae4d6e352f7b248b23149a5dcd3fe4704",
-          "group_commitment_share": "4af85179d17ed031b767ab579e59c7018dac09ae400b1700623d0af1129a9c55"
+          "sig_share": "80f589405714ca0e6adc87c2c0186a0ae4d6e352f7b248b23149a5dcd3fe4704"
         }
       }
     },
@@ -108,12 +106,10 @@
       "participants": "1,2",
       "signers": {
         "1": {
-          "sig_share": "ad41cd3320c82edd20c344769bd7b250105d9d0516109b7f774c297faaf8b3b6065b19bbae2afb6c34cce460b40e15655fb8ad0bcc26e21e00",
-          "group_commitment_share": "086d4d2ff2555fab65afc8eb473cc708f37cdb9c5de74d8e12a1a9d1a086a8914175e4db77e5d281f10441913aa680fedb207c954afdd88380"
+          "sig_share": "ad41cd3320c82edd20c344769bd7b250105d9d0516109b7f774c297faaf8b3b6065b19bbae2afb6c34cce460b40e15655fb8ad0bcc26e21e00"
         },
         "2": {
-          "sig_share": "5dcc0aec7d0a71eddd5ba2dd0f185ba7990bcd39b6fc0e4b0470c356ed0deb736d7f2652e87e932a0c176cc4bc5ba0ef756cc62081e4f51900",
-          "group_commitment_share": "7e91f66097b6450c52c89c14400a506ee1d37f5e52a8d4c3fc9733c23d0b27cd6cfce55a8aee692262e5815be341e8d0b9d240a9630c9f0600"
+          "sig_share": "5dcc0aec7d0a71eddd5ba2dd0f185ba7990bcd39b6fc0e4b0470c356ed0deb736d7f2652e87e932a0c176cc4bc5ba0ef756cc62081e4f51900"
         }
       }
     },
@@ -169,12 +165,10 @@
       "participants": "1,2",
       "signers": {
         "1": {
-          "sig_share": "ec6b075f17c5670e80b1fda8f6de1cfe3c79db06a852f8d5650fb71eaad69501",
-          "group_commitment_share": "bc7e792fce347a15d547935652377c406cc721965c58d3003dbd947a6dfddc0c"
+          "sig_share": "ec6b075f17c5670e80b1fda8f6de1cfe3c79db06a852f8d5650fb71eaad69501"
         },
         "2": {
-          "sig_share": "87ceccc477069aa9b751b307f25955daaf943a3abc51f214a114781de0f58e03",
-          "group_commitment_share": "92c4f352ec392ba779271dc2ed09cda37f38d8c283747d4a85b4c9ce7289cb07"
+          "sig_share": "87ceccc477069aa9b751b307f25955daaf943a3abc51f214a114781de0f58e03"
         }
       }
     },
@@ -230,12 +224,10 @@
       "participants": "1,2",
       "signers": {
         "1": {
-          "sig_share": "120a8ef8a5936444d8087cb10df5648629895e94582720760a10c8c217e3417b",
-          "group_commitment_share": "0314cc3c03885953b3a15482d0ef4716eba9aca439fa541a37489a146dd383d07e"
+          "sig_share": "120a8ef8a5936444d8087cb10df5648629895e94582720760a10c8c217e3417b"
         },
         "2": {
-          "sig_share": "2a7ff42d849f1bcc0e5f75d5810900a3e8f68ab717ff10d7a6da89f8bb0c16aa",
-          "group_commitment_share": "034f4516676fe414883397fc5e150375c9937b3b773c9ac57a11b2b6574e6bf452"
+          "sig_share": "2a7ff42d849f1bcc0e5f75d5810900a3e8f68ab717ff10d7a6da89f8bb0c16aa"
         }
       }
     },
