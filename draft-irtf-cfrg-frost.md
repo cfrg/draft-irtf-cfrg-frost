@@ -624,7 +624,7 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
   Inputs:
   - index, Index `i` of the signer. Note index will never equal `0`.
-  - public_key_share_i, the public key for the ith signer, where public_key_share = G.ScalarBaseMult(s[i])
+  - public_key_share_i, the public key for the ith signer, where public_key_share_i = G.ScalarBaseMult(s[i])
   - comm_i, pair of Element values (hiding_nonce_commitment, binding_nonce_commitment) generated
     in round one from the ith signer.
   - sig_share_i, a Scalar value indicating the signature share as produced in round two from the ith signer.
@@ -662,7 +662,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
-    r = comm_share + (public_key_share * challenge * lambda_i)
+    r = comm_share + (public_key_share_i * challenge * lambda_i)
 
     return l == r
 ~~~
