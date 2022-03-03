@@ -932,24 +932,23 @@ operation can be performed.
 
 ~~~
   Inputs:
+  - s, a group secret chosen uniformly at random, such as by performing G.RandomScalar()
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
-  Outputs: a secret key Scalar, public key Element, along with `n`
-  shares of the secret key, each a Scalar value.
+  Outputs: a public key Element, along with `n`shares of the secret key, each a Scalar value.
 
-  def trusted_dealer_keygen(n, t):
-    secret_key = G.RandomScalar()
+  def trusted_dealer_keygen(s, n, t):
     secret_key_shares = secret_share_shard(secret_key, n, t)
     public_key = G.ScalarBaseMult(secret_key)
-    return secret_key, public_key, secret_key_shares
+    return public_key, secret_key_shares
 ~~~
 
-It is assumed the dealer then sends one secret key to each of the NUM_SIGNERS participants.
-The trusted dealer MUST delete all secrets upon completion.
+It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants.
+The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
-between Coordinator and participants, wherein the channel provides confidentiality
+between the dealer and participants to send secret key shares, wherein the channel provides confidentiality
 and integrity. Mutually authenticated TLS is one possible deployment option.
 
 ## Shamir Secret Sharing {#dep-shamir}

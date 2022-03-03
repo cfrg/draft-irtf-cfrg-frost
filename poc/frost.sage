@@ -80,8 +80,7 @@ def secret_share_shard(G, s, n, t):
     return points
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-trusted-dealer-key-generati
-def trusted_dealer_keygen(G, n, t):
-    secret_key = G.random_scalar()
+def trusted_dealer_keygen(G, secret_key, n, t):
     points = secret_share_shard(G, secret_key, n, t)
     recovered_key = secret_share_combine(G, t, points)
     assert(secret_key == recovered_key)
@@ -90,7 +89,7 @@ def trusted_dealer_keygen(G, n, t):
         sk_i = points[i]
         secret_keys.append(sk_i)
     public_key = secret_key * G.generator()
-    return secret_keys, secret_key, public_key
+    return secret_keys, public_key
 
 class Signature(object):
     def __init__(self, G, R, z):
@@ -234,7 +233,8 @@ for (name, G, H) in ciphersuites:
     config["hash"] = H.name
 
     # Create all inputs, including the group key and individual signer key shares
-    signer_keys, group_secret_key, group_public_key = trusted_dealer_keygen(G, MAX_SIGNERS, THRESHOLD_LIMIT)
+    group_secret_key = G.random_scalar() # XXX(chk) This might need to be a test vector
+    signer_keys, group_public_key = trusted_dealer_keygen(G, group_secret_key, MAX_SIGNERS, THRESHOLD_LIMIT)
 
     group_public_key_enc = G.serialize(group_public_key)
     recovered_group_public_key = G.deserialize(group_public_key_enc)
