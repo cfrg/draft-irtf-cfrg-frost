@@ -233,7 +233,7 @@ for (name, G, H) in ciphersuites:
     config["hash"] = H.name
 
     # Create all inputs, including the group key and individual signer key shares
-    group_secret_key = G.random_scalar() # XXX(chk) This might need to be a test vector
+    group_secret_key = G.random_scalar()
     signer_keys, group_public_key = trusted_dealer_keygen(G, group_secret_key, MAX_SIGNERS, THRESHOLD_LIMIT)
 
     group_public_key_enc = G.serialize(group_public_key)
