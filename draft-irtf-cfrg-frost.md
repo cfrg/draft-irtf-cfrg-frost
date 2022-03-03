@@ -1010,7 +1010,7 @@ Let `points` be the output of this function. The i-th element in `points` is
 the share for the i-th participant, which is the randomly generated polynomial
 evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i])`,
 and the list of these shares as `shares`.
-`i` MUST never equal `0`; recall that `f(0)=s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
+`i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
 The procedure for combining a `shares` list of length `t` to recover the
 secret `s` is as follows.
