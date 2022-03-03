@@ -932,7 +932,7 @@ operation can be performed.
 
 ~~~
   Inputs:
-  - s, a group secret chosen uniformly at random, such as by performing G.RandomScalar()
+  - s, a group secret that MUST be derived from at least `Ns` bytes of entropy
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
