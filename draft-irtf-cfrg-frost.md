@@ -313,7 +313,8 @@ represented as a set of coefficients.
     if x_i <= 0:
       raise "invalid parameters"
     for x_j in L:
-      raise "invalid parameters"
+      if x_j <= 0:
+        raise "invalid parameters"
 
     numerator = 1
     denominator = 1
