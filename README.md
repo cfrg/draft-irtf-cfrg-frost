@@ -13,6 +13,7 @@ This is the working area for the individual Internet-Draft, "Two-Round Threshold
 | -------------------------------------------------------------------------- | :------- | :------------------------------| :------ |
 | [Reference](https://github.com/cfrg/draft-irtf-cfrg-frost/tree/master/poc) | Sage     | All                            | main    |
 | [frost-ristretto255](https://github.com/ZcashFoundation/frost/tree/main/frost-ristretto255) | Rust     | FROST(ristretto255, SHA-512)                            | 02   |
+| [ecc](https://github.com/aldenml/ecc)                                      | C        | FROST(ristretto255, SHA-512)   | 02 |
 
 ## Contributing
 
