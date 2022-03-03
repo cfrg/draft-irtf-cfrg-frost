@@ -975,10 +975,12 @@ The procedure for splitting a secret into shares is as follows.
   Outputs: A list of n secret shares, each of which is an element of F
 
   Errors:
-  - "invalid parameters", if t > n
+  - "invalid parameters", if t > n or if t is less than 2
 
   def secret_share_shard(s, n, t):
     if t > n:
+      raise "invalid parameters"
+    if t < 2:
       raise "invalid parameters"
 
     # Generate random coefficients for the polynomial, yielding
