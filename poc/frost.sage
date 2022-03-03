@@ -25,6 +25,10 @@ def to_hex(octet_string):
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-lagrange-coefficients
 def derive_lagrange_coefficient(G, i, L):
+    assert(i != 0)
+    for j in L:
+      assert(j != 0)
+
     num = 1
     den = 1
     for j in L:
