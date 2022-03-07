@@ -103,6 +103,17 @@ Crites, Komlo, and Maller in {{Schnorr21}}.
 
 ## Change Log
 
+draft-03
+
+- Refactor the second round to use state from the first round (#94).
+- Ensure that verificaftion of signature shares from the second round uses commitments from the first round (#94).
+- Clarify RFC8032 interoperability based on PureEdDSA (#86).
+- Specify signature serialization based on element and scalar serialization (#85).
+- Fix hash function domain separation formatting (#83).
+- Make trusted dealer key generation deterministic (#104).
+- Add additional constraints on participant indexes and nonce usage (#105, #103, #98, #97).
+- Apply various editorial improvements.
+
 draft-02
 
 - Fully specify both rounds of FROST, as well as trusted dealer key generation.
@@ -199,7 +210,8 @@ following helper operations:
 
 - Schnorr signatures, {{dep-schnorr}};
 - Polynomial operations, {{dep-polynomial}};
-- Encoding operations, {{dep-encoding}}
+- Encoding operations, {{dep-encoding}};
+- Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}
 
 This sections describes these operations in more detail.
 
