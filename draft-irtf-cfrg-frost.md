@@ -106,7 +106,7 @@ Crites, Komlo, and Maller in {{Schnorr21}}.
 draft-03
 
 - Refactor the second round to use state from the first round (#94).
-- Ensure that verifiation of signature shares from the second round uses commitments from the first round (#94).
+- Ensure that verificaftion of signature shares from the second round uses commitments from the first round (#94).
 - Clarify RFC8032 interoperability based on PureEdDSA (#86).
 - Specify signature serialization based on element and scalar serialization (#85).
 - Fix hash function domain separation formatting (#83).
