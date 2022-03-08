@@ -935,6 +935,7 @@ do not operate as signing oracles for arbitrary messages.
 
 * Isis Lovecruft
 * T. Wilson-Brown
+* Alden Torres
 
 --- back
 
