@@ -243,7 +243,11 @@ following operation.
     return (R, z)
 ~~~
 
-The corresponding verification operation is as follows.
+The corresponding verification operation is as follows.  Here, `h` is
+the cofactor for the group being operated over, e.g. `h=8` for the
+case of Curve25519, `h=4` for Ed448, and `h=1` for groups such as
+ristretto255 and secp256k1, etc.  This final scalar multiplication
+MUST be performed when `h>1`.
 
 ~~~
   schnorr_signature_verify(msg, sig, PK):
@@ -263,9 +267,8 @@ The corresponding verification operation is as follows.
 
     l = G.ScalarBaseMult(z)
     r = R + (c * PK)
-    if l == r:
-      return 1
-    return 0
+    check = (l - r) * h
+    return check == G.Identity()
 ~~~
 
 ## Polynomial Operations {#dep-polynomial}
