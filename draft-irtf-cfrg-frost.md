@@ -472,6 +472,8 @@ In FROST, all signers are assumed to have the group state and their correspondin
 key shares. In particular, FROST assumes that each signing participant `P_i` knows the following:
 
 - Group public key, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`.
+`PK` is an output from performing the group's key generation protocol, such as `trusted_dealer_keygen`
+or a DKG.
 - Participant `i`s signing key, which is the i-th secret share of `s`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
@@ -958,12 +960,14 @@ operation can be performed.
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
-  Outputs: a public key Element, along with `n`shares of the secret key, each a Scalar value.
+  Outputs:
+  - PK, public key, a group element
+  - secret_key_shares, `n` shares of the secret key `s`, each a Scalar value.
 
   def trusted_dealer_keygen(s, n, t):
     secret_key_shares = secret_share_shard(secret_key, n, t)
-    public_key = G.ScalarBaseMult(secret_key)
-    return public_key, secret_key_shares
+    PK = G.ScalarBaseMult(secret_key)
+    return PK, secret_key_shares
 ~~~
 
 It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants.
