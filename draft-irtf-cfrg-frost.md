@@ -471,12 +471,16 @@ more information.
 In FROST, all signers are assumed to have the (public) group state that we refer to as "group info"
 below, and their corresponding signing key shares.
 
-In particular, FROST assumes that the coordinator and each signing participant `P_i` knows the following:
+In particular, FROST assumes that the coordinator and each signing participant `P_i` knows the following
+group info:
 
 - Group public key, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`.
 `PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen`or a DKG.
 - Public keys for each signer, denoted `PK_i = G.ScalarMultBase(sk_i)`, which are similarly
 outputs from the group's key generation protocol.
+
+And that each participant with identifier `i` additionally knows the following:
+
 - Participant `i`s signing key `sk_i`, which is the i-th secret share of `s`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
