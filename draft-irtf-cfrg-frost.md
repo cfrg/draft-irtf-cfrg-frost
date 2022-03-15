@@ -481,7 +481,7 @@ outputs from the group's key generation protocol.
 
 And that each participant with identifier `i` additionally knows the following:
 
-- Participant `i`s signing key `sk_i`, which is the i-th secret share of `s`.
+- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
