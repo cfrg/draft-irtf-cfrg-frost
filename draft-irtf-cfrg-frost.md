@@ -1095,7 +1095,6 @@ The procedure for verification of a participant's share is as follows.
   vss_verify(share_i, C):
 
   Inputs:
-  - A participant's index `i`
   - share_i: A tuple of the form (i, sk_i), where i indicates the participant
   identifier, and sk_i the participant's secret key, where sk_i is a secret share of
   the constant term of f.
