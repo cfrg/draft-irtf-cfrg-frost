@@ -746,6 +746,7 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is empty.
 
 - Group: edwards25519 {{!RFC8032}}
+  - Cofactor (`h`): 8 
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -773,6 +774,7 @@ This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash functi
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
+  - Cofactor (`h`): 1
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
@@ -794,6 +796,7 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is empty.
 
 - Group: edwards448 {{!RFC8032}}
+  - Cofactor (`h`): 4 
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -821,6 +824,7 @@ This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
+  - Cofactor (`h`): 1
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
