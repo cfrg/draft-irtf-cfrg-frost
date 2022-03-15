@@ -468,13 +468,16 @@ Coordinator are all chosen external to the protocol. Note that it is possible to
 deploy the protocol without a distinguished Coordinator; see {{no-coordinator}} for
 more information.
 
-In FROST, all signers are assumed to have the group state and their corresponding signing
-key shares. In particular, FROST assumes that each signing participant `P_i` knows the following:
+In FROST, all signers are assumed to have the (public) group state that we refer to as "group info"
+below, and their corresponding signing key shares.
+
+In particular, FROST assumes that the coordinator and each signing participant `P_i` knows the following:
 
 - Group public key, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`.
-`PK` is an output from performing the group's key generation protocol, such as `trusted_dealer_keygen`
-or a DKG.
-- Participant `i`s signing key, which is the i-th secret share of `s`.
+`PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen`or a DKG.
+- Public keys for each signer, denoted `PK_i = G.ScalarMultBase(sk_i)`, which are similarly
+outputs from the group's key generation protocol.
+- Participant `i`s signing key `sk_i`, which is the i-th secret share of `s`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
@@ -491,7 +494,7 @@ of these rounds. At the end of the second round, the Coordinator then performs a
 step at the end and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
 
 ~~~
-        (group info)             (group info,     (group info,
+        (group info)            (group info,     (group info,
             |               signing key share)   signing key share)
             |                         |                |
             v                         v                v
@@ -647,7 +650,7 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
   Inputs:
   - index, Index `i` of the signer. Note index will never equal `0`.
-  - public_key_share_i, the public key for the ith signer, where public_key_share_i = G.ScalarBaseMult(s[i])
+  - PK_i, the public key for the ith signer, where `PK_i = G.ScalarBaseMult(sk_i)`
   - comm_i, pair of Element values (hiding_nonce_commitment, binding_nonce_commitment) generated
     in round one from the ith signer.
   - sig_share_i, a Scalar value indicating the signature share as produced in round two from the ith signer.
@@ -662,7 +665,7 @@ parameters, to check that the signature share is valid using the following proce
 
   Outputs: True if the signature share is valid, and False otherwise.
 
-  def verify_signature_share(index, public_key_share_i, comm_i, sig_share_i, commitment_list,
+  def verify_signature_share(index, PK_i, comm_i, sig_share_i, commitment_list,
                              participant_list, group_public_key, msg):
     # Encode the commitment list
     encoded_commitments = encode_group_commitment_list(commitment_list)
@@ -685,7 +688,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
-    r = comm_share + (public_key_share_i * challenge * lambda_i)
+    r = comm_share + (PK_i * challenge * lambda_i)
 
     return l == r
 ~~~
@@ -1085,17 +1088,20 @@ The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
 The procedure for verification of a participant's share is as follows.
 
 ~~~
-  vss_verify(sk_i, C):
+  vss_verify(share_i, C):
 
   Inputs:
-  - sk_i: A participant's secret key, the tuple sk_i = (i, s[i]),
-  where s[i] is a secret share of the constant term of f.
+  - A participant's index `i`
+  - share_i: A tuple of the form (i, sk_i), where i indicates the participant
+  identifier, and sk_i the participant's secret key, where sk_i is a secret share of
+  the constant term of f.
   - C: A VSS commitment to a secret polynomial f.
 
   Outputs: 1 if s[i] is valid, and 0 otherwise
 
-  vss_verify(sk_i, commitment)
-    S_i = ScalarBaseMult(s[i])
+  vss_verify(share_i, commitment)
+    (i, sk_i) = share_i
+    S_i = ScalarBaseMult(sk_i)
     S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
     if S_i == S_i':
       return 1
