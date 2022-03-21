@@ -63,7 +63,7 @@ informative:
 
 --- abstract
 
-In this draft, we present a two-round signing variant of FROST, a Flexible Round-Optimized
+In this draft, we present the two-round signing variant of FROST, a Flexible Round-Optimized
 Schnorr Threshold signature scheme. FROST signatures can be issued after a threshold number
 of entities cooperate to issue a signature, allowing for improved distribution of trust and
 redundancy with respect to a secret key. Further, this draft specifies signatures that are
@@ -90,8 +90,11 @@ that an adversary can corrupt strictly fewer than a threshold number of particip
 In this draft, we present a variant of FROST, a Flexible Round-Optimized Schnorr Threshold
 signature scheme. FROST reduces network overhead during threshold signing operations while
 employing a novel technique to protect against forgery attacks applicable to prior
-Schnorr-based threshold signature constructions. FROST requires two rounds to compute
-a signature.
+Schnorr-based threshold signature constructions. The variant of FROST presented in this paper
+does not define how key generation is performed, and requires two rounds to compute a signature.
+Single-round signing with FROST can be done by performing the first signing round as a batch operation.
+However, doing so requires keeping track of state, which will often require implementation specifics for state management,
+that is outside the scope of this draft.
 
 For select ciphersuites, the signatures produced by this draft are compatible with
 {{!RFC8032}}. However, unlike {{!RFC8032}}, signatures produced by FROST are not
@@ -150,7 +153,7 @@ using a cryptographically secure pseudorandom number generator (CSPRNG); see
 
 # Cryptographic Dependencies
 
-FROST depends on the following cryptographic constructs:
+FROST signing depends on the following cryptographic constructs:
 
 - Prime-order Group, {{dep-pog}};
 - Cryptographic hash function, {{dep-hash}};
@@ -452,9 +455,9 @@ This section describes the subroutine for creating the per-message challenge.
     return challenge
 ~~~
 
-# Two-Round FROST {#frost-spec}
+# Two-Round FROST Signing Protocol {#frost-spec}
 
-FROST is a two-round threshold signature protocol for producing Schnorr signatures.
+We now present the two-round variant of the FROST threshold signature protocol for producing Schnorr signatures.
 It involves signer participants and a coordinator. Signing participants are
 entities with signing key shares that participate in the threshold signing
 protocol. The coordinator is a distinguished signer with the following responsibilities:
@@ -468,10 +471,10 @@ Coordinator are all chosen external to the protocol. Note that it is possible to
 deploy the protocol without a distinguished Coordinator; see {{no-coordinator}} for
 more information.
 
-In FROST, all signers are assumed to have the (public) group state that we refer to as "group info"
+Because key generation is not specified, all signers are assumed to have the (public) group state that we refer to as "group info"
 below, and their corresponding signing key shares.
 
-In particular, FROST assumes that the coordinator and each signing participant `P_i` knows the following
+In particular, it is assumed that the coordinator and each signing participant `P_i` knows the following
 group info:
 
 - Group public key, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`.
@@ -491,11 +494,12 @@ a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
 in {{dep-dealer}}, for reference.
 
-There are two rounds in FROST: commitment and signature share generation. The first round serves
-for each participant to issue a commitment. The second round receives commitments for all signers as well
-as the message, and issues a signature share. The Coordinator performs the coordination of each
+This signing variant of FROST requires signers to perform two network rounds: 1) generating and publishing commitments,
+and 2) signature share generation and publication. The first round serves
+for each participant to issue a commitment to a nonce. The second round receives commitments for all signers as well
+as the message, and issues a signature share with respect to that message. The Coordinator performs the coordination of each
 of these rounds. At the end of the second round, the Coordinator then performs an aggregation
-step at the end and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
+step and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
 
 ~~~
         (group info)            (group info,     (group info,
@@ -853,7 +857,7 @@ The value of the contextString parameter is "FROST-P256-SHA256".
 
 # Security Considerations {#sec-considerations}
 
-A security analysis of FROST exists in {{FROST20}}. The protocol as specified
+A security analysis of FROST exists in {{FROST20}} and {{Schnorr21}}. The protocol as specified
 in this document assumes the following threat model.
 
 * Trusted dealer. The dealer that performs key generation is trusted to follow
@@ -873,7 +877,7 @@ can be performed over a public but reliable channel.
 
 The protocol as specified in this document does not target the following goals:
 
-* Post quantum security. FROST, like generic Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
+* Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
 * Downgrade prevention. The sender and receiver are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
