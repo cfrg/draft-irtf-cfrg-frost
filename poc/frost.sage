@@ -76,22 +76,22 @@ def secret_share_shard(G, s, n, t):
         coefficients.append(G.random_scalar())
 
     # Evaluate the polynomial for each participant, identified by their index i > 0
-    points = []
+    secret_shares = []
     for x_i in range(1, n+1):
         y_i = polynomial_evaluate(G, x_i, coefficients)
-        point_i = (x_i, y_i)
-        points.append(point_i)
-    return points, coefficients
+        share_i = (x_i, y_i)
+        secret_shares.append(share_i)
+    return secret_shares, coefficients
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-trusted-dealer-key-generati
 def trusted_dealer_keygen(G, secret_key, n, t):
-    points, coefficients = secret_share_shard(G, secret_key, n, t)
+    secret_shares, coefficients = secret_share_shard(G, secret_key, n, t)
     vss_commitment = vss_commit(G, coefficients)
-    recovered_key = secret_share_combine(G, t, points)
+    recovered_key = secret_share_combine(G, t, secret_shares)
     assert(secret_key == recovered_key)
     secret_keys = []
     for i in range(n):
-        sk_i = points[i]
+        sk_i = secret_shares[i]
         secret_keys.append(sk_i)
     public_key = secret_key * G.generator()
     return secret_keys, public_key, vss_commitment
