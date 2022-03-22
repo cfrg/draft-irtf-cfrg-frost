@@ -87,12 +87,12 @@ require cooperation among a threshold number of signers each holding a share
 of a common private key. The security of threshold schemes in general assume
 that an adversary can corrupt strictly fewer than a threshold number of participants.
 
-This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST) 
-signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during 
-threshold signing operations while employing a novel technique to protect against forgery 
-attacks applicable to prior Schnorr-based threshold signature constructions. The variant of 
+This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST)
+signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during
+threshold signing operations while employing a novel technique to protect against forgery
+attacks applicable to prior Schnorr-based threshold signature constructions. The variant of
 FROST presented in this document requires two rounds to compute a signature, and implements
-signing efficiency improvements described by {{Schnorr21}}. Single-round signing with FROST 
+signing efficiency improvements described by {{Schnorr21}}. Single-round signing with FROST
 is out of scope.
 
 For select ciphersuites, the signatures produced by this draft are compatible with
@@ -973,14 +973,18 @@ operation can be performed.
   Outputs:
   - PK, public key, a group element
   - secret_key_shares, `n` shares of the secret key `s`, each a Scalar value.
+  - C, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
   def trusted_dealer_keygen(s, n, t):
-    secret_key_shares = secret_share_shard(secret_key, n, t)
+    secret_key_shares, coefficients = secret_share_shard(secret_key, n, t)
+    C = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
-    return PK, secret_key_shares
+    return PK, secret_key_shares, C
 ~~~
 
-It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants.
+It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
+After receiving their secret key share and `C` each participant MUST perform `vss_verify(secret_key_share_i, C)`.
+It is assumed that all participant have the same view of `C`.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
@@ -1007,7 +1011,12 @@ The procedure for splitting a secret into shares is as follows.
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
-  Outputs: A list of n secret shares, each of which is an element of F
+  Outputs:
+  - secret_key_shares, A list of n secret shares, which is a tuple
+  consisting of the participant identifier and the key share, each of
+  which is an element of F
+  - coefficients, a vector of the t coefficients which uniquely determine
+  a polynomial f.
 
   Errors:
   - "invalid parameters", if t > n or if t is less than 2
@@ -1025,12 +1034,12 @@ The procedure for splitting a secret into shares is as follows.
       coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
-    points = []
+    secret_key_shares = []
     for x_i in range(1, n + 1):
       y_i = polynomial_evaluate(x_i, coefficients)
-      point_i = (x_i, y_i)
-      points.append(point_i)
-    return points
+      secret_key_share_i = (x_i, y_i)
+      secret_key_share.append(secret_key_share_i)
+    return secret_key_shares, coefficients
 ~~~
 
 Let `points` be the output of this function. The i-th element in `points` is
