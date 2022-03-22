@@ -1093,6 +1093,7 @@ The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
 ~~~
 
 The procedure for verification of a participant's share is as follows.
+If `vss_verify` fails, the participant MUST abort the protocol, and failure should be investigated out of band.
 
 ~~~
   vss_verify(share_i, C):
