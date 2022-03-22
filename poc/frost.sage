@@ -81,11 +81,12 @@ def secret_share_shard(G, s, n, t):
         y_i = polynomial_evaluate(G, x_i, coefficients)
         point_i = (x_i, y_i)
         points.append(point_i)
-    return points
+    return points, coefficients
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-trusted-dealer-key-generati
 def trusted_dealer_keygen(G, secret_key, n, t):
-    points = secret_share_shard(G, secret_key, n, t)
+    points, coefficients = secret_share_shard(G, secret_key, n, t)
+    vss_commitment = vss_commit(G, coefficients)
     recovered_key = secret_share_combine(G, t, points)
     assert(secret_key == recovered_key)
     secret_keys = []
@@ -93,7 +94,24 @@ def trusted_dealer_keygen(G, secret_key, n, t):
         sk_i = points[i]
         secret_keys.append(sk_i)
     public_key = secret_key * G.generator()
-    return secret_keys, public_key
+    return secret_keys, public_key, vss_commitment
+
+def vss_commit(G, coefficients):
+  vss_commitment = []
+  for coeff in coefficients:
+    comm_i = coeff * G.generator()
+    vss_commitment.append(comm_i)
+  return vss_commitment
+
+def vss_verify(G, share_i, vss_commitment):
+  (i, sk_i) = share_i
+  SK_i = G.generator() * sk_i
+  SK_i_prime = G.identity()
+  j = 0
+  for comm_j in vss_commitment:
+    SK_i_prime += comm_j * i**j
+    j += 1
+  return SK_i_prime == SK_i
 
 class Signature(object):
     def __init__(self, G, R, z):
@@ -134,7 +152,7 @@ def compute_challenge(H, group_commitment, group_public_key, msg):
 def verify_signature_share(G, H, index, public_key_share, comm, sig_share, commitment_list, participant_list, group_public_key, msg):
     # Encode the commitment list
     encoded_commitments = encode_group_commitment_list(G, commitment_list)
-    
+
     # Compute the binding factor
     binding_factor, _ = compute_binding_factor(H, encoded_commitments, msg)
 
@@ -190,8 +208,8 @@ class Signer(object):
         lambda_i = derive_lagrange_coefficient(self.G, self.index, participant_list)
 
         # Compute the per-message challenge
-        challenge = compute_challenge(self.H, group_comm, self.pk, msg)        
-        
+        challenge = compute_challenge(self.H, group_comm, self.pk, msg)
+
         # Compute the signature share
         (hiding_nonce, binding_nonce) = nonce
         sig_share = hiding_nonce + (binding_nonce * binding_factor) + (lambda_i * self.sk * challenge)
@@ -238,7 +256,11 @@ for (name, G, H) in ciphersuites:
 
     # Create all inputs, including the group key and individual signer key shares
     group_secret_key = G.random_scalar()
-    signer_keys, group_public_key = trusted_dealer_keygen(G, group_secret_key, MAX_SIGNERS, THRESHOLD_LIMIT)
+    signer_keys, group_public_key, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_SIGNERS, THRESHOLD_LIMIT)
+    assert(len(vss_commitment) == THRESHOLD_LIMIT)
+
+    for share_i in signer_keys:
+      assert(vss_verify(G, share_i, vss_commitment))
 
     group_public_key_enc = G.serialize(group_public_key)
     recovered_group_public_key = G.deserialize(group_public_key_enc)

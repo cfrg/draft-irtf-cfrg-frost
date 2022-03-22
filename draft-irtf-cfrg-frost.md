@@ -973,13 +973,13 @@ operation can be performed.
   Outputs:
   - PK, public key, a group element
   - secret_key_shares, `n` shares of the secret key `s`, each a Scalar value.
-  - C, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
+  - vss_commitment, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
   def trusted_dealer_keygen(s, n, t):
     secret_key_shares, coefficients = secret_share_shard(secret_key, n, t)
-    C = vss_commit(coefficients):
+    vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
-    return PK, secret_key_shares, C
+    return PK, secret_key_shares, vss_commitment
 ~~~
 
 It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
@@ -1090,29 +1090,29 @@ The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
   - coeffs, a vector of the t coefficients which uniquely determine
   a polynomial f.
 
-  Outputs: a commitment C, which is a vector commitment to each of the
+  Outputs: a commitment vss_commitment, which is a vector commitment to each of the
   coefficients in coeffs.
 
   def vss_commit(coeffs):
-    C = []
+    vss_commitment = []
     for coeff in coeffs:
       A_i = ScalarBaseMult(coeff)
-      C.append(A_i)
-    return C
+      vss_commitment.append(A_i)
+    return vss_commitment
 ~~~
 
 The procedure for verification of a participant's share is as follows.
 
 ~~~
-  vss_verify(share_i, C):
+  vss_verify(share_i, vss_commitment):
 
   Inputs:
   - share_i: A tuple of the form (i, sk_i), where i indicates the participant
   identifier, and sk_i the participant's secret key, where sk_i is a secret share of
   the constant term of f.
-  - C: A VSS commitment to a secret polynomial f.
+  - vss_commitment: A VSS commitment to a secret polynomial f.
 
-  Outputs: 1 if s[i] is valid, and 0 otherwise
+  Outputs: 1 if sk_i is valid, and 0 otherwise
 
   vss_verify(share_i, commitment)
     (i, sk_i) = share_i
