@@ -1096,7 +1096,7 @@ The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
   def vss_commit(coeffs):
     vss_commitment = []
     for coeff in coeffs:
-      A_i = ScalarBaseMult(coeff)
+      A_i = G.ScalarBaseMult(coeff)
       vss_commitment.append(A_i)
     return vss_commitment
 ~~~
