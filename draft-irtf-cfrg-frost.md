@@ -1134,7 +1134,7 @@ We now define how the coordinator and signing participants can derive group info
 
     Inputs:
     - n, the number of shares to generate, an integer
-    - t, the threshold of the secret sharing scheme, an integer
+    - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
     - vss_commitment: A VSS commitment to a secret polynomial f.
 
     Outputs:
