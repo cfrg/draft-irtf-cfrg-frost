@@ -1132,7 +1132,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 We now define how the coordinator and signing participants can derive group info, which is an input into the FROST signing protocol.
 
 ~~~
-    derive_group_info(n, t, vss_commitment):
+    derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment):
 
     Inputs:
     - MAX_SIGNERS, the number of shares to generate, an integer
