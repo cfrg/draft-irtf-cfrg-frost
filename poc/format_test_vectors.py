@@ -118,10 +118,10 @@ def format_vector(name, vector):
     format_vector_round_two(name, vector)
     format_vector_final_output(name, vector)
 
-with open(sys.argv[1], "r") as fh:
-    vectors = json.loads(fh.read())
-    for name in vectors:
-        vector = vectors[name]
+for fname in sys.argv[1:]:
+    with open(fname, "r") as fh:
+        vector = json.loads(fh.read())
+        name = vector["config"]["name"]
         print("")
         print("## " + name + "\n")
         print("~~~")
