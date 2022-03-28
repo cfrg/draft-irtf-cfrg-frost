@@ -87,12 +87,12 @@ require cooperation among a threshold number of signers each holding a share
 of a common private key. The security of threshold schemes in general assume
 that an adversary can corrupt strictly fewer than a threshold number of participants.
 
-This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST) 
-signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during 
-threshold signing operations while employing a novel technique to protect against forgery 
-attacks applicable to prior Schnorr-based threshold signature constructions. The variant of 
+This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST)
+signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during
+threshold signing operations while employing a novel technique to protect against forgery
+attacks applicable to prior Schnorr-based threshold signature constructions. The variant of
 FROST presented in this document requires two rounds to compute a signature, and implements
-signing efficiency improvements described by {{Schnorr21}}. Single-round signing with FROST 
+signing efficiency improvements described by {{Schnorr21}}. Single-round signing with FROST
 is out of scope.
 
 For select ciphersuites, the signatures produced by this draft are compatible with
@@ -178,7 +178,7 @@ We now detail a number of member functions that can be invoked on a prime-order 
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - RandomScalar(): A member function of `G` that chooses at random a
-  non-zero Scalar element in GF(p).
+  Scalar element in GF(p).
 - SerializeElement(A): A member function of `G` that maps an Element `A`
   to a unique byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): A member function of `G` that attempts to map a
@@ -636,14 +636,14 @@ procedure to produce its own signature share.
     return sig_share
 ~~~
 
-The output of this procedure is a signature share. Each signer then sends 
-these shares back to the collector; see {{encode-sig-share}} for encoding 
-recommendations. Each signer MUST delete the nonce and corresponding commitment 
+The output of this procedure is a signature share. Each signer then sends
+these shares back to the collector; see {{encode-sig-share}} for encoding
+recommendations. Each signer MUST delete the nonce and corresponding commitment
 after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
-signature using DeserializeElement. If validation fails, the Coordinator MUST abort 
-the protocol. If validation succeeds, the Coordinator then verifies the set of 
+signature using DeserializeElement. If validation fails, the Coordinator MUST abort
+the protocol. If validation succeeds, the Coordinator then verifies the set of
 signature shares using the following procedure.
 
 ## Signature Share Verification and Aggregation {#frost-aggregation}

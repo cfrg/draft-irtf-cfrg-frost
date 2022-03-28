@@ -57,7 +57,7 @@ class Group(object):
         raise Exception("not implemented")
 
     def random_scalar(self):
-        return random.randint(1, self.order() - 1)
+        return random.randint(0, self.order() - 1)
 
     def __str__(self):
         return self.name
