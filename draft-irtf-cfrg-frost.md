@@ -1144,7 +1144,7 @@ We now define how the coordinator and signing participants can derive group info
     derive_group_info(n, t, vss_commitment)
       PK = vss_commitment[0]
       signer_public_keys = {}
-      for x_i in range(1, n):
+      for i in range(1, n):
         PK_i = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
         signer_public_keys[i] = PK_i
       return PK, signer_public_keys
