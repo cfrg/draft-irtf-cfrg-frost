@@ -1084,43 +1084,43 @@ it will be implementation-specific.
 The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
 
 ~~~
-  vss_commit(coeffs):
+    vss_commit(coeffs):
 
-  Inputs:
-  - coeffs, a vector of the t coefficients which uniquely determine
-  a polynomial f.
+    Inputs:
+    - coeffs, a vector of the t coefficients which uniquely determine
+    a polynomial f.
 
-  Outputs: a commitment vss_commitment, which is a vector commitment to each of the
-  coefficients in coeffs.
+    Outputs: a commitment vss_commitment, which is a vector commitment to each of the
+    coefficients in coeffs.
 
-  def vss_commit(coeffs):
-    vss_commitment = []
-    for coeff in coeffs:
-      A_i = G.ScalarBaseMult(coeff)
-      vss_commitment.append(A_i)
-    return vss_commitment
+    def vss_commit(coeffs):
+      vss_commitment = []
+      for coeff in coeffs:
+        A_i = G.ScalarBaseMult(coeff)
+        vss_commitment.append(A_i)
+      return vss_commitment
 ~~~
 
 The procedure for verification of a participant's share is as follows.
 
 ~~~
-  vss_verify(share_i, vss_commitment):
+    vss_verify(share_i, vss_commitment):
 
-  Inputs:
-  - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-  identifier, and sk_i the participant's secret key, where sk_i is a secret share of
-  the constant term of f.
-  - vss_commitment: A VSS commitment to a secret polynomial f.
+    Inputs:
+    - share_i: A tuple of the form (i, sk_i), where i indicates the participant
+    identifier, and sk_i the participant's secret key, where sk_i is a secret share of
+    the constant term of f.
+    - vss_commitment: A VSS commitment to a secret polynomial f.
 
-  Outputs: 1 if sk_i is valid, and 0 otherwise
+    Outputs: 1 if sk_i is valid, and 0 otherwise
 
-  vss_verify(share_i, commitment)
-    (i, sk_i) = share_i
-    S_i = ScalarBaseMult(sk_i)
-    S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
-    if S_i == S_i':
-      return 1
-    return 0
+    vss_verify(share_i, commitment)
+      (i, sk_i) = share_i
+      S_i = ScalarBaseMult(sk_i)
+      S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
+      if S_i == S_i':
+        return 1
+      return 0
 ~~~
 
 # Wire Format {#wire-format}
