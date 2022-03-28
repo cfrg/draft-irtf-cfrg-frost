@@ -329,10 +329,10 @@ represented as a set of coefficients.
   - "invalid parameters", if any coordinate is less than or equal to 0
 
   def derive_lagrange_coefficient(x_i, L):
-    if x_i <= 0:
+    if x_i = 0:
       raise "invalid parameters"
     for x_j in L:
-      if x_j <= 0:
+      if x_j = 0:
         raise "invalid parameters"
 
     numerator = 1
