@@ -636,15 +636,15 @@ procedure to produce its own signature share.
     return sig_share
 ~~~
 
-The output of this procedure is a signature share and group commitment share.
-Each signer then sends these shares back to the collector; see
-{{encode-sig-share}} for encoding recommendations. Each signer MUST delete
-the nonce and corresponding commitment after this round completes.
+The output of this procedure is a signature share. Each signer then sends 
+these shares back to the collector; see {{encode-sig-share}} for encoding 
+recommendations. Each signer MUST delete the nonce and corresponding commitment 
+after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
-signature and commitment shares using DeserializeElement for each. If validation
-fails, the Coordinator MUST abort the protocol. If validation succeeds, the
-Coordinator then verifies the set of signature shares using the following procedure.
+signature using DeserializeElement. If validation fails, the Coordinator MUST abort 
+the protocol. If validation succeeds, the Coordinator then verifies the set of 
+signature shares using the following procedure.
 
 ## Signature Share Verification and Aggregation {#frost-aggregation}
 
@@ -1173,7 +1173,6 @@ can be constructed as follows.
   struct {
     SignerID id;
     opaque signature_share[Ns];
-    opaque commitment_share[Ne];
   } SignatureShare;
 ~~~
 
@@ -1182,9 +1181,6 @@ id
 
 signature_share
 : The signature share from this signer encoded as a serialized scalar.
-
-commitment_share
-: The signature commitment share from this signer encoded as a serialized element.
 
 # Test Vectors
 
@@ -1210,7 +1206,7 @@ Each test vector consists of the following information.
   and group binding factor as computed in {{frost-round-two}}).
 - Round two parameters and outputs: This lists the NUM_SIGNERS participants engaged
   in the protocol, identified by their integer index, along with their corresponding
-  output signature share and group commitment share as produced in {{frost-round-two}}.
+  output signature share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
 
 
