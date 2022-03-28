@@ -1133,7 +1133,7 @@ We now define how the coordinator and signing participants can derive group info
     derive_group_info(n, t, vss_commitment):
 
     Inputs:
-    - n, the number of shares to generate, an integer
+    - MAX_SIGNERS, the number of shares to generate, an integer
     - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
     - vss_commitment: A VSS commitment to a secret polynomial f.
 
