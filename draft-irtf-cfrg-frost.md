@@ -978,14 +978,14 @@ operation can be performed.
   - t, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - secret_key_shares, `n` shares of the secret key `s`, each a Scalar value.
+  - signer_private_keys, `n` shares of the secret key `s`, each a Scalar value.
   - vss_commitment, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
   def trusted_dealer_keygen(s, n, t):
-    secret_key_shares, coefficients = secret_share_shard(secret_key, n, t)
+    signer_private_keys, coefficients = secret_share_shard(secret_key, n, t)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
-    return secret_key_shares, vss_commitment
+    return signer_private_keys, vss_commitment
 ~~~
 
 It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
@@ -1139,15 +1139,15 @@ We now define how the coordinator and signing participants can derive group info
 
     Outputs:
     - PK, the public key representing the group
-    - participant_pks, a set of n public keys PK_i for i=1,...,n, where PK_i is the public key for participant i.
+    - signer_public_keys, a set of n public keys PK_i for i=1,...,n, where PK_i is the public key for participant i.
 
     derive_group_info(n, t, vss_commitment)
       PK = vss_commitment[0]
-      participant_pks = []
+      signer_public_keys = {}
       for x_i in range(1, n):
         PK_i = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
-        participant_pks[i] = PK_i
-      return PK, participant_pks
+        signer_public_keys[i] = PK_i
+      return PK, signer_public_keys
 ~~~
 
 # Wire Format {#wire-format}
