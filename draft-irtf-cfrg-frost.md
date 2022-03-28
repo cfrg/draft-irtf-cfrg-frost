@@ -179,6 +179,8 @@ We now detail a number of member functions that can be invoked on a prime-order 
 - Identity(): Outputs the identity element of the group (i.e. `I`).
 - RandomScalar(): A member function of `G` that chooses at random a
   Scalar element in GF(p).
+- RandomNonzeroScalar(): A member function of `G` that chooses at random a
+  non-zero Scalar element in GF(p).
 - SerializeElement(A): A member function of `G` that maps an Element `A`
   to a unique byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): A member function of `G` that attempts to map a
@@ -564,8 +566,8 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
   Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs.
 
   def commit():
-    hiding_nonce = G.RandomScalar()
-    binding_nonce = G.RandomScalar()
+    hiding_nonce = G.RandomNonzeroScalar()
+    binding_nonce = G.RandomNonzeroScalar()
     hiding_nonce_commitment = G.ScalarBaseMult(hiding_nonce)
     binding_nonce_commitment = G.ScalarBaseMult(binding_nonce)
     nonce = (hiding_nonce, binding_nonce)

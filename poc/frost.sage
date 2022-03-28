@@ -185,8 +185,8 @@ class Signer(object):
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-one
     def commit(self):
-        hiding_nonce = self.G.random_scalar()
-        binding_nonce = self.G.random_scalar()
+        hiding_nonce = self.G.random_nonzero_scalar()
+        binding_nonce = self.G.random_nonzero_scalar()
         hiding_nonce_commitment = hiding_nonce * self.G.generator()
         binding_nonce_commitment = binding_nonce * self.G.generator()
         nonce = (hiding_nonce, binding_nonce)
