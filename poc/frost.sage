@@ -215,13 +215,12 @@ NUM_SIGNERS = THRESHOLD_LIMIT
 message = _as_bytes("test")
 
 ciphersuites = [
-    ("FROST(Ed25519, SHA-512)", GroupEd25519(), HashEd25519()),
-    ("FROST(Ed448, SHAKE256)", GroupEd448(), HashEd448()),
-    ("FROST(ristretto255, SHA-512)", GroupRistretto255(), HashRistretto255()),
-    ("FROST(P-256, SHA-256)", GroupP256(), HashP256()),
+    ("frost-ed25519-sha512", "FROST(Ed25519, SHA-512)", GroupEd25519(), HashEd25519()),
+    ("frost-ed448-shake256", "FROST(Ed448, SHAKE256)", GroupEd448(), HashEd448()),
+    ("frost-ristretto255-sha512", "FROST(ristretto255, SHA-512)", GroupRistretto255(), HashRistretto255()),
+    ("frost-p256-sha256", "FROST(P-256, SHA-256)", GroupP256(), HashP256()),
 ]
-vectors = {}
-for (name, G, H) in ciphersuites:
+for (fname, name, G, H) in ciphersuites:
     participant_list = [i+1 for i in range(NUM_SIGNERS)]
 
     assert(THRESHOLD_LIMIT > 1)
@@ -363,6 +362,6 @@ for (name, G, H) in ciphersuites:
         "round_two_outputs": round_two_outputs,
         "final_output": final_output,
     }
-    vectors[name] = vector
-
-print(json.dumps(vectors, indent=2))
+    # vectors[name] = vector
+    with open(fname + ".json", "w") as fh:
+        fh.write(str(json.dumps(vector, indent=2)))
