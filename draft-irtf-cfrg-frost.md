@@ -980,14 +980,18 @@ operation can be performed.
   Outputs:
   - PK, public key, a group element
   - secret_key_shares, `n` shares of the secret key `s`, each a Scalar value.
+  - vss_commitment, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
   def trusted_dealer_keygen(s, n, t):
-    secret_key_shares = secret_share_shard(secret_key, n, t)
+    secret_key_shares, coefficients = secret_share_shard(secret_key, n, t)
+    vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
-    return PK, secret_key_shares
+    return PK, secret_key_shares, vss_commitment
 ~~~
 
-It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants.
+It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
+After receiving their secret key share and `C` each participant MUST perform `vss_verify(secret_key_share_i, C)`.
+It is assumed that all participant have the same view of `C`.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
@@ -1014,7 +1018,12 @@ The procedure for splitting a secret into shares is as follows.
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
-  Outputs: A list of n secret shares, each of which is an element of F
+  Outputs:
+  - secret_key_shares, A list of n secret shares, which is a tuple
+  consisting of the participant identifier and the key share, each of
+  which is an element of F
+  - coefficients, a vector of the t coefficients which uniquely determine
+  a polynomial f.
 
   Errors:
   - "invalid parameters", if t > n or if t is less than 2
@@ -1032,12 +1041,12 @@ The procedure for splitting a secret into shares is as follows.
       coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
-    points = []
+    secret_key_shares = []
     for x_i in range(1, n + 1):
       y_i = polynomial_evaluate(x_i, coefficients)
-      point_i = (x_i, y_i)
-      points.append(point_i)
-    return points
+      secret_key_share_i = (x_i, y_i)
+      secret_key_share.append(secret_key_share_i)
+    return secret_key_shares, coefficients
 ~~~
 
 Let `points` be the output of this function. The i-th element in `points` is
@@ -1079,44 +1088,44 @@ the correct secret.
 The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
 
 ~~~
-  vss_commit(coeffs):
+    vss_commit(coeffs):
 
-  Inputs:
-  - coeffs, a vector of the t coefficients which uniquely determine
-  a polynomial f.
+    Inputs:
+    - coeffs, a vector of the t coefficients which uniquely determine
+    a polynomial f.
 
-  Outputs: a commitment C, which is a vector commitment to each of the
-  coefficients in coeffs.
+    Outputs: a commitment vss_commitment, which is a vector commitment to each of the
+    coefficients in coeffs.
 
-  def vss_commit(coeffs):
-    C = []
-    for coeff in coeffs:
-      A_i = ScalarBaseMult(coeff)
-      C.append(A_i)
-    return C
+    def vss_commit(coeffs):
+      vss_commitment = []
+      for coeff in coeffs:
+        A_i = G.ScalarBaseMult(coeff)
+        vss_commitment.append(A_i)
+      return vss_commitment
 ~~~
 
 The procedure for verification of a participant's share is as follows.
 If `vss_verify` fails, the participant MUST abort the protocol, and failure should be investigated out of band.
 
 ~~~
-  vss_verify(share_i, C):
+    vss_verify(share_i, vss_commitment):
 
-  Inputs:
-  - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-  identifier, and sk_i the participant's secret key, where sk_i is a secret share of
-  the constant term of f.
-  - C: A VSS commitment to a secret polynomial f.
+    Inputs:
+    - share_i: A tuple of the form (i, sk_i), where i indicates the participant
+    identifier, and sk_i the participant's secret key, where sk_i is a secret share of
+    the constant term of f.
+    - vss_commitment: A VSS commitment to a secret polynomial f.
 
-  Outputs: 1 if s[i] is valid, and 0 otherwise
+    Outputs: 1 if sk_i is valid, and 0 otherwise
 
-  vss_verify(share_i, commitment)
-    (i, sk_i) = share_i
-    S_i = ScalarBaseMult(sk_i)
-    S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
-    if S_i == S_i':
-      return 1
-    return 0
+    vss_verify(share_i, commitment)
+      (i, sk_i) = share_i
+      S_i = ScalarBaseMult(sk_i)
+      S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
+      if S_i == S_i':
+        return 1
+      return 0
 ~~~
 
 # Wire Format {#wire-format}
