@@ -87,12 +87,12 @@ require cooperation among a threshold number of signers each holding a share
 of a common private key. The security of threshold schemes in general assume
 that an adversary can corrupt strictly fewer than a threshold number of participants.
 
-This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST) 
-signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during 
-threshold signing operations while employing a novel technique to protect against forgery 
-attacks applicable to prior Schnorr-based threshold signature constructions. The variant of 
+This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST)
+signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during
+threshold signing operations while employing a novel technique to protect against forgery
+attacks applicable to prior Schnorr-based threshold signature constructions. The variant of
 FROST presented in this document requires two rounds to compute a signature, and implements
-signing efficiency improvements described by {{Schnorr21}}. Single-round signing with FROST 
+signing efficiency improvements described by {{Schnorr21}}. Single-round signing with FROST
 is out of scope.
 
 For select ciphersuites, the signatures produced by this draft are compatible with
@@ -1067,10 +1067,7 @@ adding a verification step to demonstrate the consistency of a participant's
 share with a public commitment to the polynomial `f` for which the secret `s`
 is the constant term. This check ensure that all participants have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
-the correct secret. If the validation fails, the participant can issue a complaint
-against the dealer, and take actions such as broadcasting this complaint to all
-other participants. We do not specify the complaint procedure in this draft, as
-it will be implementation-specific.
+the correct secret.
 
 The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
 
