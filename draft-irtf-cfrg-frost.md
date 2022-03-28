@@ -639,14 +639,14 @@ procedure to produce its own signature share.
     return sig_share
 ~~~
 
-The output of this procedure is a signature share. Each signer then sends 
-these shares back to the collector; see {{encode-sig-share}} for encoding 
-recommendations. Each signer MUST delete the nonce and corresponding commitment 
+The output of this procedure is a signature share. Each signer then sends
+these shares back to the collector; see {{encode-sig-share}} for encoding
+recommendations. Each signer MUST delete the nonce and corresponding commitment
 after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
-signature using DeserializeElement. If validation fails, the Coordinator MUST abort 
-the protocol. If validation succeeds, the Coordinator then verifies the set of 
+signature using DeserializeElement. If validation fails, the Coordinator MUST abort
+the protocol. If validation succeeds, the Coordinator then verifies the set of
 signature shares using the following procedure.
 
 ## Signature Share Verification and Aggregation {#frost-aggregation}
@@ -758,7 +758,7 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is empty.
 
 - Group: edwards25519 {{!RFC8032}}
-  - Cofactor (`h`): 8 
+  - Cofactor (`h`): 8
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -808,7 +808,7 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is empty.
 
 - Group: edwards448 {{!RFC8032}}
-  - Cofactor (`h`): 4 
+  - Cofactor (`h`): 4
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -978,7 +978,6 @@ operation can be performed.
   - t, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - PK, public key, a group element
   - secret_key_shares, `n` shares of the secret key `s`, each a Scalar value.
   - vss_commitment, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
@@ -986,7 +985,7 @@ operation can be performed.
     secret_key_shares, coefficients = secret_share_shard(secret_key, n, t)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
-    return PK, secret_key_shares, vss_commitment
+    return secret_key_shares, vss_commitment
 ~~~
 
 It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
@@ -1126,6 +1125,29 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
       if S_i == S_i':
         return 1
       return 0
+~~~
+
+We now define how the coordinator and signing participants can derive group info, which is an input into the FROST signing protocol.
+
+~~~
+    derive_group_info(n, t, vss_commitment):
+
+    Inputs:
+    - n, the number of shares to generate, an integer
+    - t, the threshold of the secret sharing scheme, an integer
+    - vss_commitment: A VSS commitment to a secret polynomial f.
+
+    Outputs:
+    - PK, the public key representing the group
+    - participant_pks, a set of n public keys PK_i for i=1,...,n, where PK_i is the public key for participant i.
+
+    derive_group_info(n, t, vss_commitment)
+      PK = vss_commitment[0]
+      participant_pks = []
+      for x_i in range(1, n):
+        PK_i = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
+        participant_pks[i] = PK_i
+      return PK, participant_pks
 ~~~
 
 # Wire Format {#wire-format}
