@@ -1121,7 +1121,9 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     vss_verify(share_i, commitment)
       (i, sk_i) = share_i
       S_i = ScalarBaseMult(sk_i)
-      S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
+      S_i' = G.Identity()
+      for j in range(0, t-1):
+        S_i' += vss_commitment_j * i^j
       if S_i == S_i':
         return 1
       return 0
@@ -1145,7 +1147,9 @@ We now define how the coordinator and signing participants can derive group info
       PK = vss_commitment[0]
       signer_public_keys = []
       for i in range(1, n):
-        PK_i = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
+        PK_i = G.Identity()
+        for j in range(0, t-1):
+          PK_i += vss_commitment_j * i^j
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
 ~~~
