@@ -1122,7 +1122,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
       (i, sk_i) = share_i
       S_i = ScalarBaseMult(sk_i)
       S_i' = G.Identity()
-      for j in range(0, t-1):
+      for j in range(0, THRESHOLD_LIMIT-1):
         S_i' += vss_commitment_j * i^j
       if S_i == S_i':
         return 1
