@@ -89,10 +89,6 @@ def trusted_dealer_keygen(G, secret_key, n, t):
     vss_commitment = vss_commit(G, coefficients)
     recovered_key = secret_share_combine(G, t, signer_private_keys)
     assert(secret_key == recovered_key)
-    #secret_keys = []
-    #for i in range(n):
-    #    sk_i = signer_private_keys[i]
-    #    signer_private_keys.append(sk_i)
     return signer_private_keys, vss_commitment
 
 def vss_commit(G, coefficients):
