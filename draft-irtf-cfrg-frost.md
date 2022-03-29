@@ -107,7 +107,7 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 draft-04
 
-- Added methods to verify vss commitments and derive group info (#126, #132).
+- Added methods to verify VSS commitments and derive group info (#126, #132).
 - Changed check for participants to consider only nonnegative numbers (#133).
 - Changed sampling for secrets and coefficients to allow the zero element (#130).
 - Split test vectors into separate files (#129)
