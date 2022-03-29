@@ -8,18 +8,18 @@
     "hash": "SHA-512"
   },
   "inputs": {
-    "group_secret_key": "b120be204b5e758960458ca9c4675b56b12a8faff2be9c94891d5e1cd75c880e",
-    "group_public_key": "563b80013f337deaa2a282af7b281bd70d2f501928a89c1aa48b379a5ac4202b",
+    "group_secret_key": "b020be204b5e758960458ca9c4675b56b12a8faff2be9c94891d5e1cd75c880e",
+    "group_public_key": "e22ac4850672021eac8e0a36dfc4811466fb01108c3427d2347827467ba02a34",
     "message": "74657374",
     "signers": {
       "1": {
-        "signer_share": "94ae65bb90030a89507fa00fff08dfed841cf996de5a0c574f1f4693ddcb6705"
+        "signer_share": "92ae65bb90030a89507fa00fff08dfed841cf996de5a0c574f1f4693ddcb6705"
       },
       "2": {
-        "signer_share": "641003b3f00bb1e01656ac1818a4419a580e637ecaf67b1915212e0ae43a470c"
+        "signer_share": "611003b3f00bb1e01656ac1818a4419a580e637ecaf67b1915212e0ae43a470c"
       },
       "3": {
-        "signer_share": "479eaa4d36b145e00690c07e5245c5312c00cd65b692ebdbda221681eaa92603"
+        "signer_share": "439eaa4d36b145e00690c07e5245c5312c00cd65b692ebdbda221681eaa92603"
       }
     }
   },
@@ -46,14 +46,14 @@
     "participants": "1,2",
     "signers": {
       "1": {
-        "sig_share": "ec6b075f17c5670e80b1fda8f6de1cfe3c79db06a852f8d5650fb71eaad69501"
+        "sig_share": "6a539c3a4ee281879a6fb350d20d53e17473f28cd3409ffc238dafe8d9330605"
       },
       "2": {
-        "sig_share": "87ceccc477069aa9b751b307f25955daaf943a3abc51f214a114781de0f58e03"
+        "sig_share": "1d4e59636ee089bfaf548834b07658216649a37f87f0818d5190aa9b90957505"
       }
     }
   },
   "final_output": {
-    "sig": "7e92309bf40993141acd5f2c7680a302cc5aa5dd291a833906da8e35bc39b03e733ad4238fcb01b83703b1b0e83872d8ec0d164164a4eaea06242f3c8acc2405"
+    "sig": "7e92309bf40993141acd5f2c7680a302cc5aa5dd291a833906da8e35bc39b03e87a1f59dbcc20b474ac43b858284ab02dbbc950c5b31218a751d5a846ac97b0a"
   }
 }

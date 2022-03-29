@@ -89,41 +89,40 @@ def trusted_dealer_keygen(G, secret_key, n, t):
     vss_commitment = vss_commit(G, coefficients)
     recovered_key = secret_share_combine(G, t, signer_private_keys)
     assert(secret_key == recovered_key)
-    secret_keys = []
-    for i in range(n):
-        sk_i = signer_private_keys[i]
-        signer_private_keys.append(sk_i)
+    #secret_keys = []
+    #for i in range(n):
+    #    sk_i = signer_private_keys[i]
+    #    signer_private_keys.append(sk_i)
     return signer_private_keys, vss_commitment
 
 def vss_commit(G, coefficients):
-  vss_commitment = []
-  for coeff in coefficients:
-    comm_i = coeff * G.generator()
-    vss_commitment.append(comm_i)
-  return vss_commitment
+    vss_commitment = []
+    for coeff in coefficients:
+        comm_i = coeff * G.generator()
+        vss_commitment.append(comm_i)
+    return vss_commitment
 
 def derive_public_point(G, i, t, vss_commitment):
-  public_point = G.identity()
-  j = 0
-  for comm_j in vss_commitment:
-    public_point += comm_j * i**j
-    j += 1
-  return public_point
-
+    public_point = G.identity()
+    j = 0
+    for comm_j in vss_commitment:
+        public_point += comm_j * i**j
+        j += 1
+    return public_point
 
 def vss_verify(G, share_i, vss_commitment):
-  (i, sk_i) = share_i
-  SK_i = G.generator() * sk_i
-  SK_i_prime = derive_public_point(G, i, len(vss_commitment), vss_commitment)
-  return SK_i_prime == SK_i
+    (i, sk_i) = share_i
+    SK_i = G.generator() * sk_i
+    SK_i_prime = derive_public_point(G, i, len(vss_commitment), vss_commitment)
+    return SK_i_prime == SK_i
 
 def derive_group_info(G, n, t, vss_commitment):
-  PK = vss_commitment[0]
-  signer_public_keys = {}
-  for i in range(1,n+1):
-    PK_i = derive_public_point(G, i, t, vss_commitment)
-    signer_public_keys[i] = PK_i
-  return (PK, signer_public_keys)
+    PK = vss_commitment[0]
+    signer_public_keys = {}
+    for i in range(1,n+1):
+        PK_i = derive_public_point(G, i, t, vss_commitment)
+        signer_public_keys[i] = PK_i
+    return (PK, signer_public_keys)
 
 class Signature(object):
     def __init__(self, G, R, z):
@@ -275,7 +274,7 @@ for (fname, name, G, H) in ciphersuites:
     assert(group_public_key == vss_commitment[0])
 
     for share_i in signer_private_keys:
-      assert(vss_verify(G, share_i, vss_commitment))
+        assert(vss_verify(G, share_i, vss_commitment))
 
     group_public_key_enc = G.serialize(group_public_key)
     recovered_group_public_key = G.deserialize(group_public_key_enc)

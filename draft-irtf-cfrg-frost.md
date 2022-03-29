@@ -1263,7 +1263,6 @@ Each test vector consists of the following information.
   output signature share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
 
-
 ## FROST(Ed25519, SHA-512)
 
 ~~~
@@ -1273,18 +1272,18 @@ THRESHOLD_LIMIT: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
-group_secret_key: 7c1c33d3f5291d85de664833beb1ad469f7fb6025a0ec78b3a7
+group_secret_key: 7b1c33d3f5291d85de664833beb1ad469f7fb6025a0ec78b3a7
 90c6e13a98304
-group_public_key: 377a6acb3b9b5f642c5ce355d23cac0568aad0da63c633d59d4
-168bdcbce35af
+group_public_key: 15d21ccd7ee42959562fc8aa63224c8851fb3ec85a3faf66040
+d380fb9738673
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 949dcc590407aae7d388761cddb0c0db6f5627aea8e217f4a033
+S1 signer_share: 929dcc590407aae7d388761cddb0c0db6f5627aea8e217f4a033
 f2ec83d93509
-S2 signer_share: ac1e66e012e4364ac9aaa405fcafd370402d9859f7b6685c07ee
+S2 signer_share: a91e66e012e4364ac9aaa405fcafd370402d9859f7b6685c07ee
 d76bf409e80d
-S3 signer_share: d7cb090a075eb154e82fdb4b3cb507f110040905468bb9c46da8
+S3 signer_share: d3cb090a075eb154e82fdb4b3cb507f110040905468bb9c46da8
 bdea643a9a02
 
 // Round one parameters
@@ -1321,17 +1320,13 @@ S2 binding_nonce_commitment: 32bbf10c41feb17d41cc6433e69f16cceccc42a0
 participants: 1,2
 
 // Signer round two outputs
-S1 sig_share: f8bbaf924e1c90e11dec1eb679194aade084f92fbf52fdd436ba0a0
-7f71ab708
-S1 group_commitment_share: 11bb9777aa393b92e814e415039adf62687a0be543
-c2322d817e4934bc5a7cf2
-S2 sig_share: 80f589405714ca0e6adc87c2c0186a0ae4d6e352f7b248b23149a5d
-cd3fe4704
-S2 group_commitment_share: 4af85179d17ed031b767ab579e59c7018dac09ae40
-0b1700623d0af1129a9c55
+S1 sig_share: b7e8f03a1a1149adacb96f952dbc39b6034facceafe4a70d6963592
+fce75570c
+S2 sig_share: cd388f9aff4376397c5ad231713fe6b167bed9cc88a1cc97b0b6bbe
+0316a7909
 
 sig: ebe7efbb42c4b1c55106b5536fb5e9ac7a6d0803ea4ae9c8c629ca51e05c230e
-78b139d3a5305af087c8a6783a32b4b7c45bdd82b60546876803b0e3ca19ff0c
+974d8a78fff1ac8e52774a24c00141536b0d869b388674a5191a151000e0d005
 ~~~
 
 ## FROST(Ed448, SHAKE256)
@@ -1343,18 +1338,18 @@ THRESHOLD_LIMIT: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
-group_secret_key: cef4a803a21d82fa90692e86541e08d878c9f688e5d71a2bd35
+group_secret_key: cdf4a803a21d82fa90692e86541e08d878c9f688e5d71a2bd35
 4a9a3af62b8c7c89753055949cab8fd044c17c94211f167672b053659420b00
-group_public_key: 005f23508a78131aee4d6cb027f967d89557ec5f24dc3ebeede
-b550466fcc1411283ff5d9c605d9a8b36e6eea36b67ceba047d57968896db80
+group_public_key: 800e9b495543b04aaebdba2813de65d1aefe78e8b219d38966b
+c0afa1d5d9d685c740c8ab720bff3c84cd9f4a701c1588e40d981f4abb19600
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: d408a2f1d9ead0cc4b4b9b2e84a22f8e2aa2ab4ee715febe7a08
+S1 signer_share: d208a2f1d9ead0cc4b4b9b2e84a22f8e2aa2ab4ee715febe7a08
 175d4298dd6bbe2e1c0b29aaa972c78555ea3b3d7308b248994780219e0800
-S2 signer_share: da1c9bdf11b81f9f062d08d7b3265744dc7a6014e953e15222bc
+S2 signer_share: d71c9bdf11b81f9f062d08d7b3265744dc7a6014e953e15222bc
 8416d5cd0210b4c5e410f90a892c91065fbdae37d51ffc29078acae9f90500
-S3 signer_share: e03094cd49856e71c10e757fe3aa7efa8d5315daea91c4e6c96f
+S3 signer_share: dc3094cd49856e71c10e757fe3aa7efa8d5315daea91c4e6c96f
 f2cf670328b4a95cad16c96b68e65a87689021323737460b75cc14b2550300
 
 // Round one parameters
@@ -1399,21 +1394,15 @@ d5aa7e8f226d303ef7b88fb33a63f6cac6a9d638089b1739a5d2564d15fb3e43e1b0b
 participants: 1,2
 
 // Signer round two outputs
-S1 sig_share: ad41cd3320c82edd20c344769bd7b250105d9d0516109b7f774c297
-faaf8b3b6065b19bbae2afb6c34cce460b40e15655fb8ad0bcc26e21e00
-S1 group_commitment_share: 086d4d2ff2555fab65afc8eb473cc708f37cdb9c5d
-e74d8e12a1a9d1a086a8914175e4db77e5d281f10441913aa680fedb207c954afdd88
-380
-S2 sig_share: 5dcc0aec7d0a71eddd5ba2dd0f185ba7990bcd39b6fc0e4b0470c35
-6ed0deb736d7f2652e87e932a0c176cc4bc5ba0ef756cc62081e4f51900
-S2 group_commitment_share: 7e91f66097b6450c52c89c14400a506ee1d37f5e52
-a8d4c3fc9733c23d0b27cd6cfce55a8aee692262e5815be341e8d0b9d240a9630c9f0
-600
+S1 sig_share: c5ab0a80c561d1a616ac70f4f13d993156f65f2b44a4a90f37f0640
+7a1b62e3940bf14199301d128358b812bef32cb4bffaf03030238772000
+S2 sig_share: 15211cb96d6aa73de803d46caf2043859fd796a6282f9adb00033f1
+4f4827f23f8cc792c2e322a1f30631ec7690ac587e5eb9c2afd323e3300
 
 sig: 4d9883057726b029d042418600abe88ad3fec06d6a48dca289482e9d51c10353
-37e4d1aae5fd1c73a55701133238602f423886fc134a3c65800a0ed81f9ed29fcafe1
-ee753abef0df8a9686a3fcc0caaca7bbcecd597069f2a74da3f0d97a98e9740e35025
-716ab554d524742c4d0bd83800
+37e4d1aae5fd1c73a55701133238602f423886fc134a3c6580e787ce8da00900c1a92
+07fd32e9c6f956597202323f8f4264ecfd99e9539ae5c388c8e45c133fb4765ee9ff2
+583d90d3e49ba02dff6ab51300
 ~~~
 
 ## FROST(ristretto255, SHA-512)
@@ -1425,18 +1414,18 @@ THRESHOLD_LIMIT: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
-group_secret_key: b120be204b5e758960458ca9c4675b56b12a8faff2be9c94891
+group_secret_key: b020be204b5e758960458ca9c4675b56b12a8faff2be9c94891
 d5e1cd75c880e
-group_public_key: 563b80013f337deaa2a282af7b281bd70d2f501928a89c1aa48
-b379a5ac4202b
+group_public_key: e22ac4850672021eac8e0a36dfc4811466fb01108c3427d2347
+827467ba02a34
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 94ae65bb90030a89507fa00fff08dfed841cf996de5a0c574f1f
+S1 signer_share: 92ae65bb90030a89507fa00fff08dfed841cf996de5a0c574f1f
 4693ddcb6705
-S2 signer_share: 641003b3f00bb1e01656ac1818a4419a580e637ecaf67b191521
+S2 signer_share: 611003b3f00bb1e01656ac1818a4419a580e637ecaf67b191521
 2e0ae43a470c
-S3 signer_share: 479eaa4d36b145e00690c07e5245c5312c00cd65b692ebdbda22
+S3 signer_share: 439eaa4d36b145e00690c07e5245c5312c00cd65b692ebdbda22
 1681eaa92603
 
 // Round one parameters
@@ -1473,17 +1462,13 @@ S2 binding_nonce_commitment: 5e056ecc4f7c4657d3a742354430d768f945db22
 participants: 1,2
 
 // Signer round two outputs
-S1 sig_share: ec6b075f17c5670e80b1fda8f6de1cfe3c79db06a852f8d5650fb71
-eaad69501
-S1 group_commitment_share: bc7e792fce347a15d547935652377c406cc721965c
-58d3003dbd947a6dfddc0c
-S2 sig_share: 87ceccc477069aa9b751b307f25955daaf943a3abc51f214a114781
-de0f58e03
-S2 group_commitment_share: 92c4f352ec392ba779271dc2ed09cda37f38d8c283
-747d4a85b4c9ce7289cb07
+S1 sig_share: 6a539c3a4ee281879a6fb350d20d53e17473f28cd3409ffc238dafe
+8d9330605
+S2 sig_share: 1d4e59636ee089bfaf548834b07658216649a37f87f0818d5190aa9
+b90957505
 
 sig: 7e92309bf40993141acd5f2c7680a302cc5aa5dd291a833906da8e35bc39b03e
-733ad4238fcb01b83703b1b0e83872d8ec0d164164a4eaea06242f3c8acc2405
+87a1f59dbcc20b474ac43b858284ab02dbbc950c5b31218a751d5a846ac97b0a
 ~~~
 
 ## FROST(P-256, SHA-256)
@@ -1496,18 +1481,18 @@ NUM_SIGNERS: 2
 
 // Group input parameters
 group_secret_key: 6f090d1393ff53bbcbba036c00b8830ab4546c251dece199eb0
-3a6a51a5a5929
-group_public_key: 03db0945167b62e6472ad46373b6cbbca88e2a9a4883071f0b3
-fde4b2b6d7b6ba6
+3a6a51a5a5928
+group_public_key: 033a2a83f9c9fdfdab7d620f48238a5e6157a8eb1d6c382c7b0
+ba95b7c9f69679c
 message: 74657374
 
 // Signer input parameters
 S1 signer_share: 738552e18ea4f2090597aca6c23c1666845c21c676813f9e2678
-6f1e410dcecf
+6f1e410dcecd
 S2 signer_share: 780198af894a90563f7555e183bfa9c25463d767cf159da261ed
-379767c14475
+379767c14472
 S3 signer_share: 7c7dde7d83f02ea37952ff1c45433d1e246b8d0927a9fba69d62
-00108e74ba1b
+00108e74ba17
 
 // Round one parameters
 participants: 1,2
@@ -1542,15 +1527,11 @@ S2 binding_nonce_commitment: 024a4e90422a19dd8463214e997042206c39d3df
 participants: 1,2
 
 // Signer round two outputs
-S1 sig_share: 120a8ef8a5936444d8087cb10df5648629895e94582720760a10c8c
-217e3417b
-S1 group_commitment_share: 0314cc3c03885953b3a15482d0ef4716eba9aca439
-fa541a37489a146dd383d07e
-S2 sig_share: 2a7ff42d849f1bcc0e5f75d5810900a3e8f68ab717ff10d7a6da89f
-8bb0c16aa
-S2 group_commitment_share: 034f4516676fe414883397fc5e150375c9937b3b77
-3c9ac57a11b2b6574e6bf452
+S1 sig_share: 0a658fe198caddf5ddc407ad58c4615458f02a58d0c1f7a38e25692
+98dc41df0
+S2 sig_share: e84d948cfec74b5e7540ad09fd69dcd1570f708f2d8573dbbf08cb0
+2bc872c75
 
 sig: 035cfbd148da711bbc823455b682ed01a1be3c5415cf692f4a91b7fe22d1dec3
-453c8a83262a328010e667f2868efe652a127fe94b7026314db0eb52bad2ef5825
+45f2b3246e979229545304b4b7562e3e25afff9ae7fe476b7f4d2e342c4a4b4a65
 ~~~
