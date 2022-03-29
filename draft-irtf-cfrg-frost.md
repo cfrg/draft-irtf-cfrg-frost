@@ -1143,7 +1143,7 @@ We now define how the coordinator and signing participants can derive group info
     - PK, the public key representing the group
     - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,n, where PK_i is the public key for participant i.
 
-    derive_group_info(n, t, vss_commitment)
+    derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
       PK = vss_commitment[0]
       signer_public_keys = []
       for i in range(1, n):
