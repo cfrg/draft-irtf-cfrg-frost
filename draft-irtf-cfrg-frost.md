@@ -1146,7 +1146,7 @@ We now define how the coordinator and signing participants can derive group info
     derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
       PK = vss_commitment[0]
       signer_public_keys = []
-      for i in range(1, n):
+      for i in range(1, MAX_SIGNERS):
         PK_i = G.Identity()
         for j in range(0, t-1):
           PK_i += vss_commitment_j * i^j
