@@ -105,6 +105,18 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
 
+draft-04
+
+- Added methods to verify VSS commitments and derive group info (#126, #132).
+- Changed check for participants to consider only nonnegative numbers (#133).
+- Changed sampling for secrets and coefficients to allow the zero element (#130).
+- Split test vectors into separate files (#129)
+- Update wire structs to remove commitment shares where not necessary (#128)
+- Add failure checks (#127)
+- Update group info to include each participant's key and clarify how public key material is obtained (#120, #121).
+- Define cofactor checks for verification (#118)
+- Various editorial improvements and add contributors (#124, #123, #119, #116, #113, #109)
+
 draft-03
 
 - Refactor the second round to use state from the first round (#94).
