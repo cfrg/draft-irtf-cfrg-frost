@@ -760,7 +760,7 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is empty.
 
 - Group: edwards25519 {{!RFC8032}}
-  - Cofactor (`h`): 8 
+  - Cofactor (`h`): 8
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -810,7 +810,7 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is empty.
 
 - Group: edwards448 {{!RFC8032}}
-  - Cofactor (`h`): 4 
+  - Cofactor (`h`): 4
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -980,15 +980,14 @@ operation can be performed.
   - t, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - PK, public key, a group element
-  - secret_key_shares, `n` shares of the secret key `s`, each a Scalar value.
+  - signer_private_keys, `n` shares of the secret key `s`, each a Scalar value.
   - vss_commitment, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
   def trusted_dealer_keygen(s, n, t):
-    secret_key_shares, coefficients = secret_share_shard(secret_key, n, t)
+    signer_private_keys, coefficients = secret_share_shard(secret_key, n, t)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
-    return PK, secret_key_shares, vss_commitment
+    return signer_private_keys, vss_commitment
 ~~~
 
 It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
@@ -1124,10 +1123,37 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     vss_verify(share_i, commitment)
       (i, sk_i) = share_i
       S_i = ScalarBaseMult(sk_i)
-      S_i' = SUM(commitment[0], commitment[t-1]){A_j}: A_j*(i^j)
+      S_i' = G.Identity()
+      for j in range(0, THRESHOLD_LIMIT-1):
+        S_i' += vss_commitment_j * i^j
       if S_i == S_i':
         return 1
       return 0
+~~~
+
+We now define how the coordinator and signing participants can derive group info, which is an input into the FROST signing protocol.
+
+~~~
+    derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment):
+
+    Inputs:
+    - MAX_SIGNERS, the number of shares to generate, an integer
+    - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
+    - vss_commitment: A VSS commitment to a secret polynomial f.
+
+    Outputs:
+    - PK, the public key representing the group
+    - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS, where PK_i is the public key for participant i.
+
+    derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
+      PK = vss_commitment[0]
+      signer_public_keys = []
+      for i in range(1, MAX_SIGNERS):
+        PK_i = G.Identity()
+        for j in range(0, THRESHOLD_LIMIT-1):
+          PK_i += vss_commitment_j * i^j
+        signer_public_keys.append(PK_i)
+      return PK, signer_public_keys
 ~~~
 
 # Wire Format {#wire-format}
