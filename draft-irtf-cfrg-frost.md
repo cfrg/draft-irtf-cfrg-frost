@@ -247,7 +247,7 @@ following operation.
 
   def schnorr_signature_generate(msg, SK):
     PK = G.ScalarBaseMult(SK)
-    k = G.RandomScalar()
+    k = G.RandomNonzeroScalar()
     R = G.ScalarBaseMult(k)
 
     comm_enc = G.SerializeElement(R)
