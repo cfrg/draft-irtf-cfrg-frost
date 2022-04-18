@@ -240,7 +240,7 @@ following operation.
   schnorr_signature_generate(msg, SK):
 
   Inputs:
-  - msg, message to be signed, an octet string
+  - msg, message to be signed, a byte string
   - SK, private key, a Scalar in GF(p).
 
   Outputs: signature (R, z), a pair of scalar values
@@ -269,7 +269,7 @@ MUST be performed when `h>1`.
   schnorr_signature_verify(msg, sig, PK):
 
   Inputs:
-  - msg, signed message, an octet string
+  - msg, signed message, a byte string
   - sig, a tuple (R, z) output from schnorr_signature_generate or FROST
   - PK, public key, a group `Element` in `G`
 
