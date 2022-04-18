@@ -175,7 +175,7 @@ These are described in the following sections.
 
 FROST depends on an abelian group `G` of prime order `p`. The fundamental group operation
 is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
-`A + B = B + A` is also a member of `G`. Also, for any `A` in `GG`, there exists an element
+`A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element A with itself `r-1` times, this is denoted
 as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as the fixed generator
