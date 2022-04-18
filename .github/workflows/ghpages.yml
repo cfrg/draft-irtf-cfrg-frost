@@ -21,9 +21,6 @@ jobs:
     steps:
     - name: "Checkout"
       uses: actions/checkout@v3.0.1
-
-    - name: work around permission issue
-      run: git config --global --add safe.directory /github/workspace
       
     - name: "Cache Setup"
       id: cache-setup
@@ -44,7 +41,7 @@ jobs:
           refcache-
 
     - name: "Build Drafts"
-      uses: martinthomson/i-d-template@v1
+      uses: martinthomson/i-d-template@9c6705ddac3421e3b2054e8f751e2ee0a961c86b
       with:
         token: ${{ github.token }}
 
