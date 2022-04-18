@@ -187,23 +187,23 @@ We denote equality comparison as `==` and assignment of values by `=`.
 
 We now detail a number of member functions that can be invoked on a prime-order group `G`.
 
-- Order(): Outputs the order of `G` (i.e. `p`).
-- Identity(): Outputs the identity `Element` of the group (i.e. `I`).
-- RandomScalar(): A member function of `G` that chooses at random a
+- G.Order(): Outputs the order of `G` (i.e. `p`).
+- G.Identity(): Outputs the identity `Element` of the group (i.e. `I`).
+- G.RandomScalar(): A member function of `G` that chooses at random a
   `Scalar` element in GF(p).
-- RandomNonzeroScalar(): A member function of `G` that chooses at random a
+- G.RandomNonzeroScalar(): A member function of `G` that chooses at random a
   non-zero `Scalar` element in GF(p).
-- SerializeElement(A): A member function of `G` that maps an `Element` `A`
+- G.SerializeElement(A): A member function of `G` that maps an `Element` `A`
   to a unique byte array `buf` of fixed length `Ne`.
-- DeserializeElement(buf): A member function of `G` that attempts to map a
+- G.DeserializeElement(buf): A member function of `G` that attempts to map a
   byte array `buf` to an `Element` `A`, and fails if the input is not a
   valid byte representation of an element of the group. This function can
   raise a DeserializeError if deserialization fails or `A` is the identity
   element of the group; see {{ciphersuites}} for group-specific input validation
   steps.
-- SerializeScalar(s): A member function of `G` that maps a Scalar `s`
+- G.SerializeScalar(s): A member function of `G` that maps a Scalar `s`
   to a unique byte array `buf` of fixed length `Ns`.
-- DeserializeScalar(buf): A member function of `G` that attempts to map a
+- G.DeserializeScalar(buf): A member function of `G` that attempts to map a
   byte array `buf` to a `Scalar` `s`. This function can raise a
   DeserializeError if deserialization fails; see {{ciphersuites}} for
   group-specific input validation steps.
