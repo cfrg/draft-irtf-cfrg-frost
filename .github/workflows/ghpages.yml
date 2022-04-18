@@ -41,12 +41,12 @@ jobs:
           refcache-
 
     - name: "Build Drafts"
-      uses: martinthomson/i-d-template@9c6705ddac3421e3b2054e8f751e2ee0a961c86b
+      uses: divergentdave/i-d-template@v1-alpha
       with:
         token: ${{ github.token }}
 
     - name: "Update GitHub Pages"
-      uses: martinthomson/i-d-template@v1
+      uses: divergentdave/i-d-template@v1-alpha
       if: ${{ github.event_name == 'push' }}
       with:
         make: gh-pages
