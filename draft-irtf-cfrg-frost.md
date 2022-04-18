@@ -1076,7 +1076,7 @@ secret `s` is as follows.
   Inputs:
   - shares, a list of t secret shares, each a tuple (i, f(i))
 
-  Outputs: The resulting secret s, a `Scalar` in `F`, the scalar field `GF(p)` of `G`, that was previously split into shares
+  Outputs: The resulting secret s, a `Scalar` in `GF(p)`, that was previously split into shares
 
   Errors:
   - "invalid parameters", if less than t input shares are provided
