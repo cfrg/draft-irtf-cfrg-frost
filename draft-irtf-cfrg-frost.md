@@ -1125,7 +1125,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
     Inputs:
     - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier, and sk_i the participant's secret key, a secret share of the constant term of f, where sk_i is a `Scalar` of `F`, the scalar field `GF(P)` of `G`.
+    identifier, and sk_i the participant's secret key, a secret share of the constant term of f, where sk_i is in `GF(p)`.
     - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
     coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
 
