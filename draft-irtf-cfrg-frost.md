@@ -188,15 +188,15 @@ We denote equality comparison as `==` and assignment of values by `=`.
 We now detail a number of member functions that can be invoked on a prime-order group `G`.
 
 - Order(): Outputs the order of `G` (i.e. `p`).
-- Identity(): Outputs the identity element of the group (i.e. `I`).
+- Identity(): Outputs the identity `Element` of the group (i.e. `I`).
 - RandomScalar(): A member function of `G` that chooses at random a
-  Scalar element in GF(p).
+  `Scalar` element in GF(p).
 - RandomNonzeroScalar(): A member function of `G` that chooses at random a
-  non-zero Scalar element in GF(p).
-- SerializeElement(A): A member function of `G` that maps an Element `A`
+  non-zero `Scalar` element in GF(p).
+- SerializeElement(A): A member function of `G` that maps an `Element` `A`
   to a unique byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): A member function of `G` that attempts to map a
-  byte array `buf` to an Element `A`, and fails if the input is not a
+  byte array `buf` to an `Element` `A`, and fails if the input is not a
   valid byte representation of an element of the group. This function can
   raise a DeserializeError if deserialization fails or `A` is the identity
   element of the group; see {{ciphersuites}} for group-specific input validation
@@ -204,7 +204,7 @@ We now detail a number of member functions that can be invoked on a prime-order 
 - SerializeScalar(s): A member function of `G` that maps a Scalar `s`
   to a unique byte array `buf` of fixed length `Ns`.
 - DeserializeScalar(buf): A member function of `G` that attempts to map a
-  byte array `buf` to a Scalar `s`. This function can raise a
+  byte array `buf` to a `Scalar` `s`. This function can raise a
   DeserializeError if deserialization fails; see {{ciphersuites}} for
   group-specific input validation steps.
 
@@ -241,7 +241,7 @@ following operation.
 
   Inputs:
   - msg, message to be signed, an octet string
-  - SK, private key, a scalar
+  - SK, private key, a Scalar in GF(p).
 
   Outputs: signature (R, z), a pair of scalar values
 
@@ -271,7 +271,7 @@ MUST be performed when `h>1`.
   Inputs:
   - msg, signed message, an octet string
   - sig, a tuple (R, z) output from schnorr_signature_generate or FROST
-  - PK, public key, a group element
+  - PK, public key, a group `Element` in `G`
 
   Outputs: 1 if signature is valid, and 0 otherwise
 
@@ -442,7 +442,7 @@ from a commitment list.
     This list MUST be sorted in ascending order by signer index.
   - binding_factor, a Scalar
 
-  Outputs: An Element representing the group commitment
+  Outputs: An `Element` in `G` representing the group commitment
 
   def compute_group_commitment(commitment_list, binding_factor):
     group_commitment = G.Identity()
@@ -457,11 +457,11 @@ This section describes the subroutine for creating the per-message challenge.
 
 ~~~
   Inputs:
-  - group_commitment, an Element representing the group commitment
-  - group_public_key, public key corresponding to the signer secret key share.
+  - group_commitment, an `Element` in `G` representing the group commitment
+  - group_public_key, public key group `Element` in `G`, corresponding to the signer secret key share.
   - msg, the message to be signed (sent by the Coordinator).
 
-  Outputs: a challenge Scalar value
+  Outputs: a challenge `Scalar` value in `GF(p)`
 
   def compute_challenge(group_commitment, group_public_key, msg):
     group_comm_enc = G.SerializeElement(group_commitment)
@@ -493,14 +493,13 @@ below, and their corresponding signing key shares.
 In particular, it is assumed that the coordinator and each signing participant `P_i` knows the following
 group info:
 
-- Group public key, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`.
-`PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen`or a DKG.
-- Public keys for each signer, denoted `PK_i = G.ScalarMultBase(sk_i)`, which are similarly
-outputs from the group's key generation protocol.
+- Group public key, an `Element` in `G`, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`, which is a `Scalar` in `GF(p)`. `PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen`or a DKG.
+- Public keys for each signer, denoted `PK_i = G.ScalarMultBase()`, which are similarly
+outputs from the group's key generation protocol, `Element`s in `G`.
 
 And that each participant with identifier `i` additionally knows the following:
 
-- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`.
+- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar` in `GF(p)`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
@@ -617,18 +616,18 @@ procedure to produce its own signature share.
 ~~~
   Inputs:
   - index, Index `i` of the signer. Note index will never equal `0`.
-  - sk_i, Signer secret key share.
-  - group_public_key, public key corresponding to the signer secret key share.
-  - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in round one.
+  - sk_i, Signer secret key share, a `Scalar` in `GF(p)`.
+  - group_public_key, public key corresponding to the signer secret key share, an `Element` in `G`.
+  - nonce_i, pair of `Scalar` values (hiding_nonce, binding_nonce) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each signer, where each element in the list indicates the signer index j and their
-    two commitment Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
+    two commitment `Element` values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
-  Outputs: a Scalar value representing the signature share
+  Outputs: a `Scalar` value  in `GF(p)` representing the signature share
 
   def sign(index, sk_i, group_public_key, nonce_i, msg, commitment_list, participant_list):
     # Encode the commitment list
@@ -674,18 +673,18 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
   Inputs:
   - index, Index `i` of the signer. Note index will never equal `0`.
-  - PK_i, the public key for the ith signer, where `PK_i = G.ScalarBaseMult(sk_i)`
-  - comm_i, pair of Element values (hiding_nonce_commitment, binding_nonce_commitment) generated
+  - PK_i, the public key for the ith signer, where `PK_i = G.ScalarBaseMult(sk_i)`, an `Element` in `G`
+  - comm_i, pair of `Element` values in `G` (hiding_nonce_commitment, binding_nonce_commitment) generated
     in round one from the ith signer.
-  - sig_share_i, a Scalar value indicating the signature share as produced in round two from the ith signer.
+  - sig_share_i, a `Scalar` value in `GF(p)` indicating the signature share as produced in round two from the ith signer.
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a list of commitments
     issued in Round 1 by each signer, where each element in the list indicates the signer index j and their
-    two commitment Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
+    two commitment `Element` values in `G` (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
-  - group_public_key, the public key for the group
-  - msg, the message to be signed
+  - group_public_key, the public key for the group, an `Element` in `G`.
+  - msg, the message to be signed.
 
   Outputs: True if the signature share is valid, and False otherwise.
 
@@ -724,11 +723,11 @@ signature.
 
 ~~~
   Inputs:
-  - group_commitment, the group commitment returned by compute_group_commitment
-  - sig_shares, a set of signature shares z_i for each signer, of length NUM_SIGNERS,
+  - group_commitment, the group commitment returned by compute_group_commitment, an `Element` in `G`.
+  - sig_shares, a set of signature shares z_i, `Scalar`s in `GF(p)`, for each signer, of length NUM_SIGNERS,
   where THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
 
-  Outputs: (R, z), a Schnorr signature consisting of an Element and Scalar value.
+  Outputs: (R, z), a Schnorr signature consisting of an `Element` R and `Scalar` z.
 
   def frost_aggregate(group_commitment, sig_shares):
     z = 0
@@ -987,13 +986,13 @@ operation can be performed.
 
 ~~~
   Inputs:
-  - s, a group secret that MUST be derived from at least `Ns` bytes of entropy
+  - s, a group secret, `Scalar` in `GF(p)`, that MUST be derived from at least `Ns` bytes of entropy
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - signer_private_keys, `n` shares of the secret key `s`, each a Scalar value.
-  - vss_commitment, a vector commitment to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
+  - signer_private_keys, `n` shares of the secret key `s`, each a `Scalar` value in `GF(p)`.
+  - vss_commitment, a vector commitment of `Element`s in `G`, to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
   def trusted_dealer_keygen(s, n, t):
     signer_private_keys, coefficients = secret_share_shard(secret_key, n, t)
@@ -1013,7 +1012,7 @@ and integrity. Mutually authenticated TLS is one possible deployment option.
 
 ## Shamir Secret Sharing {#dep-shamir}
 
-In Shamir secret sharing, a dealer distributes a secret `s` to `n` participants
+In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` participants
 in such a way that any cooperating subset of `t` participants can recover the
 secret. There are two basic steps in this scheme: (1) splitting a secret into
 multiple shares, and (2) combining shares to reveal the resulting secret.
@@ -1027,14 +1026,14 @@ The procedure for splitting a secret into shares is as follows.
   secret_share_shard(s, n, t):
 
   Inputs:
-  - s, secret to be shared, an element of F
+  - s, secret to be shared, an element of F, the `Scalar` field `GF(p)` of `G`. 
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
   Outputs:
   - secret_key_shares, A list of n secret shares, which is a tuple
   consisting of the participant identifier and the key share, each of
-  which is an element of F
+  which is a `Scalar` element of F, the `Scalar` field `GF(p)` of `G`.
   - coefficients, a vector of the t coefficients which uniquely determine
   a polynomial f.
 
@@ -1077,7 +1076,7 @@ secret `s` is as follows.
   Inputs:
   - shares, a list of t secret shares, each a tuple (i, f(i))
 
-  Outputs: The resulting secret s, that was previously split into shares
+  Outputs: The resulting secret s, a `Scalar` in `GF(p)`, that was previously split into shares
 
   Errors:
   - "invalid parameters", if less than t input shares are provided
@@ -1108,7 +1107,7 @@ The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
     a polynomial f.
 
     Outputs: a commitment vss_commitment, which is a vector commitment to each of the
-    coefficients in coeffs.
+    coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
 
     def vss_commit(coeffs):
       vss_commitment = []
@@ -1126,9 +1125,9 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
     Inputs:
     - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier, and sk_i the participant's secret key, where sk_i is a secret share of
-    the constant term of f.
-    - vss_commitment: A VSS commitment to a secret polynomial f.
+    identifier, and sk_i the participant's secret key, a secret share of the constant term of f, where sk_i is in `GF(p)`.
+    - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
+    coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
 
     Outputs: 1 if sk_i is valid, and 0 otherwise
 
@@ -1137,7 +1136,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
       S_i = ScalarBaseMult(sk_i)
       S_i' = G.Identity()
       for j in range(0, THRESHOLD_LIMIT-1):
-        S_i' += vss_commitment_j * i^j
+        S_i' += vss_commitment[j] * i^j
       if S_i == S_i':
         return 1
       return 0
@@ -1151,11 +1150,12 @@ We now define how the coordinator and signing participants can derive group info
     Inputs:
     - MAX_SIGNERS, the number of shares to generate, an integer
     - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
-    - vss_commitment: A VSS commitment to a secret polynomial f.
+    - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
+    coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
 
     Outputs:
-    - PK, the public key representing the group
-    - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS, where PK_i is the public key for participant i.
+    - PK, the public key representing the group, an `Element` in `G`.
+    - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS, where each PK_i is the public key, an `Element` in `G`, for participant i.
 
     derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
       PK = vss_commitment[0]
@@ -1163,7 +1163,7 @@ We now define how the coordinator and signing participants can derive group info
       for i in range(1, MAX_SIGNERS):
         PK_i = G.Identity()
         for j in range(0, THRESHOLD_LIMIT-1):
-          PK_i += vss_commitment_j * i^j
+          PK_i += vss_commitment[j] * i^j
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
 ~~~
@@ -1191,10 +1191,10 @@ id
 : The SignerID.
 
 D
-: The commitment hiding factor encoded as a serialized group element.
+: The commitment hiding factor encoded as a serialized group `Element` in `G`.
 
 E
-: The commitment binding factor encoded as a serialized group element.
+: The commitment binding factor encoded as a serialized group `Element` in `G`.
 
 ## Signing Packages {#encode-package}
 
@@ -1234,12 +1234,12 @@ id
 : The SignerID.
 
 signature_share
-: The signature share from this signer encoded as a serialized scalar.
+: The signature share from this signer encoded as a serialized `Scalar` in `GF(p)`.
 
 # Test Vectors
 
 This section contains test vectors for all ciphersuites listed in {{ciphersuites}}.
-All Element and Scalar values are represented in serialized form and encoded in
+All `Element` and `Scalar` values are represented in serialized form and encoded in
 hexadecimal strings. Signatures are represented as the concatenation of their
 constituent parts. The input message to be signed is also encoded as a hexadecimal
 string.
