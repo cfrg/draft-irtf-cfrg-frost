@@ -448,9 +448,8 @@ from a commitment list.
     group_hiding_commitment = G.Identity()
     group_binding_commitment = G.Identity()
 
-    for (_, hiding_nonce_commitment, _) in commitment_list:
+    for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       group_hiding_commitment = group_hiding_commitment + hiding_nonce_commitment 
-    for (_, _, binding_nonce_commitment) in commitment_list:
       group_binding_commitment = group_binding_commitment + binding_nonce_commitment
     return (group_hiding_commitment + group_binding_commitment * binding_factor) 
 ~~~
