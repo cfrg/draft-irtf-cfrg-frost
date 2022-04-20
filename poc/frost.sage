@@ -15,13 +15,13 @@ except ImportError as e:
 
 _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
 
-def to_hex(octet_string):
-    if isinstance(octet_string, str):
-        return "".join("{:02x}".format(ord(c)) for c in octet_string)
-    if isinstance(octet_string, bytes):
-        return "" + "".join("{:02x}".format(c) for c in octet_string)
-    assert isinstance(octet_string, bytearray)
-    return ''.join(format(x, '02x') for x in octet_string)
+def to_hex(byte_string):
+    if isinstance(byte_string, str):
+        return "".join("{:02x}".format(ord(c)) for c in byte_string)
+    if isinstance(byte_string, bytes):
+        return "" + "".join("{:02x}".format(c) for c in byte_string)
+    assert isinstance(byte_string, bytearray)
+    return ''.join(format(x, '02x') for x in byte_string)
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-lagrange-coefficients
 def derive_lagrange_coefficient(G, i, L):
@@ -42,12 +42,17 @@ def derive_lagrange_coefficient(G, i, L):
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-evaluation-of-a-polynomial
 def polynomial_evaluate(G, x, coeffs):
     value = 0
+
     for i, coeff in enumerate(reversed(coeffs)):
         if i == (len(coeffs) - 1):
             value = (value + coeff) % G.order()
         else:
             value = (value + coeff) % G.order()
             value = (value * x) % G.order()
+
+    # for _, coeff in enumerate(reversed(coeffs)):
+    #     value = (value + coeff) % G.order()
+    #     value = (value * x) % G.order()
     return value
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
@@ -339,17 +344,17 @@ for (fname, name, G, H) in ciphersuites:
         "sig": to_hex(sig.encode())
     }
 
-    def generate_schnorr_signature(G, H, s, msg):
-        pk = s * G.generator()
+    def generate_schnorr_signature(G, H, sk, msg):
+        PK = sk * G.generator()
         k = G.random_scalar()
         R = k * G.generator()
 
         group_comm_enc = G.serialize(R)
-        pk_enc = G.serialize(pk)
+        pk_enc = G.serialize(PK)
         challenge_input = bytes(group_comm_enc + pk_enc + msg)
         c = H.H2(challenge_input)
 
-        z = k + (s * c)
+        z = k + (sk * c)
         return Signature(G, R, z)
 
     def verify_schnorr_signature(G, H, Y, msg, sig):
