@@ -445,10 +445,13 @@ from a commitment list.
   Outputs: An `Element` in `G` representing the group commitment
 
   def compute_group_commitment(commitment_list, binding_factor):
-    group_commitment = G.Identity()
+    group_hiding_commitment = G.Identity()
+    group_binding_commitment = G.Identity()
+
     for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      group_commitment = group_commitment + (hiding_nonce_commitment + (binding_nonce_commitment * binding_factor))
-    return group_commitment
+      group_hiding_commitment = group_hiding_commitment + hiding_nonce_commitment 
+      group_binding_commitment = group_binding_commitment + binding_nonce_commitment
+    return (group_hiding_commitment + group_binding_commitment * binding_factor) 
 ~~~
 
 ## Signature Challenge Computation {#dep-sig-challenge}

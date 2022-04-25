@@ -144,10 +144,12 @@ def compute_binding_factor(H, encoded_commitments, msg):
     return binding_factor, rho_input
 
 def compute_group_commitment(G, commitment_list, binding_factor):
-    group_commitment = G.identity()
+    group_hiding_commitment = G.identity()
+    group_binding_commitment = G.identity()
     for (_, D_i, E_i) in commitment_list:
-        group_commitment = group_commitment + (D_i + (E_i * binding_factor))
-    return group_commitment
+        group_hiding_commitment = group_hiding_commitment + D_i 
+        group_binding_commitment = group_binding_commitment + E_i 
+    return group_hiding_commitment + group_binding_commitment * binding_factor 
 
 def compute_challenge(H, group_commitment, group_public_key, msg):
     group_comm_enc = G.serialize(group_commitment)
