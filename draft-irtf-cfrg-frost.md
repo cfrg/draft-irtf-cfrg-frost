@@ -449,9 +449,9 @@ from a commitment list.
     group_binding_commitment = G.Identity()
 
     for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      group_hiding_commitment = group_hiding_commitment + hiding_nonce_commitment 
+      group_hiding_commitment = group_hiding_commitment + hiding_nonce_commitment
       group_binding_commitment = group_binding_commitment + binding_nonce_commitment
-    return (group_hiding_commitment + group_binding_commitment * binding_factor) 
+    return (group_hiding_commitment + group_binding_commitment * binding_factor)
 ~~~
 
 ## Signature Challenge Computation {#dep-sig-challenge}
@@ -592,8 +592,7 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 The private output `nonce` from Participant `P_i` is stored locally and kept private
 for use in the second round. This nonce MUST NOT be reused in more than one invocation
 of FROST, and it MUST be generated from a source of secure randomness. The public output
-`comm` from Participant `P_i` is sent to the Coordinator; see {{encode-commitment}}
-for encoding recommendations.
+`comm` from Participant `P_i` is sent to the Coordinator.
 
 <!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
 
@@ -656,9 +655,8 @@ procedure to produce its own signature share.
 ~~~
 
 The output of this procedure is a signature share. Each signer then sends
-these shares back to the collector; see {{encode-sig-share}} for encoding
-recommendations. Each signer MUST delete the nonce and corresponding commitment
-after this round completes.
+these shares back to the collector. Each signer MUST delete the nonce and
+corresponding commitment after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
 signature using DeserializeElement. If validation fails, the Coordinator MUST abort
@@ -1029,7 +1027,7 @@ The procedure for splitting a secret into shares is as follows.
   secret_share_shard(s, n, t):
 
   Inputs:
-  - s, secret to be shared, an element of F, the `Scalar` field `GF(p)` of `G`. 
+  - s, secret to be shared, an element of F, the `Scalar` field `GF(p)` of `G`.
   - n, the number of shares to generate, an integer
   - t, the threshold of the secret sharing scheme, an integer
 
