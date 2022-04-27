@@ -661,7 +661,7 @@ recommendations. Each signer MUST delete the nonce and corresponding commitment
 after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
-signature using DeserializeElement. If validation fails, the Coordinator MUST abort
+signature share using DeserializeElement. If validation fails, the Coordinator MUST abort
 the protocol. If validation succeeds, the Coordinator then verifies the set of
 signature shares using the following procedure.
 
