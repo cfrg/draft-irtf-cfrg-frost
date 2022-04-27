@@ -445,9 +445,9 @@ from a commitment list.
     group_binding_commitment = G.Identity()
 
     for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      group_hiding_commitment = group_hiding_commitment + hiding_nonce_commitment 
+      group_hiding_commitment = group_hiding_commitment + hiding_nonce_commitment
       group_binding_commitment = group_binding_commitment + binding_nonce_commitment
-    return (group_hiding_commitment + group_binding_commitment * binding_factor) 
+    return (group_hiding_commitment + group_binding_commitment * binding_factor)
 ~~~
 
 ## Signature Challenge Computation {#dep-sig-challenge}
@@ -587,8 +587,7 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 The private output `nonce` from Participant `P_i` is stored locally and kept private
 for use in the second round. This nonce MUST NOT be reused in more than one invocation
 of FROST, and it MUST be generated from a source of secure randomness. The public output
-`comm` from Participant `P_i` is sent to the Coordinator; see {{encode-commitment}}
-for encoding recommendations.
+`comm` from Participant `P_i` is sent to the Coordinator.
 
 <!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
 
@@ -651,9 +650,8 @@ procedure to produce its own signature share.
 ~~~
 
 The output of this procedure is a signature share. Each signer then sends
-these shares back to the Coordinator; see {{encode-sig-share}} for encoding
-recommendations. Each signer MUST delete the nonce and corresponding commitment
-after this round completes.
+these shares back to the Coordinator. Each signer MUST delete the nonce and
+corresponding commitment after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
 signature share using DeserializeElement. If validation fails, the Coordinator MUST abort
@@ -1165,74 +1163,6 @@ We now define how the coordinator and signing participants can derive group info
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
 ~~~
-
-# Wire Format {#wire-format}
-
-Applications are responsible for encoding protocol messages between peers. This section
-contains RECOMMENDED encodings for different protocol messages as described in {{frost-spec}}.
-
-## Signing Commitment {#encode-commitment}
-
-A commitment from a signer is a pair of Element values. It can be encoded in the following manner.
-
-~~~
-  SignerID uint64;
-
-  struct {
-    SignerID id;
-    opaque D[Ne];
-    opaque E[Ne];
-  } SigningCommitment;
-~~~
-
-id
-: The SignerID.
-
-D
-: The commitment hiding factor encoded as a serialized group `Element` in `G`.
-
-E
-: The commitment binding factor encoded as a serialized group `Element` in `G`.
-
-## Signing Packages {#encode-package}
-
-The Coordinator sends "signing packages" to each Signer in Round two. Each package
-contains the list of signing commitments generated during round one along with the
-message to sign. This package can be encoded in the following manner.
-
-~~~
-struct {
-  SigningCommitment signing_commitments<1..2^16-1>;
-  opaque msg<0..2^16-1>;
-} SigningPackage;
-~~~
-
-signing_commitments
-: An list of SIGNING_COUNT SigningCommitment values, where THRESHOLD_LIMIT <= SIGNING_COUNT <= NUM_SIGNERS,
-ordered in ascending order by SigningCommitment.id. This list MUST NOT contain more than one
-SigningCommitment value corresponding to each signer. Signers MUST ignore SigningPackage values with
-duplicate SignerIDs. <!-- this requirement should move to the main body of the spec -->
-
-msg
-: The message to be signed.
-
-## Signature Share {#encode-sig-share}
-
-The output of each signer is a signature share which is sent to the Coordinator. This
-can be constructed as follows.
-
-~~~
-  struct {
-    SignerID id;
-    opaque signature_share[Ns];
-  } SignatureShare;
-~~~
-
-id
-: The SignerID.
-
-signature_share
-: The signature share from this signer encoded as a serialized `Scalar` in `GF(p)`.
 
 # Test Vectors
 
