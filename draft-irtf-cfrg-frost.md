@@ -149,14 +149,17 @@ draft-00
 The following notation and terminology are used throughout this document.
 
 * A participant is an entity that is trusted to hold a secret share.
-* `NUM_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into.
+* `MAX_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into.
   This value MUST NOT exceed 2^16-1.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
-at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
+  at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
+* `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST, where
+  THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * \|\| denotes concatenation, i.e., x \|\| y = xy.
+* nil denotes an empty byte string.
 
 Unless otherwise stated, we assume that secrets are sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG); see
@@ -178,7 +181,7 @@ is addition `+` with identity element `I`. For any elements `A` and `B` of the g
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element A with itself `r-1` times, this is denoted
-as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as the fixed generator
+as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as a fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
 operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
 scalars corresponds to `GF(p)`, which refer to as the scalar field. This document uses types
@@ -187,26 +190,20 @@ We denote equality comparison as `==` and assignment of values by `=`.
 
 We now detail a number of member functions that can be invoked on a prime-order group `G`.
 
-- G.Order(): Outputs the order of `G` (i.e. `p`).
-- G.Identity(): Outputs the identity `Element` of the group (i.e. `I`).
-- G.RandomScalar(): A member function of `G` that chooses at random a
-  `Scalar` element in GF(p).
-- G.RandomNonzeroScalar(): A member function of `G` that chooses at random a
-  non-zero `Scalar` element in GF(p).
-- G.SerializeElement(A): A member function of `G` that maps an `Element` `A`
-  to a unique byte array `buf` of fixed length `Ne`.
-- G.DeserializeElement(buf): A member function of `G` that attempts to map a
-  byte array `buf` to an `Element` `A`, and fails if the input is not a
-  valid byte representation of an element of the group. This function can
-  raise a DeserializeError if deserialization fails or `A` is the identity
-  element of the group; see {{ciphersuites}} for group-specific input validation
-  steps.
-- G.SerializeScalar(s): A member function of `G` that maps a Scalar `s`
-  to a unique byte array `buf` of fixed length `Ns`.
-- G.DeserializeScalar(buf): A member function of `G` that attempts to map a
-  byte array `buf` to a `Scalar` `s`. This function can raise a
-  DeserializeError if deserialization fails; see {{ciphersuites}} for
-  group-specific input validation steps.
+- Order(): Outputs the order of `G` (i.e. `p`).
+- Identity(): Outputs the identity `Element` of the group (i.e. `I`).
+- RandomScalar(): Outputs a random `Scalar` element in GF(p).
+- RandomNonzeroScalar(): Outputs a random non-zero `Scalar` element in GF(p).
+- SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`.
+- DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
+  and fails if the input is not a valid byte representation of an element of
+  the group. This function can raise a DeserializeError if deserialization fails
+  or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
+  input validation steps.
+- SerializeScalar(s): Maps a Scalar `s` to a unique byte array `buf` of fixed length `Ns`.
+- DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
+  This function can raise a DeserializeError if deserialization fails; see
+  {{ciphersuites}} for group-specific input validation steps.
 
 ## Cryptographic Hash Function {#dep-hash}
 
@@ -214,7 +211,7 @@ FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
 {{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
-H1, H2, and H3, where H1 and H2 map arbitrary inputs to non-zero Scalar elements of
+H1, H2, and H3, where H1 and H2 map arbitrary byte strings to Scalar elements of
 the prime-order group scalar field, and H3 is an alias for H with domain separation
 applied. The details of H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
@@ -237,16 +234,16 @@ In the single-party setting, a Schnorr signature is generated with the
 following operation.
 
 ~~~
-  schnorr_signature_generate(msg, SK):
+  schnorr_signature_generate(msg, sk):
 
   Inputs:
   - msg, message to be signed, a byte string
-  - SK, private key, a Scalar in GF(p).
+  - sk, private key, a Scalar in GF(p).
 
   Outputs: signature (R, z), a pair of scalar values
 
-  def schnorr_signature_generate(msg, SK):
-    PK = G.ScalarBaseMult(SK)
+  def schnorr_signature_generate(msg, sk):
+    PK = G.ScalarBaseMult(sk)
     k = G.RandomNonzeroScalar()
     R = G.ScalarBaseMult(k)
 
@@ -255,7 +252,7 @@ following operation.
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
-    z = k + (c * SK)
+    z = k + (c * sk)
     return (R, z)
 ~~~
 
@@ -289,7 +286,7 @@ MUST be performed when `h>1`.
 
 ## Polynomial Operations {#dep-polynomial}
 
-This section describes operations on and associated with polynomials
+This section describes operations on and associated with polynomials over Scalars
 that are used in the main signing protocol. A polynomial of degree t
 is represented as a sorted list of t coefficients. A point on the
 polynomial is a tuple (x, y), where `y = f(x)`. For notational
@@ -318,7 +315,6 @@ particular input `x`, i.e., `y = f(x)` using Horner's method.
       else:
         value += coeff
         value *= x
-
     return value
 ~~~
 
@@ -338,7 +334,7 @@ represented as a set of coefficients.
   Outputs: L_i, the i-th Lagrange coefficient
 
   Errors:
-  - "invalid parameters", if any coordinate is less than or equal to 0
+  - "invalid parameters", if any coordinate is equal to 0
 
   def derive_lagrange_coefficient(x_i, L):
     if x_i = 0:
@@ -377,7 +373,7 @@ interpolation, defined as follows.
     for point in points:
       L.append(point.x)
 
-    f_zero = F(0)
+    f_zero = 0
     for point in points:
       delta = point.y * derive_lagrange_coefficient(point.x, L)
       f_zero = f_zero + delta
@@ -461,7 +457,7 @@ This section describes the subroutine for creating the per-message challenge.
 ~~~
   Inputs:
   - group_commitment, an `Element` in `G` representing the group commitment
-  - group_public_key, public key group `Element` in `G`, corresponding to the signer secret key share.
+  - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
   - msg, the message to be signed (sent by the Coordinator).
 
   Outputs: a challenge `Scalar` value in `GF(p)`
@@ -485,10 +481,10 @@ protocol. The coordinator is a distinguished signer with the following responsib
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-FROST assumes the selection of all participants, including the dealer, signer, and
-Coordinator are all chosen external to the protocol. Note that it is possible to
-deploy the protocol without a distinguished Coordinator; see {{no-coordinator}} for
-more information.
+FROST assumes the selection of all participants, including Coordinator and set of
+signers, are all chosen external to the protocol. Note that it is possible to
+deploy the protocol without a distinguished Coordinator; see {{no-coordinator}}
+for more information.
 
 Because key generation is not specified, all signers are assumed to have the (public) group state that we refer to as "group info"
 below, and their corresponding signing key shares.
@@ -559,17 +555,16 @@ Details for round one are described in {{frost-round-one}}, and details for roun
 are described in {{frost-round-two}}. The final Aggregation step is described in
 {{frost-aggregation}}.
 
-FROST assumes reliable message delivery between Coordinator and signing participants in
-order for the protocol to complete. Messages exchanged during signing operations are all within
-the public domain. An attacker masquerading as another participant will result only in an invalid
-signature; see {{sec-considerations}}.
+FROST assumes reliable message delivery between the Coordinator and signing participants in
+order for the protocol to complete. An attacker masquerading as another participant will
+result only in an invalid signature; see {{sec-considerations}}.
 
 ## Round One - Commitment {#frost-round-one}
 
 <!-- Should we only require that the set of participants be selected and used in round 2? -->
 
-Round one involves each signer generating a pair of nonces and their corresponding public
-commitments. A nonce is a pair of Scalar values, and a commitment is a pair of Element values.
+Round one involves each signer generating nonces and their corresponding public commitments.
+A nonce is a pair of Scalar values, and a commitment is a pair of Element values.
 
 Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce)` and commitment
 `comm = (hiding_nonce_commitment, binding_nonce_commitment)`.
@@ -619,7 +614,7 @@ procedure to produce its own signature share.
   Inputs:
   - index, Index `i` of the signer. Note index will never equal `0`.
   - sk_i, Signer secret key share, a `Scalar` in `GF(p)`.
-  - group_public_key, public key corresponding to the signer secret key share, an `Element` in `G`.
+  - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
   - nonce_i, pair of `Scalar` values (hiding_nonce, binding_nonce) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
@@ -655,11 +650,11 @@ procedure to produce its own signature share.
 ~~~
 
 The output of this procedure is a signature share. Each signer then sends
-these shares back to the collector. Each signer MUST delete the nonce and
+these shares back to the Coordinator. Each signer MUST delete the nonce and
 corresponding commitment after this round completes.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
-signature using DeserializeElement. If validation fails, the Coordinator MUST abort
+signature share using DeserializeElement. If validation fails, the Coordinator MUST abort
 the protocol. If validation succeeds, the Coordinator then verifies the set of
 signature shares using the following procedure.
 
@@ -684,7 +679,7 @@ parameters, to check that the signature share is valid using the following proce
     This list MUST be sorted in ascending order by signer index.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
-  - group_public_key, the public key for the group, an `Element` in `G`.
+  - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
   - msg, the message to be signed.
 
   Outputs: True if the signature share is valid, and False otherwise.
@@ -817,7 +812,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 ## FROST(Ed448, SHAKE256)
 
-This ciphersuite uses edwards448 for the Group and SHA256 for the Hash function `H`
+This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
 The value of the contextString parameter is empty.
 
