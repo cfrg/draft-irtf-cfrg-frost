@@ -176,8 +176,9 @@ These are described in the following sections.
 
 ## Prime-Order Group {#dep-pog}
 
-FROST depends on an abelian group `G` of prime order `p`. The fundamental group operation
-is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
+FROST depends on an abelian group of prime order `p`. We represent this
+group as the object `G` that additionally defines helper functions described below. The group operation
+for `G` is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element A with itself `r-1` times, this is denoted
@@ -188,7 +189,7 @@ scalars corresponds to `GF(p)`, which refer to as the scalar field. This documen
 `Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
 We denote equality comparison as `==` and assignment of values by `=`.
 
-We now detail a number of member functions that can be invoked on a prime-order group `G`.
+We now detail a number of member functions that can be invoked on `G`.
 
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity `Element` of the group (i.e. `I`).
