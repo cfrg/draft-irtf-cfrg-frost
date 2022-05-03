@@ -177,7 +177,7 @@ These are described in the following sections.
 ## Prime-Order Group {#dep-pog}
 
 FROST depends on an abelian group of prime order `p`. We represent this
-group as the data object `G` that additionally defines helper functions described below. The group operation
+group as the object `G` that additionally defines helper functions described below. The group operation
 for `G` is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is equivalent to the repeated
