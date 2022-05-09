@@ -556,9 +556,11 @@ Details for round one are described in {{frost-round-one}}, and details for roun
 are described in {{frost-round-two}}. The final Aggregation step is described in
 {{frost-aggregation}}.
 
+
 FROST assumes reliable message delivery between the Coordinator and signing participants in
-order for the protocol to complete. An attacker masquerading as another participant will
-result only in an invalid signature; see {{sec-considerations}}.
+order for the protocol to complete. An attacker masquerading as another participant will result only in an invalid signature; see {{sec-considerations}}.
+However, in order to identify any participant which has misbehaved (resulting in the protocol aborting) to take actions such as excluding them from future signing operations,
+we assume that the network channel is additionally authenticated; confidentiality is not required.
 
 ## Round One - Commitment {#frost-round-one}
 
