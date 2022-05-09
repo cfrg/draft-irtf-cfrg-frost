@@ -153,7 +153,7 @@ The following notation and terminology are used throughout this document.
   This value MUST NOT exceed 2^16-1.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
   at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
-  This value MUST NOT exceed GF(p).
+  This value MUST NOT exceed p.
 * `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST, where
   THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
   This value MUST NOT exceed p.
