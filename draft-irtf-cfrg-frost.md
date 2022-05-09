@@ -555,7 +555,6 @@ Details for round one are described in {{frost-round-one}}, and details for roun
 are described in {{frost-round-two}}. The final Aggregation step is described in
 {{frost-aggregation}}.
 
-## Network Channel Assumptions
 
 FROST assumes reliable message delivery between the Coordinator and signing participants in
 order for the protocol to complete. An attacker masquerading as another participant will result only in an invalid signature; see {{sec-considerations}}.
