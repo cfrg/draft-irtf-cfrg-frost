@@ -983,6 +983,9 @@ Secret Sharing as described in Sections {{dep-shamir}} and {{dep-vss}} to create
 shares of `s` to be sent to all other participants. We highlight at a high level how this
 operation can be performed.
 
+The dealer is trusted to 1) generate good randomness, and 2) delete secret values after distributing shares to each participant,
+and 3) keep secret values confidential.
+
 ~~~
   Inputs:
   - s, a group secret, `Scalar` in `GF(p)`, that MUST be derived from at least `Ns` bytes of entropy
