@@ -153,8 +153,10 @@ The following notation and terminology are used throughout this document.
   This value MUST NOT exceed 2^16-1.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
   at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
+  This value MUST NOT exceed p.
 * `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST, where
   THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
+  This value MUST NOT exceed p.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
