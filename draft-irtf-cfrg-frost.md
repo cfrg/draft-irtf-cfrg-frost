@@ -323,6 +323,8 @@ particular input `x`, i.e., `y = f(x)` using Horner's method.
 
 ### Lagrange coefficients
 
+The function `derive_lagrange_coefficient` derives a Lagrange coefficient 
+to later perform polynomial interpolation, and is provided a set of x-coordinates as input.
 Lagrange coefficients are used in FROST to evaluate a polynomial
 `f` at `f(0)`, given a set of `t` other points, where `f` is
 represented as a set of coefficients.
