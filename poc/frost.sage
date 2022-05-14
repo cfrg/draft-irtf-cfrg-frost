@@ -80,7 +80,7 @@ def secret_share_shard(G, s, n, t):
     for i in range(t - 1):
         coefficients.append(G.random_scalar())
 
-    # Evaluate the polynomial for each participant, identified by their index i > 0
+    # Evaluate the polynomial for each participant, identified by their identifier i > 0
     secret_shares = []
     for x_i in range(1, n+1):
         y_i = polynomial_evaluate(G, x_i, coefficients)
@@ -163,7 +163,7 @@ def compute_challenge(H, group_commitment, group_public_key, msg):
     challenge = H.H2(challenge_input)
     return challenge
 
-def verify_signature_share(G, H, index, public_key_share, comm, sig_share, commitment_list, participant_list, group_public_key, msg):
+def verify_signature_share(G, H, identifier, public_key_share, comm, sig_share, commitment_list, participant_list, group_public_key, msg):
     # Encode the commitment list
     encoded_commitments = encode_group_commitment_list(G, commitment_list)
 
@@ -181,7 +181,7 @@ def verify_signature_share(G, H, index, public_key_share, comm, sig_share, commi
     challenge = compute_challenge(H, group_commitment, group_public_key, msg)
 
     # Compute Lagrange coefficient
-    lambda_i = derive_lagrange_coefficient(G, index, participant_list)
+    lambda_i = derive_lagrange_coefficient(G, identifier, participant_list)
 
     # Compute relation values
     l = sig_share * G.generator()
@@ -193,7 +193,7 @@ class Signer(object):
     def __init__(self, G, H, sk, pk):
         self.G = G
         self.H = H
-        self.index = sk[0]
+        self.identifier = sk[0]
         self.sk = sk[1]
         self.pk = pk
 
@@ -219,7 +219,7 @@ class Signer(object):
         group_comm = compute_group_commitment(self.G, commitment_list, binding_factor)
 
         # Compute Lagrange coefficient
-        lambda_i = derive_lagrange_coefficient(self.G, self.index, participant_list)
+        lambda_i = derive_lagrange_coefficient(self.G, self.identifier, participant_list)
 
         # Compute the per-message challenge
         challenge = compute_challenge(self.H, group_comm, self.pk, msg)
@@ -231,8 +231,8 @@ class Signer(object):
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-aggregate
     def aggregate(self, group_comm, sig_shares, participant_list, public_key_shares, comm_list, msg):
-        for index in participant_list:
-            assert(verify_signature_share(self.G, self.H, index, public_key_shares[index], comm_list[index], sig_shares[index], commitment_list, participant_list, self.pk, msg))
+        for identifier in participant_list:
+            assert(verify_signature_share(self.G, self.H, identifier, public_key_shares[identifier], comm_list[identifier], sig_shares[identifier], commitment_list, participant_list, self.pk, msg))
 
         z = 0
         for z_i in sig_shares.values():
@@ -285,8 +285,8 @@ for (fname, name, G, H) in ciphersuites:
 
     # Create signers
     signers = {}
-    for index, signer_private_key in enumerate(signer_private_keys):
-        signers[index+1] = Signer(G, H, signer_private_key, group_public_key)
+    for identifier, signer_private_key in enumerate(signer_private_keys):
+        signers[identifier+1] = Signer(G, H, signer_private_key, group_public_key)
 
     inputs = {
         "group_secret_key": to_hex(G.serialize_scalar(group_secret_key)),
@@ -294,51 +294,51 @@ for (fname, name, G, H) in ciphersuites:
         "message": to_hex(message),
         "signers": {}
     }
-    for index in signers:
-        inputs["signers"][str(index)] = {}
-        inputs["signers"][str(index)]["signer_share"] = to_hex(G.serialize_scalar(signers[index].sk))
+    for identifier in signers:
+        inputs["signers"][str(identifier)] = {}
+        inputs["signers"][str(identifier)]["signer_share"] = to_hex(G.serialize_scalar(signers[identifier].sk))
 
     # Round one: commitment
     # XXX(caw): wrap up nonces and commitments in a data structure
     nonces = {}
     comms = {}
     commitment_list = [] # XXX(caw): need a better name for this structure
-    for index in participant_list:
-        nonce_i, comm_i = signers[index].commit()
-        nonces[index] = nonce_i
-        comms[index] = comm_i
-        commitment_list.append((index, comm_i[0], comm_i[1]))
+    for identifier in participant_list:
+        nonce_i, comm_i = signers[identifier].commit()
+        nonces[identifier] = nonce_i
+        comms[identifier] = comm_i
+        commitment_list.append((identifier, comm_i[0], comm_i[1]))
 
     encoded_commitments = encode_group_commitment_list(G, commitment_list)
     binding_factor, rho_input = compute_binding_factor(H, encoded_commitments, message)
     group_comm = compute_group_commitment(G, commitment_list, binding_factor)
 
     round_one_outputs = {
-        "participants": ",".join([str(index) for index in participant_list]),
+        "participants": ",".join([str(identifier) for identifier in participant_list]),
         "group_binding_factor_input": to_hex(rho_input),
         "group_binding_factor": to_hex(G.serialize_scalar(binding_factor)),
         "signers": {}
     }
-    for index in participant_list:
-        round_one_outputs["signers"][str(index)] = {}
-        round_one_outputs["signers"][str(index)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[index][0]))
-        round_one_outputs["signers"][str(index)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[index][1]))
-        round_one_outputs["signers"][str(index)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[index][0]))
-        round_one_outputs["signers"][str(index)]["binding_nonce_commitment"] = to_hex(G.serialize(comms[index][1]))
+    for identifier in participant_list:
+        round_one_outputs["signers"][str(identifier)] = {}
+        round_one_outputs["signers"][str(identifier)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][0]))
+        round_one_outputs["signers"][str(identifier)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][1]))
+        round_one_outputs["signers"][str(identifier)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[identifier][0]))
+        round_one_outputs["signers"][str(identifier)]["binding_nonce_commitment"] = to_hex(G.serialize(comms[identifier][1]))
 
     # Round two: sign
     sig_shares = {}
-    for index in participant_list:
-        sig_share = signers[index].sign(nonces[index], message, commitment_list, participant_list)
-        sig_shares[index] = sig_share
+    for identifier in participant_list:
+        sig_share = signers[identifier].sign(nonces[identifier], message, commitment_list, participant_list)
+        sig_shares[identifier] = sig_share
 
     round_two_outputs = {
-        "participants": ",".join([str(index) for index in participant_list]),
+        "participants": ",".join([str(identifier) for identifer in participant_list]),
         "signers": {}
     }
-    for index in participant_list:
-        round_two_outputs["signers"][str(index)] = {}
-        round_two_outputs["signers"][str(index)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[index]))
+    for identifier in participant_list:
+        round_two_outputs["signers"][str(identifier)] = {}
+        round_two_outputs["signers"][str(identifier)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[identifier]))
 
     # Final step: aggregate
     sig = signers[1].aggregate(group_comm, sig_shares, participant_list, signer_public_keys, comms, message)
