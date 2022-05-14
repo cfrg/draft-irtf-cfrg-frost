@@ -125,7 +125,7 @@ draft-03
 - Specify signature serialization based on element and scalar serialization (#85).
 - Fix hash function domain separation formatting (#83).
 - Make trusted dealer key generation deterministic (#104).
-- Add additional constraints on participant identifiers and nonce usage (#105, #103, #98, #97).
+- Add additional constraints on participant indexes and nonce usage (#105, #103, #98, #97).
 - Apply various editorial improvements.
 
 draft-02
