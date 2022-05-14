@@ -394,16 +394,16 @@ commitments into a bytestring that is used in the FROST protocol.
 ~~~
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list of commitments issued by each signer,
-    where each element in the list indicates the signer index i and their
+    where each element in the list indicates the signer identifier i and their
     two commitment Element values (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted in ascending order
-    by signer index.
+    by signer identifier.
 
   Outputs: A byte string containing the serialized representation of commitment_list.
 
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
-    for (index, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      encoded_commitment = encode_uint16(index) ||
+    for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+      encoded_commitment = encode_uint16(identifier) ||
                            G.SerializeElement(hiding_nonce_commitment) ||
                            G.SerializeElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
@@ -438,9 +438,9 @@ from a commitment list.
 ~~~
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list of
-    commitments issued by each signer, where each element in the list indicates the signer index i and their
+    commitments issued by each signer, where each element in the list indicates the signer identifier i and their
     two commitment Element values (hiding_nonce_commitment_i, binding_nonce_commitment_i).
-    This list MUST be sorted in ascending order by signer index.
+    This list MUST be sorted in ascending order by signer identifier.
   - binding_factor, a Scalar
 
   Outputs: An `Element` in `G` representing the group commitment
@@ -619,21 +619,21 @@ procedure to produce its own signature share.
 
 ~~~
   Inputs:
-  - index, Index `i` of the signer. Note index will never equal `0`.
+  - identifier, Identifier `i` of the signer. Note identifier will never equal `0`.
   - sk_i, Signer secret key share, a `Scalar` in `GF(p)`.
   - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
   - nonce_i, pair of `Scalar` values (hiding_nonce, binding_nonce) generated in round one.
   - msg, the message to be signed (sent by the Coordinator).
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
-    list of commitments issued in Round 1 by each signer, where each element in the list indicates the signer index j and their
+    list of commitments issued in Round 1 by each signer, where each element in the list indicates the signer identifier j and their
     two commitment `Element` values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by signer index.
+    This list MUST be sorted in ascending order by signer identifier.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
 
   Outputs: a `Scalar` value  in `GF(p)` representing the signature share
 
-  def sign(index, sk_i, group_public_key, nonce_i, msg, commitment_list, participant_list):
+  def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list, participant_list):
     # Encode the commitment list
     encoded_commitments = encode_group_commitment_list(commitment_list)
 
@@ -644,7 +644,7 @@ procedure to produce its own signature share.
     group_commitment = compute_group_commitment(commitment_list, binding_factor)
 
     # Compute Lagrange coefficient
-    lambda_i = derive_lagrange_coefficient(index, participant_list)
+    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -675,15 +675,15 @@ parameters, to check that the signature share is valid using the following proce
 
 ~~~
   Inputs:
-  - index, Index `i` of the signer. Note index will never equal `0`.
+  - identifier, Identifier `i` of the signer. Note identifier will never equal `0`.
   - PK_i, the public key for the ith signer, where `PK_i = G.ScalarBaseMult(sk_i)`, an `Element` in `G`
   - comm_i, pair of `Element` values in `G` (hiding_nonce_commitment, binding_nonce_commitment) generated
     in round one from the ith signer.
   - sig_share_i, a `Scalar` value in `GF(p)` indicating the signature share as produced in round two from the ith signer.
   - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a list of commitments
-    issued in Round 1 by each signer, where each element in the list indicates the signer index j and their
+    issued in Round 1 by each signer, where each element in the list indicates the signer identifier j and their
     two commitment `Element` values in `G` (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by signer index.
+    This list MUST be sorted in ascending order by signer identifier.
   - participant_list, a set containing identifiers for each signer, similarly of length
     NUM_SIGNERS (sent by the Coordinator).
   - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
@@ -691,7 +691,7 @@ parameters, to check that the signature share is valid using the following proce
 
   Outputs: True if the signature share is valid, and False otherwise.
 
-  def verify_signature_share(index, PK_i, comm_i, sig_share_i, commitment_list,
+  def verify_signature_share(identifier, PK_i, comm_i, sig_share_i, commitment_list,
                              participant_list, group_public_key, msg):
     # Encode the commitment list
     encoded_commitments = encode_group_commitment_list(commitment_list)
@@ -710,7 +710,7 @@ parameters, to check that the signature share is valid using the following proce
     challenge = compute_challenge(group_commitment, group_public_key, msg)
 
     # Compute Lagrange coefficient
-    lambda_i = derive_lagrange_coefficient(index, participant_list)
+    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
@@ -1192,12 +1192,12 @@ Each test vector consists of the following information.
 - Signer input parameters: This lists the signing key share for each of the
   NUM_SIGNERS signers.
 - Round one parameters and outputs: This lists the NUM_SIGNERS participants engaged
-  in the protocol, identified by their integer index, the hiding and binding commitment
+  in the protocol, identified by their integer identifier, the hiding and binding commitment
   values produced in {{frost-round-one}}, as well as the resulting group binding factor input,
   computed in part from the group commitment list encoded as described in {{dep-encoding}},
   and group binding factor as computed in {{frost-round-two}}).
 - Round two parameters and outputs: This lists the NUM_SIGNERS participants engaged
-  in the protocol, identified by their integer index, along with their corresponding
+  in the protocol, identified by their integer identifier, along with their corresponding
   output signature share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
 
