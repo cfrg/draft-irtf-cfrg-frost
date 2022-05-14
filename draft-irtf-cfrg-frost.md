@@ -291,8 +291,9 @@ MUST be performed when `h>1`.
 
 This section describes operations on and associated with polynomials over Scalars
 that are used in the main signing protocol. A polynomial of degree t
-is represented as a sorted list of t coefficients. A point on the
-polynomial is a tuple (x, y), where `y = f(x)`. For notational
+is represented as a list of t coefficients, where the constant term of the polynomial
+is in the zeroth position and the highest-degree coefficient is in the last position. 
+A point on the polynomial is a tuple (x, y), where `y = f(x)`. For notational
 convenience, we refer to the x-coordinate and y-coordinate of a
 point p as `p.x` and `p.y`, respectively.
 
