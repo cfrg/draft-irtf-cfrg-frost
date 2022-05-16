@@ -362,7 +362,7 @@ Lagrange coefficients are used in FROST to evaluate a polynomial
 ### Deriving the constant term of a polynomial
 
 Secret sharing requires "splitting" a secret, which is represented as
-a constant term of some polynomial `f` of degree `t`. Recovering the
+a constant term of some polynomial `f` of degree `t-1`. Recovering the
 constant term occurs with a set of `t` points using polynomial
 interpolation, defined as follows.
 
@@ -385,6 +385,8 @@ interpolation, defined as follows.
 
     return f_zero
 ~~~
+
+Note that these coefficients can be computed once and then stored, as these values remain constant across FROST signing sessions.
 
 ## Commitment List Encoding {#dep-encoding}
 
