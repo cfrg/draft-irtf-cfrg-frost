@@ -1000,7 +1000,7 @@ and 3) keep secret values confidential.
 
   Outputs:
   - signer_private_keys, `n` shares of the secret key `s`, each a `Scalar` value in `GF(p)`.
-  - vss_commitment, a vector commitment of `Element`s in `G`, to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is g^s.
+  - vss_commitment, a vector commitment of `Element`s in `G`, to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is G.ScalarBaseMult(s).
 
   def trusted_dealer_keygen(s, n, t):
     signer_private_keys, coefficients = secret_share_shard(secret_key, n, t)
