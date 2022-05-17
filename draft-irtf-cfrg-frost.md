@@ -197,7 +197,11 @@ We now detail a number of member functions that can be invoked on `G`.
 - Identity(): Outputs the identity `Element` of the group (i.e. `I`).
 - RandomScalar(): Outputs a random `Scalar` element in GF(p).
 - RandomNonzeroScalar(): Outputs a random non-zero `Scalar` element in GF(p).
-- SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`.
+- SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`,
+  and fails if the input is not a valid byte representation of an element of
+  the group. This function can raise a SerializeError if serialization fails
+  or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
+  input validation steps.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not a valid byte representation of an element of
   the group. This function can raise a DeserializeError if deserialization fails
