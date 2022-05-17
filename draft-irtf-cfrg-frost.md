@@ -888,7 +888,7 @@ in this document assumes the following threat model.
 the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming fewer than `(t-1)` corrupted signers. So long as an adverary
+* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
 corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
@@ -1010,8 +1010,8 @@ and 3) keep secret values confidential.
 ~~~
 
 It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
-After receiving their secret key share and `C` each participant MUST perform `vss_verify(secret_key_share_i, C)`.
-All participant MUST have the same view of `C`.
+After receiving their secret key share and `C`, participants MUST abort if they do not have the same view of `C`.
+Otheriwise, each participant MUST perform `vss_verify(secret_key_share_i, C)`, and abort if the check fails.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
