@@ -888,7 +888,7 @@ in this document assumes the following threat model.
 the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
+* Unforgeability assuming fewer than `(t-1)` corrupted signers. So long as an adverary
 corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
@@ -1000,7 +1000,7 @@ and 3) keep secret values confidential.
 
   Outputs:
   - signer_private_keys, `n` shares of the secret key `s`, each a `Scalar` value in `GF(p)`.
-  - vss_commitment, a vector commitment of `Element`s in `G`, to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
+  - vss_commitment, a vector commitment of `Element`s in `G`, to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is g^s.
 
   def trusted_dealer_keygen(s, n, t):
     signer_private_keys, coefficients = secret_share_shard(secret_key, n, t)
@@ -1011,7 +1011,7 @@ and 3) keep secret values confidential.
 
 It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
 After receiving their secret key share and `C` each participant MUST perform `vss_verify(secret_key_share_i, C)`.
-It is assumed that all participant have the same view of `C`.
+All participant MUST have the same view of `C`.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
