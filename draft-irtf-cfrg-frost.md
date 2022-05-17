@@ -734,7 +734,7 @@ signature.
 
   Outputs: (R, z), a Schnorr signature consisting of an `Element` R and `Scalar` z.
 
-  def frost_aggregate(group_commitment, sig_shares):
+  def aggregate(group_commitment, sig_shares):
     z = 0
     for z_i in sig_shares:
       z = z + z_i
@@ -933,15 +933,15 @@ describe how to perform FROST signing among signers without this coordinator rol
 We assume that every participant receives as input from an external source the
 message to be signed prior to performing the protocol.
 
-Every participant begins by performing `frost_commit()` as is done in the setting
+Every participant begins by performing `commit()` as is done in the setting
 where a coordinator is used. However, instead of sending the commitment
 `SigningCommitment` to the coordinator, every participant instead will publish
 this commitment to every other participant. Then, in the second round, instead of
 receiving a `SigningPackage` from the coordinator, signers will already have
-sufficient information to perform signing. They will directly perform `frost_sign`.
+sufficient information to perform signing. They will directly perform `sign`.
 All participants will then publish a `SignatureShare` to one another. After having
 received all signature shares from all other signers, each signer will then perform
-`frost_verify` and then `frost_aggregate` directly.
+`verify_signature_share` and then `aggregate` directly.
 
 The requirements for the underlying network channel remain the same in the setting
 where all participants play the role of the coordinator, in that all messages that
