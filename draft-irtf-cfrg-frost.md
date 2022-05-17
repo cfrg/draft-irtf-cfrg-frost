@@ -157,6 +157,7 @@ The following notation and terminology are used throughout this document.
 * `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
   THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
   This value MUST NOT exceed p.
+* Each participant is represented by an identifier that is an integer in the range between 1 and NUM_SIGNERS. 
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
