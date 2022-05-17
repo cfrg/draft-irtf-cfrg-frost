@@ -154,7 +154,7 @@ The following notation and terminology are used throughout this document.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
   at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
   This value MUST NOT exceed p.
-* `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST, where
+* `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
   THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
   This value MUST NOT exceed p.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
@@ -292,7 +292,7 @@ MUST be performed when `h>1`.
 This section describes operations on and associated with polynomials over Scalars
 that are used in the main signing protocol. A polynomial of degree t
 is represented as a list of t coefficients, where the constant term of the polynomial
-is in the first position and the highest-degree coefficient is in the last position. 
+is in the first position and the highest-degree coefficient is in the last position.
 A point on the polynomial is a tuple (x, y), where `y = f(x)`. For notational
 convenience, we refer to the x-coordinate and y-coordinate of a
 point p as `p.x` and `p.y`, respectively.
@@ -324,7 +324,7 @@ particular input `x`, i.e., `y = f(x)` using Horner's method.
 
 ### Lagrange coefficients
 
-The function `derive_lagrange_coefficient` derives a Lagrange coefficient 
+The function `derive_lagrange_coefficient` derives a Lagrange coefficient
 to later perform polynomial interpolation, and is provided a set of x-coordinates as input.
 Lagrange coefficients are used in FROST to evaluate a polynomial
 `f` at point 0, i.e., `f(0)`, given a set of `t` other points.
@@ -362,13 +362,13 @@ Lagrange coefficients are used in FROST to evaluate a polynomial
 ### Deriving the constant term of a polynomial
 
 Secret sharing requires "splitting" a secret, which is represented as
-a constant term of some polynomial `f` of degree `t-1`. Recovering the
-constant term occurs with a set of `t` points using polynomial
+a constant term of some polynomial `f` of degree `THRESHOLD_LIMIT-1`. Recovering the
+constant term occurs with a set of `THRESHOLD_LIMIT` points using polynomial
 interpolation, defined as follows.
 
 ~~~
   Inputs:
-  - points, a set of `t` points on a polynomial f, each a tuple of two
+  - points, a set of `THRESHOLD_LIMIT` points on a polynomial f, each a tuple of two
     scalar values representing the x and y coordinates
 
   Outputs: The constant term of f, i.e., f(0)
@@ -888,8 +888,8 @@ in this document assumes the following threat model.
 the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
-corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
+* Unforgeability assuming less than `(THRESHOLD_LIMIT-1)` corrupted signers. So long as an adverary
+corrupts fewer than `(THRESHOLD_LIMIT-1)` participants, the scheme remains secure against EUF-CMA attacks.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
 denial of service attack. A denial of service would include any action which either
@@ -996,14 +996,14 @@ and 3) keep secret values confidential.
   Inputs:
   - s, a group secret, `Scalar` in `GF(p)`, that MUST be derived from at least `Ns` bytes of entropy
   - n, the number of shares to generate, an integer
-  - t, the threshold of the secret sharing scheme, an integer
+  - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
 
   Outputs:
   - signer_private_keys, `n` shares of the secret key `s`, each a `Scalar` value in `GF(p)`.
   - vss_commitment, a vector commitment of `Element`s in `G`, to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is s.
 
-  def trusted_dealer_keygen(s, n, t):
-    signer_private_keys, coefficients = secret_share_shard(secret_key, n, t)
+  def trusted_dealer_keygen(s, n, THRESHOLD_LIMIT):
+    signer_private_keys, coefficients = secret_share_shard(secret_key, n, THRESHOLD_LIMIT)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
     return signer_private_keys, vss_commitment
@@ -1021,7 +1021,7 @@ and integrity. Mutually authenticated TLS is one possible deployment option.
 ## Shamir Secret Sharing {#dep-shamir}
 
 In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` participants
-in such a way that any cooperating subset of `t` participants can recover the
+in such a way that any cooperating subset of `THRESHOLD_LIMIT` participants can recover the
 secret. There are two basic steps in this scheme: (1) splitting a secret into
 multiple shares, and (2) combining shares to reveal the resulting secret.
 
@@ -1031,38 +1031,38 @@ the scalar field of the prime-order group `G`.
 The procedure for splitting a secret into shares is as follows.
 
 ~~~
-  secret_share_shard(s, n, t):
+  secret_share_shard(s, n, THRESHOLD_LIMIT):
 
   Inputs:
   - s, secret to be shared, an element of F, the `Scalar` field `GF(p)` of `G`.
-  - n, the number of shares to generate, an integer
-  - t, the threshold of the secret sharing scheme, an integer
+  - MAX_SIGNERS, the number of shares to generate, an integer
+  - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - secret_key_shares, A list of n secret shares, which is a tuple
+  - secret_key_shares, A list of MAX_SIGNERS number of secret shares, which is a tuple
   consisting of the participant identifier and the key share, each of
   which is a `Scalar` element of F, the `Scalar` field `GF(p)` of `G`.
   - coefficients, a vector of the t coefficients which uniquely determine
   a polynomial f.
 
   Errors:
-  - "invalid parameters", if t > n or if t is less than 2
+  - "invalid parameters", if THRESHOLD_LIMIT > n or if THRESHOLD_LIMIT is less than 2
 
-  def secret_share_shard(s, n, t):
-    if t > n:
+  def secret_share_shard(s, n, THRESHOLD_LIMIT):
+    if THRESHOLD_LIMIT > n:
       raise "invalid parameters"
-    if t < 2:
+    if THRESHOLD_LIMIT < 2:
       raise "invalid parameters"
 
     # Generate random coefficients for the polynomial, yielding
-    # a polynomial of degree (t - 1)
+    # a polynomial of degree (THRESHOLD_LIMIT - 1)
     coefficients = [s]
-    for i in range(t - 1):
+    for i in range(1, THRESHOLD_LIMIT):
       coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
     secret_key_shares = []
-    for x_i in range(1, n + 1):
+    for x_i in range(1, MAX_SIGNERS + 1):
       y_i = polynomial_evaluate(x_i, coefficients)
       secret_key_share_i = (x_i, y_i)
       secret_key_share.append(secret_key_share_i)
@@ -1075,22 +1075,22 @@ evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i
 and the list of these shares as `shares`.
 `i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
-The procedure for combining a `shares` list of length `t` to recover the
+The procedure for combining a `shares` list of length `THRESHOLD_LIMIT` to recover the
 secret `s` is as follows.
 
 ~~~
   secret_share_combine(shares):
 
   Inputs:
-  - shares, a list of t secret shares, each a tuple (i, f(i))
+  - shares, a list of at minimum THRESHOLD_LIMIT secret shares, each a tuple (i, f(i))
 
   Outputs: The resulting secret s, a `Scalar` in `GF(p)`, that was previously split into shares
 
   Errors:
-  - "invalid parameters", if less than t input shares are provided
+  - "invalid parameters", if less than THRESHOLD_LIMIT input shares are provided
 
   def secret_share_combine(shares):
-    if len(shares) < t:
+    if len(shares) < THRESHOLD_LIMIT:
       raise "invalid parameters"
     s = polynomial_interpolation(shares)
     return s
@@ -1105,13 +1105,13 @@ is the constant term. This check ensure that all participants have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
 the correct secret.
 
-The procedure for committing to a polynomial `f` of degree `t-1` is as follows.
+The procedure for committing to a polynomial `f` of degree `THRESHOLD_LIMIT-1` is as follows.
 
 ~~~
     vss_commit(coeffs):
 
     Inputs:
-    - coeffs, a vector of the t coefficients which uniquely determine
+    - coeffs, a vector of the THRESHOLD_LIMIT coefficients which uniquely determine
     a polynomial f.
 
     Outputs: a commitment vss_commitment, which is a vector commitment to each of the
