@@ -154,7 +154,7 @@ The following notation and terminology are used throughout this document.
 * `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
   at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
   This value MUST NOT exceed p.
-* `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST, where
+* `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
   THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
   This value MUST NOT exceed p.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
@@ -1035,11 +1035,11 @@ The procedure for splitting a secret into shares is as follows.
 
   Inputs:
   - s, secret to be shared, an element of F, the `Scalar` field `GF(p)` of `G`.
-  - n, the number of shares to generate, an integer
+  - MAX_SIGNERS, the number of shares to generate, an integer
   - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - secret_key_shares, A list of n secret shares, which is a tuple
+  - secret_key_shares, A list of MAX_SIGNERS number of secret shares, which is a tuple
   consisting of the participant identifier and the key share, each of
   which is a `Scalar` element of F, the `Scalar` field `GF(p)` of `G`.
   - coefficients, a vector of the t coefficients which uniquely determine
@@ -1057,12 +1057,12 @@ The procedure for splitting a secret into shares is as follows.
     # Generate random coefficients for the polynomial, yielding
     # a polynomial of degree (THRESHOLD_LIMIT - 1)
     coefficients = [s]
-    for i in range(THRESHOLD_LIMIT - 1):
+    for i in range(1, THRESHOLD_LIMIT):
       coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
     secret_key_shares = []
-    for x_i in range(1, n + 1):
+    for x_i in range(1, MAX_SIGNERS + 1):
       y_i = polynomial_evaluate(x_i, coefficients)
       secret_key_share_i = (x_i, y_i)
       secret_key_share.append(secret_key_share_i)
@@ -1082,7 +1082,7 @@ secret `s` is as follows.
   secret_share_combine(shares):
 
   Inputs:
-  - shares, a list of THRESHOLD_LIMIT secret shares, each a tuple (i, f(i))
+  - shares, a list of at minimum THRESHOLD_LIMIT secret shares, each a tuple (i, f(i))
 
   Outputs: The resulting secret s, a `Scalar` in `GF(p)`, that was previously split into shares
 
