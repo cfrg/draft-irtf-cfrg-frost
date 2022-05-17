@@ -888,7 +888,7 @@ in this document assumes the following threat model.
 the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming at most `(t-1)` corrupted signers. So long as an adverary
+* Unforgeability assuming at most `(t-1)` corrupted signers. So long as an adversary
 corrupts fewer than `t` participants, the scheme remains secure against EUF-CMA attacks.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
