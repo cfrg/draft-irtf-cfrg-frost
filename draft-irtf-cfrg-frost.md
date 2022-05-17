@@ -888,8 +888,8 @@ in this document assumes the following threat model.
 the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming less than `(t-1)` corrupted signers. So long as an adverary
-corrupts fewer than `(t-1)` participants, the scheme remains secure against EUF-CMA attacks.
+* Unforgeability assuming at most `(t-1)` corrupted signers. So long as an adverary
+corrupts fewer than `t` participants, the scheme remains secure against EUF-CMA attacks.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
 denial of service attack. A denial of service would include any action which either
@@ -985,7 +985,7 @@ we employ a slightly adapted version here.
 
 One possible key generation mechanism is to depend on a trusted dealer, wherein the
 dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
-Secret Sharing as described in Sections {{dep-shamir}} and {{dep-vss}} to create secret
+Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
 shares of `s` to be sent to all other participants. We highlight at a high level how this
 operation can be performed.
 
