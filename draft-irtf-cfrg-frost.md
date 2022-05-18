@@ -215,8 +215,8 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
 {{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
 H1, H2, and H3, where H1 and H2 map arbitrary byte strings to Scalar elements of
-the prime-order group scalar field, and H3 is an alias for H with domain separation
-applied. The details of H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}}
+the prime-order group scalar field, and H3 is an alias for H with a domain separator. 
+The details of H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
 # Helper functions {#helpers}
@@ -243,7 +243,7 @@ following operation.
   - msg, message to be signed, a byte string
   - sk, private key, a Scalar in GF(p).
 
-  Outputs: signature (R, z), a pair of scalar values
+  Outputs: signature (R, z), a pair consisting of (Element, Scalar) values 
 
   def schnorr_signature_generate(msg, sk):
     PK = G.ScalarBaseMult(sk)
@@ -306,8 +306,8 @@ particular input `x`, i.e., `y = f(x)` using Horner's method.
   polynomial_evaluate(x, coeffs):
 
   Inputs:
-  - x, input at which to evaluate the polynomial, a scalar
-  - coeffs, the polynomial coefficients, a list of scalars
+  - x, input at which to evaluate the polynomial, a Scalar
+  - coeffs, the polynomial coefficients, a list of Scalars
 
   Outputs: Scalar result of the polynomial evaluated at input x
 
@@ -333,8 +333,8 @@ Lagrange coefficients are used in FROST to evaluate a polynomial
   derive_lagrange_coefficient(x_i, L):
 
   Inputs:
-  - x_i, an x-coordinate contained in L, a scalar
-  - L, the set of x-coordinates, each a scalar
+  - x_i, an x-coordinate contained in L, a Scalar
+  - L, the set of x-coordinates, each a Scalar
 
   Outputs: L_i, the i-th Lagrange coefficient
 
@@ -369,7 +369,8 @@ interpolation, defined as follows.
 ~~~
   Inputs:
   - points, a set of `THRESHOLD_LIMIT` points on a polynomial f, each a tuple of two
-    scalar values representing the x and y coordinates
+    Scalar values representing the x and y coordinates
+
 
   Outputs: The constant term of f, i.e., f(0)
 
