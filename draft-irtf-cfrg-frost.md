@@ -891,7 +891,7 @@ The value of the contextString parameter is "FROST-P256-SHA256".
     the curve, and that the point is not the point at infinity.
     If these checks fail, deserialization returns an error.
   - SerializeNonIdentityElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SECG}}.  Additionally, this function validates that the element is not the group       identity element.
+    method according to {{SECG}}.  Additionally, this function validates that the element is not the group identity element.
   - DeserializeNonIdentityElement: Implemented by attempting to deserialize a public key using
     the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
