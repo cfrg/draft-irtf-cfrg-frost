@@ -199,27 +199,22 @@ We now detail a number of member functions that can be invoked on `G`.
 - RandomNonzeroScalar(): Outputs a random non-zero `Scalar` element in GF(p).
 - SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`,
   and fails if the input is not a valid byte representation of an element of
+  the group. This function can raise a SerializeError if serialization fails; see 
+  {{ciphersuites}} for  group-specific input validation steps.
+- DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
+  and fails if the input is not a valid byte representation of an element of
+  the group. This function can raise a DeserializeError if deserialization fails; see 
+  {{ciphersuites}} for group-specific input validation steps.
+- SerializeNonIdentityElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`,
+  and fails if the input is not a valid byte representation of an element of
   the group. This function can raise a SerializeError if serialization fails
   or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
   input validation steps.
-- DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
+- DeserializeNonIdentityElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not a valid byte representation of an element of
   the group. This function can raise a DeserializeError if deserialization fails
   or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
   input validation steps.
-- SerializePublicKey(): Maps a public key Element` `PK` to a unique byte array `buf` of fixed length `Ne`,
-  and fails if the input is not a valid byte representation. `PK` can be the identity element,
-  to ensure uniform sampling of `sk` over `GF(p)`.
-- DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
-  and fails if the input is not a valid byte representation of an element of
-  the group. This function can raise a DeserializeError if deserialization fails
-  or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
-  input validation steps.
-- DeserializePublicKey(buf): Attempts to map a byte array `buf` to an `Element` `A`,
-  and fails if the input is not a valid byte representation of an element of
-  the group. This function can raise a DeserializeError if deserialization fails 
-  (but this element is allowed to be the identity);
-  see {{ciphersuites}} for group-specific input validation steps.
 - SerializeScalar(s): Maps a Scalar `s` to a unique byte array `buf` of fixed length `Ns`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
   This function can raise a DeserializeError if deserialization fails; see
@@ -268,7 +263,7 @@ following operation.
     R = G.ScalarBaseMult(k)
 
     comm_enc = G.SerializeElement(R)
-    pk_enc = G.SerializePublicKey(PK)
+    pk_enc = G.SerializeElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
@@ -294,7 +289,7 @@ MUST be performed when `h>1`.
 
   def schnorr_signature_verify(msg, sig = (R, z), PK):
     comm_enc = G.SerializeElement(R)
-    pk_enc = G.SerializePublicKey(PK)
+    pk_enc = G.SerializeElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
@@ -423,8 +418,8 @@ commitments into a bytestring that is used in the FROST protocol.
     encoded_group_commitment = nil
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       encoded_commitment = encode_uint16(identifier) ||
-                           G.SerializeElement(hiding_nonce_commitment) ||
-                           G.SerializeElement(binding_nonce_commitment)
+                           G.SerializeNonIdentityElement(hiding_nonce_commitment) ||
+                           G.SerializeNonIdentityElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
     return encoded_group_commitment
 ~~~
@@ -796,6 +791,10 @@ The value of the contextString parameter is empty.
   - Cofactor (`h`): 8
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
+  - SerializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
+    Additionally, this function validates that the element is not the group
+    identity element.
+  - DeserializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
@@ -824,6 +823,12 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
   - Cofactor (`h`): 1
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
+  - SerializeNonIdentityElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
+    Additionally, this function validates that the element is not the group
+    identity element.
+  - DeserializeNonIdentityElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
@@ -846,6 +851,10 @@ The value of the contextString parameter is empty.
   - Cofactor (`h`): 4
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
+  - SerializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
+    Additionally, this function validates that the element is not the group
+    identity element.
+  - DeserializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
   - SerializeScalar: Implemented by outputting the little-endian 48-byte encoding of
@@ -875,6 +884,15 @@ The value of the contextString parameter is "FROST-P256-SHA256".
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
+    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
+    and then performs partial public-key validation as defined in section 5.6.2.3.4 of
+    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
+    coordinates of the resulting point are in the correct range, that the point is on
+    the curve, and that the point is not the point at infinity.
+    If these checks fail, deserialization returns an error.
+  - SerializeNonIdentityElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SECG}}.  Additionally, this function validates that the element is not the group       identity element.
+  - DeserializeNonIdentityElement: Implemented by attempting to deserialize a public key using
     the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
     {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
