@@ -800,6 +800,8 @@ The value of the contextString parameter is empty.
 - Group: edwards25519 {{!RFC8032}}
   - Cofactor (`h`): 8
   - SerializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element.
   - DeserializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
@@ -850,6 +852,8 @@ The value of the contextString parameter is empty.
 - Group: edwards448 {{!RFC8032}}
   - Cofactor (`h`): 4
   - SerializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element.
   - DeserializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
@@ -879,6 +883,8 @@ The value of the contextString parameter is "FROST-P256-SHA256".
   - Cofactor (`h`): 1
   - SerializeNonIdentityElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element.
   - DeserializeNonIdentityElement: Implemented by attempting to deserialize a public key using
     the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
