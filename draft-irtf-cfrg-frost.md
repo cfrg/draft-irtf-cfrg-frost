@@ -488,7 +488,7 @@ This section describes the subroutine for creating the per-message challenge.
 
   def compute_challenge(group_commitment, group_public_key, msg):
     group_comm_enc = G.SerializeElement(group_commitment)
-    group_public_key_enc = G.SerializeElement(group_public_key)
+    group_public_key_enc = G.SerializePublicKey(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg
     challenge = H2(challenge_input)
     return challenge
