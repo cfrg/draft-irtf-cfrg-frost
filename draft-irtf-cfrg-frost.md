@@ -224,12 +224,49 @@ for more details about each.
 Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
 
+- Nonce generation, {{dep-nonces}}
 - Schnorr signatures, {{dep-schnorr}};
 - Polynomial operations, {{dep-polynomial}};
 - Encoding operations, {{dep-encoding}};
 - Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}
 
-This sections describes these operations in more detail.
+These sections describes these operations in more detail.
+
+## Nonce generation {#dep-nonces}
+
+Straightforward nonce generation is simple:
+
+~~~
+  nonce_generate():
+
+  Outputs: Scalar nonce
+
+  def nonce_generate():
+    return G.RandomNonzeroScalar()
+~~~
+
+This fully relies on the good randomness of the random number generation powering `G.RandomNonZeroScalar()`.
+You may choose to generate randomness to combine with the secret key to hedge against a bad RNG, to create a domain-separated hash function from the ciphersuite hash function `H`:
+
+~~~
+  nonce_generate(secret_share):
+  
+  Inputs:
+  - secret_share, a Scalar in GF(p).
+
+  Outputs: Scalar nonce
+
+  def nonce_generate(secret_share):
+    k = G.RandomNonzeroScalar()
+
+    k_enc = G.SerializeScalar(k)
+    secret_share_enc = G.SerializeScalar(secret_share)
+    hash_input = contextString || "nonce" || pk_enc || k_enc
+    nonce_bytes = H(hash_input)
+
+    return G.DeserializeScalar(nonce_bytes)
+~~~
+
 
 ## Schnorr Signature Operations {#dep-schnorr}
 
