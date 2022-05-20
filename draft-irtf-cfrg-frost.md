@@ -261,7 +261,7 @@ You may choose to generate randomness to combine with the secret key to hedge ag
 
     k_enc = G.SerializeScalar(k)
     secret_share_enc = G.SerializeScalar(secret_share)
-    hash_input = contextString || "nonce" || pk_enc || k_enc
+    hash_input = contextString || "nonce" || secret_share_enc || k_enc
     nonce_bytes = H(hash_input)
 
     return G.DeserializeScalar(nonce_bytes)
