@@ -214,9 +214,9 @@ FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
 {{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
-H1, H2, and H3, where H1 and H2 map arbitrary byte strings to Scalar elements of
+H1, H2, H3, and H4, where H1, H2, and H4 map arbitrary byte strings to Scalar elements of
 the prime-order group scalar field, and H3 is an alias for H with a domain separator. 
-The details of H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}}
+The details of H1, H2, H3, and H4 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
 # Helper functions {#helpers}
@@ -234,37 +234,23 @@ These sections describes these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
-Straightforward nonce generation is simple:
+To hedge against a bad RNG, we generate nocnes by sourcing fresh randomness and 
+combine with the secret key, to create a domain-separated hash function from 
+the ciphersuite hash function `H`, `H4`:
 
 ~~~
-  nonce_generate():
-
-  Outputs: Scalar nonce
-
-  def nonce_generate():
-    return G.RandomNonzeroScalar()
-~~~
-
-This fully relies on the good randomness of the random number generation powering `G.RandomNonZeroScalar()`.
-You may choose to generate randomness to combine with the secret key to hedge against a bad RNG, to create a domain-separated hash function from the ciphersuite hash function `H`:
-
-~~~
-  nonce_generate(secret_share):
+  nonce_generate(secret):
   
   Inputs:
-  - secret_share, a Scalar in GF(p).
+  - secret, a Scalar in GF(p).
 
   Outputs: Scalar nonce
 
-  def nonce_generate(secret_share):
+  def nonce_generate(secret):
     k = G.RandomNonzeroScalar()
-
     k_enc = G.SerializeScalar(k)
-    secret_share_enc = G.SerializeScalar(secret_share)
-    hash_input = contextString || "nonce" || secret_share_enc || k_enc
-    nonce_bytes = H(hash_input)
-
-    return G.DeserializeScalar(nonce_bytes)
+    secret_enc = G.SerializeScalar(secret)
+    return H4(k_enc || secret_enc) 
 ~~~
 
 
@@ -284,7 +270,7 @@ following operation.
 
   def schnorr_signature_generate(msg, sk):
     PK = G.ScalarBaseMult(sk)
-    k = G.RandomNonzeroScalar()
+    k = nonce_generate(sk)
     R = G.ScalarBaseMult(k)
 
     comm_enc = G.SerializeElement(R)
@@ -617,13 +603,13 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 `comm = (hiding_nonce_commitment, binding_nonce_commitment)`.
 
 ~~~
-  Inputs: None
+  Inputs: sk, the secret key share, a Scalar
 
   Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs.
 
-  def commit():
-    hiding_nonce = G.RandomNonzeroScalar()
-    binding_nonce = G.RandomNonzeroScalar()
+  def commit(sk):
+    hiding_nonce = nonce_generate(sk)
+    binding_nonce = nonce_generate(sk)
     hiding_nonce_commitment = G.ScalarBaseMult(hiding_nonce)
     binding_nonce_commitment = G.ScalarBaseMult(binding_nonce)
     nonce = (hiding_nonce, binding_nonce)
@@ -832,6 +818,9 @@ The value of the contextString parameter is empty.
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
   - H3(m): Implemented as an alias for H, i.e., H(m).
+  - H4(m): Implemented by computing H("nonce" || m), interpreting the lower
+    32 bytes as a little-endian integer, and reducing the resulting integer modulo
+    L = 2^252+27742317777372353535851937790883648493.
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
@@ -856,6 +845,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
+  - H4(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
+    output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
 
 ## FROST(Ed448, SHAKE256)
 
@@ -882,6 +873,9 @@ The value of the contextString parameter is empty.
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H3(m): Implemented as an alias for H, i.e., H(m).
+  - H4(m): Implemented by computing H("nonce" || m), interpreting the lower
+    57 bytes as a little-endian integer, and reducing the resulting integer modulo
+    L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
@@ -916,6 +910,9 @@ The value of the contextString parameter is "FROST-P256-SHA256".
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
     prime modulus equal to `Order()`.
   - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
+  - H4(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
+    prime modulus equal to `Order()`.
 
 # Security Considerations {#sec-considerations}
 
