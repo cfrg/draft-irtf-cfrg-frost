@@ -157,7 +157,6 @@ The following notation and terminology are used throughout this document.
 * `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
   THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
   This value MUST NOT exceed p.
-* Each participant is represented by an identifier that is an integer in the range between 1 and NUM_SIGNERS. 
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
@@ -504,7 +503,7 @@ group info:
 - Public keys for each signer, denoted `PK_i = G.ScalarMultBase()`, which are similarly
 outputs from the group's key generation protocol, `Element`s in `G`.
 
-And that each participant with identifier `i` additionally knows the following:
+And that each participant with identifier `i`  where `i` is an integer in the range between 1 and NUM_SIGNERS additionally knows the following:
 
 - Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar` in `GF(p)`.
 
