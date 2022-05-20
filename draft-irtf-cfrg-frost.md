@@ -200,12 +200,10 @@ We now detail a number of member functions that can be invoked on `G`.
 - SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`,
   and fails if the input is not a valid byte representation of an element of
   the group. This function can raise a SerializeError if serialization fails.
-  Optionally, a SerializeError MAY be raised if `A` is the identity element of the group.
   See {{ciphersuites}} for group-specific input validation steps. 
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not a valid byte representation of an element of
   the group. This function can raise a DeserializeError if deserialization fails.
-  Optionally, a SerializeError MAY be raised if `A` is the identity element of the group.
   See {{ciphersuites}} for group-specific input validation steps.
 - SerializeNonIdentityElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`,
   and fails if the input is not a valid byte representation of an element of
@@ -252,8 +250,8 @@ Implementations may wish to sample public key material from a distribution that 
 or rejects the identity element of the underlying group. To scope this choice to only public 
 key material, we define the following two alias functions. See {{dep-pog}} for more information.
 
-- SerializePublicKey(PK): Alias for SerializeElement(A), as defined in {{dep-pog}}. 
-- DeserializePublicKey(buf): Alias for DeserializeElement(buf), as defined in {{dep-pog}}. 
+- SerializePublicKey(PK): Alias for *either* SerializeElement(A) or SerializeNonIdentity(A) as required by the application.
+- DeserializePublicKey(buf): Alias for *either* DeserializeElement(buf) or DeserializeNonIdentity(buf), as required by the application. 
 
 ## Schnorr Signature Operations {#dep-schnorr}
 
