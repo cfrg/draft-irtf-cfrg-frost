@@ -60,6 +60,13 @@ informative:
       - name: Chelsea Komlo
       - name: Mary Maller
     date: 2021-10-11
+  BonehShoup:
+    target: http://toc.cryptobook.us/book.pdf 
+    title: "A Graduate Course in Applied Cryptography"
+    author:
+      - name: Dan Boneh 
+      - name: Victor Shoup 
+    date: 2020-01
 
 --- abstract
 
@@ -889,7 +896,9 @@ the protocol, although participants still are able to verify the consistency of 
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
 * Unforgeability assuming at most `(t-1)` corrupted signers. So long as an adversary
-corrupts fewer than `t` participants, the scheme remains secure against EUF-CMA attacks.
+corrupts fewer than `t` participants, the scheme remains secure against Existential 
+Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}}, 
+Definition 13.2.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
 denial of service attack. A denial of service would include any action which either
