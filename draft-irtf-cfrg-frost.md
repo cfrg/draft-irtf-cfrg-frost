@@ -805,6 +805,8 @@ The value of the contextString parameter is empty.
   - DeserializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
+  - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
+  - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
@@ -831,6 +833,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
   - Cofactor (`h`): 1
   - SerializeNonIdentityElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeNonIdentityElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
+  - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
+  - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
@@ -857,6 +861,8 @@ The value of the contextString parameter is empty.
   - DeserializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
+  - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
+  - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
   - SerializeScalar: Implemented by outputting the little-endian 48-byte encoding of
     the Scalar value.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 48-byte
@@ -892,6 +898,15 @@ The value of the contextString parameter is "FROST-P256-SHA256".
     coordinates of the resulting point are in the correct range, that the point is on
     the curve, and that the point is not the point at infinity. Additionally, this function
     validates  that the resulting element is not the group identity element.
+    If these checks fail, deserialization returns an error.
+  - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SECG}}.
+  - DeserializeElement: Implemented by attempting to deserialize a public key using
+    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
+    and then performs partial public-key validation as defined in section 5.6.2.3.4 of
+    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
+    coordinates of the resulting point are in the correct range, that the point is on
+    the curve, and that the point is not the point at infinity. 
     If these checks fail, deserialization returns an error.
   - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
     according to {{SECG}}.
