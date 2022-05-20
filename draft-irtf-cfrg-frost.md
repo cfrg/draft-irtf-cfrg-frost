@@ -730,9 +730,12 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
 
 If any signature share fails to verify, i.e., if verify_signature_share returns False for
-any signer share, the Coordinator MUST abort the protocol. Otherwise, if all signer shares
-are valid, the Coordinator performs the `aggregate` operation and publishes the resulting
-signature.
+any signer share, the Coordinator MUST abort the protocol for correctness reasons. 
+Excluding one signer means that their nonce will not be included in the joint response `z` 
+and consequently the output signature will not verify.
+
+Otherwise, if all signer shares are valid, the Coordinator performs the `aggregate` operation 
+and publishes the resulting signature.
 
 ~~~
   Inputs:
