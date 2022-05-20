@@ -504,7 +504,7 @@ group info:
 - Public keys for each signer, denoted `PK_i = G.ScalarMultBase()`, which are similarly
 outputs from the group's key generation protocol, `Element`s in `G`.
 
-And that each participant with identifier `i` additionally knows the following:
+And that each participant with identifier `i`  where `i` is an integer in the range between 1 and NUM_SIGNERS additionally knows the following:
 
 - Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar` in `GF(p)`.
 
