@@ -61,11 +61,11 @@ informative:
       - name: Mary Maller
     date: 2021-10-11
   BonehShoup:
-    target: http://toc.cryptobook.us/book.pdf 
+    target: http://toc.cryptobook.us/book.pdf
     title: "A Graduate Course in Applied Cryptography"
     author:
-      - name: Dan Boneh 
-      - name: Victor Shoup 
+      - name: Dan Boneh
+      - name: Victor Shoup
     date: 2020-01
 
 --- abstract
@@ -222,7 +222,7 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
 {{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
 H1, H2, and H3, where H1 and H2 map arbitrary byte strings to Scalar elements of
-the prime-order group scalar field, and H3 is an alias for H with a domain separator. 
+the prime-order group scalar field, and H3 is an alias for H with a domain separator.
 The details of H1, H2, and H3 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
@@ -250,7 +250,7 @@ following operation.
   - msg, message to be signed, a byte string
   - sk, private key, a Scalar in GF(p).
 
-  Outputs: signature (R, z), a pair consisting of (Element, Scalar) values 
+  Outputs: signature (R, z), a pair consisting of (Element, Scalar) values
 
   def schnorr_signature_generate(msg, sk):
     PK = G.ScalarBaseMult(sk)
@@ -730,11 +730,11 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
 
 If any signature share fails to verify, i.e., if verify_signature_share returns False for
-any signer share, the Coordinator MUST abort the protocol for correctness reasons. 
-Excluding one signer means that their nonce will not be included in the joint response `z` 
+any signer share, the Coordinator MUST abort the protocol for correctness reasons.
+Excluding one signer means that their nonce will not be included in the joint response `z`
 and consequently the output signature will not verify.
 
-Otherwise, if all signer shares are valid, the Coordinator performs the `aggregate` operation 
+Otherwise, if all signer shares are valid, the Coordinator performs the `aggregate` operation
 and publishes the resulting signature.
 
 ~~~
@@ -752,7 +752,8 @@ and publishes the resulting signature.
     return (group_commitment, z)
 ~~~
 
-The output signature (R, z) from the aggregation step MUST be encoded as follows:
+The output signature (R, z) from the aggregation step MUST be encoded as follows
+(using notation from {{Section 3 of TLS}}):
 
 ~~~
   struct {
@@ -900,8 +901,8 @@ the protocol, although participants still are able to verify the consistency of 
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
 * Unforgeability assuming at most `(THRESHOLD_LIMIT-1)` corrupted signers. So long as an adversary
-corrupts fewer than `THRESHOLD_LIMIT` participants, the scheme remains secure against Existential 
-Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}}, 
+corrupts fewer than `THRESHOLD_LIMIT` participants, the scheme remains secure against Existential
+Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
 Definition 13.2.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
