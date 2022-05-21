@@ -607,9 +607,9 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 
   Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs.
 
-  def commit(sk):
-    hiding_nonce = nonce_generate(sk)
-    binding_nonce = nonce_generate(sk)
+  def commit(sk_i):
+    hiding_nonce = nonce_generate(sk_i)
+    binding_nonce = nonce_generate(sk_i)
     hiding_nonce_commitment = G.ScalarBaseMult(hiding_nonce)
     binding_nonce_commitment = G.ScalarBaseMult(binding_nonce)
     nonce = (hiding_nonce, binding_nonce)
