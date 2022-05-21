@@ -603,7 +603,7 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 `comm = (hiding_nonce_commitment, binding_nonce_commitment)`.
 
 ~~~
-  Inputs: sk, the secret key share, a Scalar
+  Inputs: sk_i, the secret key share, a Scalar
 
   Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs.
 
