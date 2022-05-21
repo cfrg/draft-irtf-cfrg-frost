@@ -234,7 +234,7 @@ These sections describes these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
-To hedge against a bad RNG, we generate nocnes by sourcing fresh randomness and 
+To hedge against a bad RNG, we generate nonces by sourcing fresh randomness and 
 combine with the secret key, to create a domain-separated hash function from 
 the ciphersuite hash function `H`, `H4`:
 
