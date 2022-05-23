@@ -242,7 +242,7 @@ the ciphersuite hash function `H`, `H4`:
   nonce_generate(secret):
   
   Inputs:
-  - secret, a Scalar in GF(p).
+  - secret, a Scalar
 
   Outputs: Scalar nonce
 
