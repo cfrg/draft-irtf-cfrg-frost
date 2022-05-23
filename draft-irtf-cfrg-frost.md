@@ -245,7 +245,7 @@ the ciphersuite hash function `H`, `H4`:
   Inputs:
   - secret, a Scalar
 
-  Outputs: Scalar nonce
+  Outputs: nonce, a Scalar
 
   def nonce_generate(secret):
     k_enc = G.RandomBytes()
