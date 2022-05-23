@@ -832,6 +832,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Cofactor (`h`): 1
   - SerializeNonIdentityElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
+     This function raises a SerializeError exception if the input is the identity element.
   - DeserializeNonIdentityElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
