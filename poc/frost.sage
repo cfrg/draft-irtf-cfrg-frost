@@ -333,9 +333,10 @@ for (fname, name, G, H) in ciphersuites:
         sig_shares[identifier] = sig_share
 
     round_two_outputs = {
-        "participants": ",".join([str(identifier) for identifer in participant_list]),
+        "participants": ",".join([str(i) for i in participant_list]),
         "signers": {}
     }
+
     for identifier in participant_list:
         round_two_outputs["signers"][str(identifier)] = {}
         round_two_outputs["signers"][str(identifier)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[identifier]))
