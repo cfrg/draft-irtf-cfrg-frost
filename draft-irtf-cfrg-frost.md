@@ -244,15 +244,7 @@ following helper operations:
 
 This sections describes these operations in more detail.
 
-## Serialization of Public Key Material {#dep-serialize-pk}
-
-Implementations may wish to sample public key material from a distribution that either includes 
-or rejects the identity element of the underlying group. To scope this choice to only public 
-key material, we define the following two alias functions. See {{dep-pog}} for more information.
-
-- SerializePublicKey(PK): Alias for *either* SerializeElement(A) or SerializeNonIdentity(A) as required by the application.
-- DeserializePublicKey(buf): Alias for *either* DeserializeElement(buf) or DeserializeNonIdentity(buf), as required by the application. 
-
+Finally, the protocol in this document uses the function `SerializePublicKey` as an alias for `SerializeElement`. 
 ## Schnorr Signature Operations {#dep-schnorr}
 
 In the single-party setting, a Schnorr signature is generated with the
