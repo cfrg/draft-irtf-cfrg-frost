@@ -236,7 +236,6 @@ for more details about each.
 Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
 
-- Serializion of public key material {{dep-serialize-pk}}
 - Schnorr signatures, {{dep-schnorr}};
 - Polynomial operations, {{dep-polynomial}};
 - Encoding operations, {{dep-encoding}};
