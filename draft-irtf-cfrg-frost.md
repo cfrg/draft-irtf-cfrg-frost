@@ -800,8 +800,7 @@ The value of the contextString parameter is empty.
 - Group: edwards25519 {{!RFC8032}}
   - Cofactor (`h`): 8
   - SerializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
-    Additionally, this function validates that the resulting element is not the group
-    identity element.
+    This function raises a SerializeError exception if the input is the identity element.
   - DeserializeNonIdentityElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
