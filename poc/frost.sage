@@ -152,9 +152,9 @@ def compute_group_commitment(G, commitment_list, binding_factor):
     group_hiding_commitment = G.identity()
     group_binding_commitment = G.identity()
     for (_, D_i, E_i) in commitment_list:
-        group_hiding_commitment = group_hiding_commitment + D_i 
-        group_binding_commitment = group_binding_commitment + E_i 
-    return group_hiding_commitment + group_binding_commitment * binding_factor 
+        group_hiding_commitment = group_hiding_commitment + D_i
+        group_binding_commitment = group_binding_commitment + E_i
+    return group_hiding_commitment + group_binding_commitment * binding_factor
 
 def compute_challenge(H, group_commitment, group_public_key, msg):
     group_comm_enc = G.serialize(group_commitment)
@@ -189,6 +189,12 @@ def verify_signature_share(G, H, identifier, public_key_share, comm, sig_share, 
 
     return l == r
 
+def nonce_generate(H, secret):
+    k_enc = G.random_bytes()
+    secret_enc = G.serialize_scalar(secret)
+    hash_input = k_enc + secret_enc
+    return H.H4(hash_input)
+
 class Signer(object):
     def __init__(self, G, H, sk, pk):
         self.G = G
@@ -199,8 +205,8 @@ class Signer(object):
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-one
     def commit(self):
-        hiding_nonce = self.G.random_nonzero_scalar()
-        binding_nonce = self.G.random_nonzero_scalar()
+        hiding_nonce = nonce_generate(self.H, self.sk)
+        binding_nonce = nonce_generate(self.H, self.sk)
         hiding_nonce_commitment = hiding_nonce * self.G.generator()
         binding_nonce_commitment = binding_nonce * self.G.generator()
         nonce = (hiding_nonce, binding_nonce)

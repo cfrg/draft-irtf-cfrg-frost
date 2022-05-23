@@ -56,6 +56,9 @@ class Group(object):
     def hash_to_scalar(self, x):
         raise Exception("not implemented")
 
+    def random_bytes(self):
+        raise Exception("not implemented")
+
     def random_scalar(self):
         return random.randint(0, self.order() - 1)
 
@@ -127,6 +130,7 @@ class GroupNISTCurve(Group):
     def hash_to_scalar(self, msg, dst=""):
         return hash_to_field(msg, 1, dst, self.order(), self.m, self.L, self.expand, self.H, self.k)[0][0]
 
+
 class GroupP256(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.3
@@ -138,6 +142,10 @@ class GroupP256(GroupNISTCurve):
         gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
         gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
         GroupNISTCurve.__init__(self, "P-256", F, A, B, p, order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
+
+    def random_bytes(self):
+        return random.randbytes(32)
+
 
 class GroupEd25519(Group):
     # Compute corresponding x-coordinate, with low bit corresponding to
@@ -237,6 +245,9 @@ class GroupEd25519(Group):
         # From RFC8032. Note that the DST is ignored.
         return int.from_bytes(hashlib.sha512(msg).digest(), "little") % self.order()
 
+    def random_bytes(self):
+        return random.randbytes(32)
+
 class GroupEd448(Group):
     # Compute corresponding x-coordinate, with low bit corresponding to
     # sign, or return None on failure
@@ -324,6 +335,9 @@ class GroupEd448(Group):
         # From RFC8032. Note that the DST is ignored.
         return int.from_bytes(hashlib.shake_256(msg).digest(int(114)), "little") % self.order()
 
+    def random_bytes(self):
+        return random.randbytes(48)
+
 class GroupRistretto255(Group):
     def __init__(self):
         Group.__init__(self, "ristretto255")
@@ -358,6 +372,9 @@ class GroupRistretto255(Group):
     def hash_to_scalar(self, msg, dst=""):
         return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
 
+    def random_bytes(self):
+        return random.randbytes(32)
+
 class GroupDecaf448(Group):
     def __init__(self):
         Group.__init__(self, "decaf448")
@@ -391,3 +408,6 @@ class GroupDecaf448(Group):
 
     def hash_to_scalar(self, msg, dst=""):
         return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
+
+    def random_bytes(self):
+        return random.randbytes(56)
