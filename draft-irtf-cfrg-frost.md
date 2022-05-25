@@ -231,7 +231,10 @@ following helper operations:
 - Encoding operations, {{dep-encoding}};
 - Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}
 
-These sections describes these operations in more detail.
+These sections describes these operations in more detail. We also assume the existence
+of a function called `RandomBytes(n)`, which outputs `n` bytes from a cryptographically
+secure pseudorandom number generator. See {{?RFC4086}} for guidance on randomness
+generation.
 
 ## Nonce generation {#dep-nonces}
 
