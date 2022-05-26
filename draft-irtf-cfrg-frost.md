@@ -160,6 +160,8 @@ The following notation and terminology are used throughout this document.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
+* `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
+using a cryptographically secure pseudorandom number generator (CSPRNG).
 * \|\| denotes concatenation, i.e., x \|\| y = xy.
 * nil denotes an empty byte string.
 
@@ -195,7 +197,6 @@ We now detail a number of member functions that can be invoked on `G`.
 
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity `Element` of the group (i.e. `I`).
-- RandomBytes(): Outputs random bytes to fit a Scalar element, in little-endian order.
 - RandomScalar(): Outputs a random `Scalar` element in GF(p).
 - RandomNonzeroScalar(): Outputs a random non-zero `Scalar` element in GF(p).
 - SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`.
@@ -231,10 +232,7 @@ following helper operations:
 - Encoding operations, {{dep-encoding}};
 - Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}
 
-These sections describes these operations in more detail. We also assume the existence
-of a function called `RandomBytes(n)`, which outputs `n` bytes from a cryptographically
-secure pseudorandom number generator. See {{?RFC4086}} for guidance on randomness
-generation.
+These sections describes these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
@@ -251,7 +249,7 @@ the ciphersuite hash function `H`, `H4`:
   Outputs: nonce, a Scalar
 
   def nonce_generate(secret):
-    k_enc = G.RandomBytes()
+    k_enc = random_bytes(32)
     secret_enc = G.SerializeScalar(secret)
     return H4(k_enc || secret_enc) 
 ~~~
@@ -836,7 +834,6 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Cofactor (`h`): 1
-  - RandomBytes(): Implemented by outputing 32 little-endian bytes.
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
@@ -861,7 +858,6 @@ The value of the contextString parameter is empty.
 
 - Group: edwards448 {{!RFC8032}}
   - Cofactor (`h`): 4
-  - RandomBytes(): Implemented by outputing 48 little-endian bytes.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -893,7 +889,6 @@ The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - Cofactor (`h`): 1
-  - RandomBytes(): Implemented by outputing 32 little-endian bytes.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
