@@ -802,7 +802,6 @@ The value of the contextString parameter is empty.
 
 - Group: edwards25519 {{!RFC8032}}
   - Cofactor (`h`): 8
-  - RandomBytes(): Implemented by outputing 32 little-endian bytes.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
