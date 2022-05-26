@@ -1,6 +1,7 @@
 #!/usr/bin/sage
 # vim: syntax=python
 
+import random
 import sys
 import json
 
@@ -22,6 +23,10 @@ def to_hex(byte_string):
         return "" + "".join("{:02x}".format(c) for c in byte_string)
     assert isinstance(byte_string, bytearray)
     return ''.join(format(x, '02x') for x in byte_string)
+
+
+def random_bytes(n):
+    return random.randbytes(n)
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-lagrange-coefficients
 def derive_lagrange_coefficient(G, i, L):
@@ -190,7 +195,7 @@ def verify_signature_share(G, H, identifier, public_key_share, comm, sig_share, 
     return l == r
 
 def nonce_generate(H, secret):
-    k_enc = G.random_bytes()
+    k_enc = random_bytes(32)
     secret_enc = G.serialize_scalar(secret)
     hash_input = k_enc + secret_enc
     return H.H4(hash_input)
