@@ -521,7 +521,7 @@ This section describes the subroutine for creating the per-message challenge.
 We now present the two-round variant of the FROST threshold signature protocol for producing Schnorr signatures.
 It involves signer participants and a Coordinator. Signing participants are
 entities with signing key shares that participate in the threshold signing
-protocol. The Coordinator is a distinguished signer with the following responsibilities:
+protocol. The Coordinator is an entity with the following responsibilities:
 
 1. Determining which signers will participate (at least MIN_SIGNERS in number);
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
