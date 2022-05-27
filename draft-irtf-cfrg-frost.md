@@ -539,7 +539,7 @@ In particular, it is assumed that the Coordinator and each signing participant `
 group info:
 
 - Group public key, an `Element` in `G`, denoted `PK = G.ScalarMultBase(s)`, corresponding
-  to the group secret key `s`, which is a `Scalar` in `GF(p)`. `PK` is an output from the group's
+  to the group secret key `s`, which is a `Scalar`. `PK` is an output from the group's
   key generation protocol, such as `trusted_dealer_keygen`or a DKG.
 - Public keys for each signer, denoted `PK_i = G.ScalarMultBase()`, which are similarly
   outputs from the group's key generation protocol, `Element`s in `G`.
@@ -547,7 +547,7 @@ group info:
 And that each participant with identifier `i`  where `i` is an integer in the range between 1
 and MAX_SIGNERS additionally knows the following:
 
-- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar` in `GF(p)`.
+- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
@@ -557,12 +557,14 @@ a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
 in {{dep-dealer}}, for reference.
 
-This signing variant of FROST requires signers to perform two network rounds: 1) generating and publishing commitments,
-and 2) signature share generation and publication. The first round serves
-for each participant to issue a commitment to a nonce. The second round receives commitments for all signers as well
-as the message, and issues a signature share with respect to that message. The Coordinator performs the coordination of each
-of these rounds. At the end of the second round, the Coordinator then performs an aggregation
-step and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
+This signing variant of FROST requires signers to perform two network rounds:
+1) generating and publishing commitments, and 2) signature share generation and
+publication. The first round serves for each participant to issue a commitment to
+a nonce. The second round receives commitments for all signers as well as the message,
+and issues a signature share with respect to that message. The Coordinator performs
+the coordination of each of these rounds. At the end of the second round, the
+Coordinator then performs an aggregation step and outputs the final signature.
+This complete interaction is shown in {{fig-frost}}.
 
 ~~~
         (group info)            (group info,     (group info,
@@ -603,6 +605,11 @@ step and outputs the final signature. This complete interaction is shown in {{fi
 Details for round one are described in {{frost-round-one}}, and details for round two
 are described in {{frost-round-two}}. The final Aggregation step is described in
 {{frost-aggregation}}.
+
+FROST assumes that all inputs to each round, especially those of which are received
+over the network, are validated before use. In particular, this means that any value
+of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
+respectively, as these functions perform the necessary input validation steps.
 
 FROST assumes reliable message delivery between the Coordinator and signing participants in
 order for the protocol to complete. An attacker masquerading as another participant
@@ -665,7 +672,7 @@ procedure to produce its own signature share.
 ~~~
   Inputs:
   - identifier, Identifier i of the signer. Note identifier will never equal 0.
-  - sk_i, Signer secret key share, a Scalar in GF(p).
+  - sk_i, Signer secret key share, a Scalar.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
   - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in
