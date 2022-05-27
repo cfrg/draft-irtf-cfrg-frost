@@ -112,6 +112,24 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
 
+draft-05
+
+- Rename THRESHOLD_LIMIT to MIN_SIGNERS (#192)
+- Use non-contiguous signers for the test vectors (#187)
+- Add more reasoning why the coordinator MUST abort (#183) 
+- Add a function to generate nonces (#182) 
+- Add MUST that all participants have the same view of VSS commitment (#174)
+- Use THRESHOLD_LIMIT instead of t and MAX_SIGNERS instead of n (#171) 
+- Specify what the dealer is trusted to do (#166) 
+- Clarify types of NUM_SIGNERS and THRESHOLD_LIMIT (#165)
+- Assert that the network channel used for signing should be authenticated (#163) 
+- Remove wire format section (#156) 
+- Update group commitment derivation to have a single scalarmul (#150)
+- Use RandomNonzeroScalar for single-party Schnorr example (#148) 
+- Fix group notation and clarify member functions (#145) 
+- Update existing implementations table (#136) 
+- Various editorial improvements (#135, #143, #147, #149, #153, #158, #162, #167, #168, #169, #170, #175, #176, #177, #178, #184, #186, #193)
+
 draft-04
 
 - Added methods to verify VSS commitments and derive group info (#126, #132).
