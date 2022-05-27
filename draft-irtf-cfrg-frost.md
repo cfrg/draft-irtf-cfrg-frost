@@ -516,9 +516,9 @@ This section describes the subroutine for creating the per-message challenge.
 # Two-Round FROST Signing Protocol {#frost-spec}
 
 We now present the two-round variant of the FROST threshold signature protocol for producing Schnorr signatures.
-It involves signer participants and a coordinator. Signing participants are
+It involves signer participants and a Coordinator. Signing participants are
 entities with signing key shares that participate in the threshold signing
-protocol. The coordinator is a distinguished signer with the following responsibilities:
+protocol. The Coordinator is a distinguished signer with the following responsibilities:
 
 1. Determining which signers will participate (at least THRESHOLD_LIMIT in number);
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
@@ -532,7 +532,7 @@ for more information.
 Because key generation is not specified, all signers are assumed to have the (public) group state that we refer to as "group info"
 below, and their corresponding signing key shares.
 
-In particular, it is assumed that the coordinator and each signing participant `P_i` knows the following
+In particular, it is assumed that the Coordinator and each signing participant `P_i` knows the following
 group info:
 
 - Group public key, an `Element` in `G`, denoted `PK = G.ScalarMultBase(s)`, corresponding
@@ -1015,7 +1015,7 @@ if the underlying transport failed to deliver the required messages.
 
 ## Removing the Coordinator Role {#no-coordinator}
 
-In some settings, it may be desirable to omit the role of the coordinator entirely.
+In some settings, it may be desirable to omit the role of the Coordinator entirely.
 Doing so does not change the security implications of FROST, but instead simply
 requires each participant to communicate with all other participants. We loosely
 describe how to perform FROST signing among signers without this coordinator role.
@@ -1023,8 +1023,8 @@ We assume that every participant receives as input from an external source the
 message to be signed prior to performing the protocol.
 
 Every participant begins by performing `commit()` as is done in the setting
-where a coordinator is used. However, instead of sending the commitment
-to the coordinator, every participant instead will publish
+where a Coordinator is used. However, instead of sending the commitment
+to the Coordinator, every participant instead will publish
 this commitment to every other participant. Then, in the second round, signers will already have
 sufficient information to perform signing. They will directly perform `sign`.
 All participants will then publish a `SignatureShare` to one another. After having
@@ -1032,7 +1032,7 @@ received all signature shares from all other signers, each signer will then perf
 `verify_signature_share` and then `aggregate` directly.
 
 The requirements for the underlying network channel remain the same in the setting
-where all participants play the role of the coordinator, in that all messages that
+where all participants play the role of the Coordinator, in that all messages that
 are exchanged are public and so the channel simply must be reliable. However, in
 the setting that a player attempts to split the view of all other players by
 sending disjoint values to a subset of players, the signing operation will output
@@ -1240,7 +1240,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     return 0
 ~~~
 
-We now define how the coordinator and signing participants can derive group info,
+We now define how the Coordinator and signing participants can derive group info,
 which is an input into the FROST signing protocol.
 
 ~~~
