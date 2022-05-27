@@ -60,6 +60,13 @@ informative:
       - name: Chelsea Komlo
       - name: Mary Maller
     date: 2021-10-11
+  BonehShoup:
+    target: http://toc.cryptobook.us/book.pdf
+    title: "A Graduate Course in Applied Cryptography"
+    author:
+      - name: Dan Boneh
+      - name: Victor Shoup
+    date: 2020-01
 
 --- abstract
 
@@ -265,9 +272,9 @@ following operation.
 
   Inputs:
   - msg, message to be signed, a byte string
-  - sk, private key, a Scalar in GF(p).
+  - sk, private key, a Scalar
 
-  Outputs: signature (R, z), a pair consisting of (Element, Scalar) values 
+  Outputs: signature (R, z), a pair consisting of (Element, Scalar) values
 
   def schnorr_signature_generate(msg, sk):
     PK = G.ScalarBaseMult(sk)
@@ -295,7 +302,7 @@ MUST be performed when `h>1`.
   Inputs:
   - msg, signed message, a byte string
   - sig, a tuple (R, z) output from schnorr_signature_generate or FROST
-  - PK, public key, a group `Element` in `G`
+  - PK, public key, an Element
 
   Outputs: 1 if signature is valid, and 0 otherwise
 
@@ -386,15 +393,14 @@ Lagrange coefficients are used in FROST to evaluate a polynomial
 ### Deriving the constant term of a polynomial
 
 Secret sharing requires "splitting" a secret, which is represented as
-a constant term of some polynomial `f` of degree `THRESHOLD_LIMIT-1`. Recovering the
-constant term occurs with a set of `THRESHOLD_LIMIT` points using polynomial
+a constant term of some polynomial `f` of degree `t-1`. Recovering the
+constant term occurs with a set of `t` points using polynomial
 interpolation, defined as follows.
 
 ~~~
   Inputs:
-  - points, a set of `THRESHOLD_LIMIT` points on a polynomial f, each a tuple of two
+  - points, a set of t points on a polynomial f, each a tuple of two
     Scalar values representing the x and y coordinates
-
 
   Outputs: The constant term of f, i.e., f(0)
 
@@ -411,7 +417,8 @@ interpolation, defined as follows.
     return f_zero
 ~~~
 
-Note that these coefficients can be computed once and then stored, as these values remain constant across FROST signing sessions.
+Note that these coefficients can be computed once and then stored, as these
+values remain constant across FROST signing sessions.
 
 ## Commitment List Encoding {#dep-encoding}
 
@@ -420,12 +427,13 @@ commitments into a bytestring that is used in the FROST protocol.
 
 ~~~
   Inputs:
-  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list of commitments issued by each signer,
-    where each element in the list indicates the signer identifier i and their
-    two commitment Element values (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted in ascending order
-    by signer identifier.
+  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
+    a list of commitments issued by each signer, where each element in the list
+    indicates the signer identifier i and their two commitment Element values
+    (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
+    in ascending order by signer identifier.
 
-  Outputs: A byte string containing the serialized representation of commitment_list.
+  Outputs: A byte string containing the serialized representation of commitment_list
 
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
@@ -448,7 +456,7 @@ on the signer commitment list and message to be signed.
     by encode_group_commitment_list)
   - msg, the message to be signed (sent by the Coordinator).
 
-  Outputs: binding_factor, a Scalar representing the binding factor
+  Outputs: A Scalar representing the binding factor
 
   def compute_binding_factor(encoded_commitment_list, msg):
     msg_hash = H3(msg)
@@ -464,13 +472,15 @@ from a commitment list.
 
 ~~~
   Inputs:
-  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list of
-    commitments issued by each signer, where each element in the list indicates the signer identifier i and their
-    two commitment Element values (hiding_nonce_commitment_i, binding_nonce_commitment_i).
-    This list MUST be sorted in ascending order by signer identifier.
+  - commitment_list =
+     [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list
+    of commitments issued by each signer, where each element in the list
+    indicates the signer identifier i and their two commitment Element values
+    (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be
+    sorted in ascending order by signer identifier.
   - binding_factor, a Scalar
 
-  Outputs: An `Element` in `G` representing the group commitment
+  Outputs: An Element in G representing the group commitment
 
   def compute_group_commitment(commitment_list, binding_factor):
     group_hiding_commitment = G.Identity()
@@ -488,11 +498,12 @@ This section describes the subroutine for creating the per-message challenge.
 
 ~~~
   Inputs:
-  - group_commitment, an `Element` in `G` representing the group commitment
-  - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
+  - group_commitment, an Element in G representing the group commitment
+  - group_public_key, public key corresponding to the group signing key, an
+    Element in G.
   - msg, the message to be signed (sent by the Coordinator).
 
-  Outputs: a challenge `Scalar` value in `GF(p)`
+  Outputs: A Scalar representing the challenge
 
   def compute_challenge(group_commitment, group_public_key, msg):
     group_comm_enc = G.SerializeElement(group_commitment)
@@ -524,11 +535,14 @@ below, and their corresponding signing key shares.
 In particular, it is assumed that the coordinator and each signing participant `P_i` knows the following
 group info:
 
-- Group public key, an `Element` in `G`, denoted `PK = G.ScalarMultBase(s)`, corresponding to the group secret key `s`, which is a `Scalar` in `GF(p)`. `PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen`or a DKG.
+- Group public key, an `Element` in `G`, denoted `PK = G.ScalarMultBase(s)`, corresponding
+  to the group secret key `s`, which is a `Scalar` in `GF(p)`. `PK` is an output from the group's
+  key generation protocol, such as `trusted_dealer_keygen`or a DKG.
 - Public keys for each signer, denoted `PK_i = G.ScalarMultBase()`, which are similarly
-outputs from the group's key generation protocol, `Element`s in `G`.
+  outputs from the group's key generation protocol, `Element`s in `G`.
 
-And that each participant with identifier `i` additionally knows the following:
+And that each participant with identifier `i`  where `i` is an integer in the range between 1
+and MAX_SIGNERS additionally knows the following:
 
 - Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar` in `GF(p)`.
 
@@ -587,15 +601,14 @@ Details for round one are described in {{frost-round-one}}, and details for roun
 are described in {{frost-round-two}}. The final Aggregation step is described in
 {{frost-aggregation}}.
 
-
 FROST assumes reliable message delivery between the Coordinator and signing participants in
-order for the protocol to complete. An attacker masquerading as another participant will result only in an invalid signature; see {{sec-considerations}}.
-However, in order to identify any participant which has misbehaved (resulting in the protocol aborting) to take actions such as excluding them from future signing operations,
-we assume that the network channel is additionally authenticated; confidentiality is not required.
+order for the protocol to complete. An attacker masquerading as another participant
+will result only in an invalid signature; see {{sec-considerations}}. However, in order
+to identify any participant which has misbehaved (resulting in the protocol aborting)
+to take actions such as excluding them from future signing operations, we assume that
+the network channel is additionally authenticated; confidentiality is not required.
 
 ## Round One - Commitment {#frost-round-one}
-
-<!-- Should we only require that the set of participants be selected and used in round 2? -->
 
 Round one involves each signer generating nonces and their corresponding public commitments.
 A nonce is a pair of Scalar values, and a commitment is a pair of Element values.
@@ -606,7 +619,9 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
 ~~~
   Inputs: sk_i, the secret key share, a Scalar
 
-  Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs.
+  Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs,
+    where each value in the nonce pair is a Scalar and each value in
+    the nonce commitment pair is an Element
 
   def commit(sk_i):
     hiding_nonce = nonce_generate(sk_i)
@@ -646,21 +661,23 @@ procedure to produce its own signature share.
 
 ~~~
   Inputs:
-  - identifier, Identifier `i` of the signer. Note identifier will never equal `0`.
-  - sk_i, Signer secret key share, a `Scalar` in `GF(p)`.
-  - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
-  - nonce_i, pair of `Scalar` values (hiding_nonce, binding_nonce) generated in round one.
+  - identifier, Identifier i of the signer. Note identifier will never equal 0.
+  - sk_i, Signer secret key share, a Scalar in GF(p).
+  - group_public_key, public key corresponding to the group signing key,
+    an Element in G.
+  - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in
+    round one.
   - msg, the message to be signed (sent by the Coordinator).
-  - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
-    list of commitments issued in Round 1 by each signer, where each element in the list indicates the signer identifier j and their
-    two commitment `Element` values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
+  - commitment_list =
+      [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
+    list of commitments issued in Round 1 by each signer, where each element
+    in the list indicates the signer identifier j and their two commitment
+    Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).s
     This list MUST be sorted in ascending order by signer identifier.
-  - participant_list, a set containing identifiers for each signer, similarly of length
-    NUM_SIGNERS (sent by the Coordinator).
 
-  Outputs: a `Scalar` value  in `GF(p)` representing the signature share
+  Outputs: a Scalar value representing the signature share
 
-  def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list, participant_list):
+  def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
     # Encode the commitment list
     encoded_commitments = encode_group_commitment_list(commitment_list)
 
@@ -671,6 +688,7 @@ procedure to produce its own signature share.
     group_commitment = compute_group_commitment(commitment_list, binding_factor)
 
     # Compute Lagrange coefficient
+    participant_list = participants_from_commitment_list(commitment_list)
     lambda_i = derive_lagrange_coefficient(identifier, participant_list)
 
     # Compute the per-message challenge
@@ -702,24 +720,27 @@ parameters, to check that the signature share is valid using the following proce
 
 ~~~
   Inputs:
-  - identifier, Identifier `i` of the signer. Note identifier will never equal `0`.
-  - PK_i, the public key for the ith signer, where `PK_i = G.ScalarBaseMult(sk_i)`, an `Element` in `G`
-  - comm_i, pair of `Element` values in `G` (hiding_nonce_commitment, binding_nonce_commitment) generated
-    in round one from the ith signer.
-  - sig_share_i, a `Scalar` value in `GF(p)` indicating the signature share as produced in round two from the ith signer.
-  - commitment_list = [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a list of commitments
-    issued in Round 1 by each signer, where each element in the list indicates the signer identifier j and their
-    two commitment `Element` values in `G` (hiding_nonce_commitment_j, binding_nonce_commitment_j).
+  - identifier, Identifier i of the signer. Note identifier will never equal 0.
+  - PK_i, the public key for the ith signer, where PK_i = G.ScalarBaseMult(sk_i),
+    an Element in G
+  - comm_i, pair of Element values in G (hiding_nonce_commitment, binding_nonce_commitment)
+    generated in round one from the ith signer.
+  - sig_share_i, a Scalar value indicating the signature share as produced in
+    round two from the ith signer.
+  - commitment_list =
+      [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
+    list of commitments issued in Round 1 by each signer, where each element
+    in the list indicates the signer identifier j and their two commitment
+    Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).s
     This list MUST be sorted in ascending order by signer identifier.
-  - participant_list, a set containing identifiers for each signer, similarly of length
-    NUM_SIGNERS (sent by the Coordinator).
-  - group_public_key, public key corresponding to the group signing key, an `Element` in `G`.
+  - group_public_key, public key corresponding to the group signing key,
+    an Element in G.
   - msg, the message to be signed.
 
   Outputs: True if the signature share is valid, and False otherwise.
 
   def verify_signature_share(identifier, PK_i, comm_i, sig_share_i, commitment_list,
-                             participant_list, group_public_key, msg):
+                             group_public_key, msg):
     # Encode the commitment list
     encoded_commitments = encode_group_commitment_list(commitment_list)
 
@@ -737,6 +758,7 @@ parameters, to check that the signature share is valid using the following proce
     challenge = compute_challenge(group_commitment, group_public_key, msg)
 
     # Compute Lagrange coefficient
+    participant_list = participants_from_commitment_list(commitment_list)
     lambda_i = derive_lagrange_coefficient(identifier, participant_list)
 
     # Compute relation values
@@ -747,17 +769,21 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
 
 If any signature share fails to verify, i.e., if verify_signature_share returns False for
-any signer share, the Coordinator MUST abort the protocol. Otherwise, if all signer shares
-are valid, the Coordinator performs the `aggregate` operation and publishes the resulting
-signature.
+any signer share, the Coordinator MUST abort the protocol for correctness reasons.
+Excluding one signer means that their nonce will not be included in the joint response `z`
+and consequently the output signature will not verify.
+
+Otherwise, if all signer shares are valid, the Coordinator performs the `aggregate` operation
+and publishes the resulting signature.
 
 ~~~
   Inputs:
-  - group_commitment, the group commitment returned by compute_group_commitment, an `Element` in `G`.
-  - sig_shares, a set of signature shares z_i, `Scalar`s in `GF(p)`, for each signer, of length NUM_SIGNERS,
-  where THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
+  - group_commitment, the group commitment returned by compute_group_commitment,
+    an Element in G.
+  - sig_shares, a set of signature shares z_i, Scalar values, for each signer,
+    of length NUM_SIGNERS, where THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
 
-  Outputs: (R, z), a Schnorr signature consisting of an `Element` R and `Scalar` z.
+  Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
   def aggregate(group_commitment, sig_shares):
     z = 0
@@ -766,7 +792,8 @@ signature.
     return (group_commitment, z)
 ~~~
 
-The output signature (R, z) from the aggregation step MUST be encoded as follows:
+The output signature (R, z) from the aggregation step MUST be encoded as follows
+(using notation from {{Section 3 of TLS}}):
 
 ~~~
   struct {
@@ -802,6 +829,12 @@ The value of the contextString parameter is empty.
 
 - Group: edwards25519 {{!RFC8032}}
   - Cofactor (`h`): 8
+  - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
+  - Identity: As defined in {{RFC7748}}.
+  - RandomScalar: Implemented by generating a random 32-byte string and invoking
+    DeserializeScalar on the result.
+  - RandomNonZeroScalar: Implemented by generating a random 32-byte string that
+    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -833,6 +866,12 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Cofactor (`h`): 1
+  - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
+  - Identity: As defined in {{RISTRETTO}}.
+  - RandomScalar: Implemented by generating a random 32-byte string and invoking
+    DeserializeScalar on the result.
+  - RandomNonZeroScalar: Implemented by generating a random 32-byte string that
+    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
@@ -857,6 +896,12 @@ The value of the contextString parameter is empty.
 
 - Group: edwards448 {{!RFC8032}}
   - Cofactor (`h`): 4
+  - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
+  - Identity: As defined in {{RFC7748}}.
+  - RandomScalar: Implemented by generating a random 48-byte string and invoking
+    DeserializeScalar on the result.
+  - RandomNonZeroScalar: Implemented by generating a random 48-byte string that
+    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -888,6 +933,12 @@ The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - Cofactor (`h`): 1
+  - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+  - Identity: As defined in {{x9.62}}.
+  - RandomScalar: Implemented by generating a random 32-byte string and invoking
+    DeserializeScalar on the result.
+  - RandomNonZeroScalar: Implemented by generating a random 32-byte string that
+    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
@@ -924,8 +975,10 @@ in this document assumes the following threat model.
 the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming less than `(THRESHOLD_LIMIT-1)` corrupted signers. So long as an adverary
-corrupts fewer than `(THRESHOLD_LIMIT-1)` participants, the scheme remains secure against EUF-CMA attacks.
+* Unforgeability assuming at most `(THRESHOLD_LIMIT-1)` corrupted signers. So long as an adversary
+corrupts fewer than `THRESHOLD_LIMIT` participants, the scheme remains secure against Existential
+Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
+Definition 13.2.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
 denial of service attack. A denial of service would include any action which either
@@ -1014,14 +1067,13 @@ do not operate as signing oracles for arbitrary messages.
 
 # Acknowledgments
 
-The Zcash Foundation engineering team designed a serialization format for FROST messages which
-we employ a slightly adapted version here.
+This document was improved based on input and contributions by the Zcash Foundation engineering team.
 
 # Trusted Dealer Key Generation {#dep-dealer}
 
 One possible key generation mechanism is to depend on a trusted dealer, wherein the
 dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
-Secret Sharing as described in Sections {{dep-shamir}} and {{dep-vss}} to create secret
+Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
 shares of `s` to be sent to all other participants. We highlight at a high level how this
 operation can be performed.
 
@@ -1030,16 +1082,18 @@ and 3) keep secret values confidential.
 
 ~~~
   Inputs:
-  - s, a group secret, `Scalar` in `GF(p)`, that MUST be derived from at least `Ns` bytes of entropy
-  - n, the number of shares to generate, an integer
+  - s, a group secret, Scalar, that MUST be derived from at least Ns bytes of entropy
+  - MAX_SIGNERS, the number of shares to generate, an integer
   - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - signer_private_keys, `n` shares of the secret key `s`, each a `Scalar` value in `GF(p)`.
-  - vss_commitment, a vector commitment of `Element`s in `G`, to each of the coefficients in the polynomial defined by secret_key_shares and whose constant term is G.ScalarBaseMult(s).
+  - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a Scalar value.
+  - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
+    in the polynomial defined by secret_key_shares and whose constant term is
+    G.ScalarBaseMult(s).
 
-  def trusted_dealer_keygen(s, n, THRESHOLD_LIMIT):
-    signer_private_keys, coefficients = secret_share_shard(secret_key, n, THRESHOLD_LIMIT)
+  def trusted_dealer_keygen(s, MAX_SIGNERS, THRESHOLD_LIMIT):
+    signer_private_keys, coefficients = secret_share_shard(secret_key, MAX_SIGNERS, THRESHOLD_LIMIT)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
     return signer_private_keys, vss_commitment
@@ -1067,25 +1121,24 @@ the scalar field of the prime-order group `G`.
 The procedure for splitting a secret into shares is as follows.
 
 ~~~
-  secret_share_shard(s, n, THRESHOLD_LIMIT):
+  secret_share_shard(s, MAX_SIGNERS, THRESHOLD_LIMIT):
 
   Inputs:
-  - s, secret to be shared, an element of F, the `Scalar` field `GF(p)` of `G`.
+  - s, secret value to be shared, a Scalar
   - MAX_SIGNERS, the number of shares to generate, an integer
   - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
 
   Outputs:
   - secret_key_shares, A list of MAX_SIGNERS number of secret shares, which is a tuple
-  consisting of the participant identifier and the key share, each of
-  which is a `Scalar` element of F, the `Scalar` field `GF(p)` of `G`.
+    consisting of the participant identifier and the key share, each of which is a Scalar
   - coefficients, a vector of the t coefficients which uniquely determine
-  a polynomial f.
+    a polynomial f.
 
   Errors:
-  - "invalid parameters", if THRESHOLD_LIMIT > n or if THRESHOLD_LIMIT is less than 2
+  - "invalid parameters", if THRESHOLD_LIMIT > MAX_SIGNERS or if THRESHOLD_LIMIT is less than 2
 
-  def secret_share_shard(s, n, THRESHOLD_LIMIT):
-    if THRESHOLD_LIMIT > n:
+  def secret_share_shard(s, MAX_SIGNERS, THRESHOLD_LIMIT):
+    if THRESHOLD_LIMIT > MAX_SIGNERS:
       raise "invalid parameters"
     if THRESHOLD_LIMIT < 2:
       raise "invalid parameters"
@@ -1120,7 +1173,7 @@ secret `s` is as follows.
   Inputs:
   - shares, a list of at minimum THRESHOLD_LIMIT secret shares, each a tuple (i, f(i))
 
-  Outputs: The resulting secret s, a `Scalar` in `GF(p)`, that was previously split into shares
+  Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
   Errors:
   - "invalid parameters", if less than THRESHOLD_LIMIT input shares are provided
@@ -1144,49 +1197,52 @@ the correct secret.
 The procedure for committing to a polynomial `f` of degree `THRESHOLD_LIMIT-1` is as follows.
 
 ~~~
-    vss_commit(coeffs):
+  vss_commit(coeffs):
 
-    Inputs:
-    - coeffs, a vector of the THRESHOLD_LIMIT coefficients which uniquely determine
-    a polynomial f.
+  Inputs:
+  - coeffs, a vector of the THRESHOLD_LIMIT coefficients which uniquely determine
+  a polynomial f.
 
-    Outputs: a commitment vss_commitment, which is a vector commitment to each of the
-    coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
+  Outputs: a commitment vss_commitment, which is a vector commitment to each of the
+  coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
 
-    def vss_commit(coeffs):
-      vss_commitment = []
-      for coeff in coeffs:
-        A_i = G.ScalarBaseMult(coeff)
-        vss_commitment.append(A_i)
-      return vss_commitment
+  def vss_commit(coeffs):
+    vss_commitment = []
+    for coeff in coeffs:
+      A_i = G.ScalarBaseMult(coeff)
+      vss_commitment.append(A_i)
+    return vss_commitment
 ~~~
 
 The procedure for verification of a participant's share is as follows.
 If `vss_verify` fails, the participant MUST abort the protocol, and failure should be investigated out of band.
 
 ~~~
-    vss_verify(share_i, vss_commitment):
+  vss_verify(share_i, vss_commitment):
 
-    Inputs:
-    - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier, and sk_i the participant's secret key, a secret share of the constant term of f, where sk_i is in `GF(p)`.
-    - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
-    coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
+  Inputs:
+  - share_i: A tuple of the form (i, sk_i), where i indicates the participant
+    identifier, and sk_i the participant's secret key, a secret share of the
+    constant term of f, where sk_i is a Scalar.
+  - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment
+    to each of the coefficients in coeffs, where each element of the vector commitment
+    is an Element
 
-    Outputs: 1 if sk_i is valid, and 0 otherwise
+  Outputs: 1 if sk_i is valid, and 0 otherwise
 
-    vss_verify(share_i, commitment)
-      (i, sk_i) = share_i
-      S_i = ScalarBaseMult(sk_i)
-      S_i' = G.Identity()
-      for j in range(0, THRESHOLD_LIMIT-1):
-        S_i' += vss_commitment[j] * i^j
-      if S_i == S_i':
-        return 1
-      return 0
+  vss_verify(share_i, commitment)
+    (i, sk_i) = share_i
+    S_i = ScalarBaseMult(sk_i)
+    S_i' = G.Identity()
+    for j in range(0, THRESHOLD_LIMIT-1):
+      S_i' += vss_commitment[j] * i^j
+    if S_i == S_i':
+      return 1
+    return 0
 ~~~
 
-We now define how the coordinator and signing participants can derive group info, which is an input into the FROST signing protocol.
+We now define how the coordinator and signing participants can derive group info,
+which is an input into the FROST signing protocol.
 
 ~~~
     derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment):
@@ -1195,11 +1251,12 @@ We now define how the coordinator and signing participants can derive group info
     - MAX_SIGNERS, the number of shares to generate, an integer
     - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
     - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
-    coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
+    coefficients in coeffs, where each element of the vector commitment is an Element in G.
 
     Outputs:
-    - PK, the public key representing the group, an `Element` in `G`.
-    - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS, where each PK_i is the public key, an `Element` in `G`, for participant i.
+    - PK, the public key representing the group, an Element.
+    - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS,
+      where each PK_i is the public key, an Element, for participant i.
 
     derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
       PK = vss_commitment[0]
@@ -1263,16 +1320,16 @@ S3 signer_share: d3cb090a075eb154e82fdb4b3cb507f110040905468bb9c46da8
 bdea643a9a02
 
 // Round one parameters
-participants: 1,2
+participants: 1,3
 group_binding_factor_input: 000178e175d15cb5cec1257e0d84d797ba8c3dd9b
 4c7bc50f3fa527c200bcc6c4a954cdad16ae67ac5919159d655b681bd038574383bab
-423614f8967396ee12ca62000288a4e6c3d8353dc3f4aca2e10d10a75fb98d9fbea98
+423614f8967396ee12ca62000388a4e6c3d8353dc3f4aca2e10d10a75fb98d9fbea98
 981bfb25375996c5767c932bbf10c41feb17d41cc6433e69f16cceccc42a00aedf72f
 eb5f44929fdf2e2fee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a
 5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f500
 28a8ff
-group_binding_factor: c4d7668d793ff4c6ec424fb493cdab3ef5b625eefffe775
-71ff28a345e5f700a
+group_binding_factor: 73d2f6829ba2c1ff4b22a7bcc83709abf52ec714b121d66
+f1658cabd5c10f508
 
 // Signer round one outputs
 S1 hiding_nonce: 570f27bfd808ade115a701eeee997a488662bca8c2a073143e66
@@ -1283,26 +1340,26 @@ S1 hiding_nonce_commitment: 78e175d15cb5cec1257e0d84d797ba8c3dd9b4c7b
 c50f3fa527c200bcc6c4a95
 S1 binding_nonce_commitment: 4cdad16ae67ac5919159d655b681bd038574383b
 ab423614f8967396ee12ca62
-S2 hiding_nonce: 2a67c5e85884d0275a7a740ba8f53617527148418797345071dd
+S3 hiding_nonce: 2a67c5e85884d0275a7a740ba8f53617527148418797345071dd
 cf1a1bd37206
-S2 binding_nonce: a0609158eeb448abe5b0df27f5ece96196df5722c01a999e8a4
+S3 binding_nonce: a0609158eeb448abe5b0df27f5ece96196df5722c01a999e8a4
 5d2d5dfc5620c
-S2 hiding_nonce_commitment: 88a4e6c3d8353dc3f4aca2e10d10a75fb98d9fbea
+S3 hiding_nonce_commitment: 88a4e6c3d8353dc3f4aca2e10d10a75fb98d9fbea
 98981bfb25375996c5767c9
-S2 binding_nonce_commitment: 32bbf10c41feb17d41cc6433e69f16cceccc42a0
+S3 binding_nonce_commitment: 32bbf10c41feb17d41cc6433e69f16cceccc42a0
 0aedf72feb5f44929fdf2e2f
 
 // Round two parameters
-participants: 1,2
+participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: b7e8f03a1a1149adacb96f952dbc39b6034facceafe4a70d6963592
-fce75570c
-S2 sig_share: cd388f9aff4376397c5ad231713fe6b167bed9cc88a1cc97b0b6bbe
-0316a7909
+S1 sig_share: 5830fe990a05cd8f8664e836035b0eb2b39df454bd5d4ff2c7205dd
+17a3cd103
+S3 sig_share: 1e6f5a3fee0eccb2f0dd73f5d9d7d11a3c511e8f89c62e65e49cc81
+0ea558c0a
 
-sig: ebe7efbb42c4b1c55106b5536fb5e9ac7a6d0803ea4ae9c8c629ca51e05c230e
-974d8a78fff1ac8e52774a24c00141536b0d869b388674a5191a151000e0d005
+sig: 2bb37af3550e5a17a35df4cfb83f74e5d6343fb95581951766ca734b01f1d769
+769f58d9f813994277425c2cdd32e0ccefee12e446247e57acbd25e264925d0e
 ~~~
 
 ## FROST(Ed448, SHAKE256)
@@ -1329,11 +1386,11 @@ S3 signer_share: dc3094cd49856e71c10e757fe3aa7efa8d5315daea91c4e6c96f
 f2cf670328b4a95cad16c96b68e65a87689021323737460b75cc14b2550300
 
 // Round one parameters
-participants: 1,2
+participants: 1,3
 group_binding_factor_input: 00016d8ef55145bab18c129311f1d07bef2110d0b
 6841aae919eb6abf5e523d26f819d3695d78f8aa246c6b6d6fd6c2b8a63dd1cf8e8c8
 9a870400a0c29f750605b10c52e347fc538af0d4ebddd23a1e0300482a7d98a39d408
-356b9041d5fbaa274c2dc3f248601f21cee912e2f5700c1753a80000242c2fdc11e5f
+356b9041d5fbaa274c2dc3f248601f21cee912e2f5700c1753a80000342c2fdc11e5f
 726d4c897ed118f668a27bfb0d5946b5f513e975638b7c4b0a46cf5184d4a9c1f6310
 fd3c10f84d9de704a33aab2af976d60804fa4ecba88458bcf7677a3952f540e20556d
 5e90d5aa7e8f226d303ef7b88fb33a63f6cac6a9d638089b1739a5d2564d15fb3e43e
@@ -1341,8 +1398,8 @@ fd3c10f84d9de704a33aab2af976d60804fa4ecba88458bcf7677a3952f540e20556d
 d202a7c7f68b31d6418d9845eb4d757adda6ab189e1bb340db818e5b3bc725d992faf
 63e9b0500db10517fe09d3f566fba3a80e46a403e0c7d41548fbf75cf2662b00225b5
 02961f98d8c9ff937de0b24c231845
-group_binding_factor: 2716e157c3da80b65149b1c2cb546723516272ccf75e111
-334533e2840a9bf85f3c71478ade11be26d26d8e4b9a1667af88f7df61670f60a00
+group_binding_factor: 2d171f9181b02a05a87fecac59e158ed3f14c6fa7702dfd
+7f044c13b854b75767c9ac90aa2924a023cdec5c2420236e7a7c18fbe81c9650400
 
 // Signer round one outputs
 S1 hiding_nonce: 04eccfe12348a5a2e4b30e95efcf4e494ce64b89f6504de46b3d
@@ -1355,30 +1412,30 @@ aae919eb6abf5e523d26f819d3695d78f8aa246c6b6d6fd6c2b8a63dd1cf8e8c89a87
 S1 binding_nonce_commitment: a0c29f750605b10c52e347fc538af0d4ebddd23a
 1e0300482a7d98a39d408356b9041d5fbaa274c2dc3f248601f21cee912e2f5700c17
 53a80
-S2 hiding_nonce: 3b3bbe82babf2a67ded81b308ba45f73b88f6cf3f6aaa4442256
+S3 hiding_nonce: 3b3bbe82babf2a67ded81b308ba45f73b88f6cf3f6aaa4442256
 b7a0354d1567478cfde0a2bba98ba4c3e65645e1b77386eb4063f925e00700
-S2 binding_nonce: bcbd112a88bebf463e3509076c5ef280304cb4f1b3a7499cca1
+S3 binding_nonce: bcbd112a88bebf463e3509076c5ef280304cb4f1b3a7499cca1
 d5e282cc2010a92ff56a3bdcf5ba352e0f4241ba2e54c1431a895c19fff0600
-S2 hiding_nonce_commitment: 42c2fdc11e5f726d4c897ed118f668a27bfb0d594
+S3 hiding_nonce_commitment: 42c2fdc11e5f726d4c897ed118f668a27bfb0d594
 6b5f513e975638b7c4b0a46cf5184d4a9c1f6310fd3c10f84d9de704a33aab2af976d
 6080
-S2 binding_nonce_commitment: 4fa4ecba88458bcf7677a3952f540e20556d5e90
+S3 binding_nonce_commitment: 4fa4ecba88458bcf7677a3952f540e20556d5e90
 d5aa7e8f226d303ef7b88fb33a63f6cac6a9d638089b1739a5d2564d15fb3e43e1b0b
 28a80
 
 // Round two parameters
-participants: 1,2
+participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: c5ab0a80c561d1a616ac70f4f13d993156f65f2b44a4a90f37f0640
-7a1b62e3940bf14199301d128358b812bef32cb4bffaf03030238772000
-S2 sig_share: 15211cb96d6aa73de803d46caf2043859fd796a6282f9adb00033f1
-4f4827f23f8cc792c2e322a1f30631ec7690ac587e5eb9c2afd323e3300
+S1 sig_share: 3a6d0fb3d95cf33af624cd5897b2aa17db9fb123c3c9515d53b2fff
+8ef6f9d6d596bd21f5218526fbfecceab8a9c4e8f75b86dfcbc561d0200
+S3 sig_share: 7514a08b66d908e7991e593dc94c2a364e70a926daf7b90f7762b42
+b4e5348b625d3f173f3ada41e1b2b94fe92542e66acc4588ee70c093c00
 
-sig: 4d9883057726b029d042418600abe88ad3fec06d6a48dca289482e9d51c10353
-37e4d1aae5fd1c73a55701133238602f423886fc134a3c6580e787ce8da00900c1a92
-07fd32e9c6f956597202323f8f4264ecfd99e9539ae5c388c8e45c133fb4765ee9ff2
-583d90d3e49ba02dff6ab51300
+sig: d5ec50ec2b4e055cf3d57c604d212a60fd3b8b61bdbcb8f375356d9ab8a7c10e
+f22a4885616646d1350c5b032929717753d835b3469e41f880af81af3e4036fc21904
+3269660ffd44d29105b4a9dc10b6dca14b4243ec3e5237f3ec49345c6f68dda1763aa
+1df17cf5217dc68aa463263e00
 ~~~
 
 ## FROST(ristretto255, SHA-512)
@@ -1405,16 +1462,16 @@ S3 signer_share: 439eaa4d36b145e00690c07e5245c5312c00cd65b692ebdbda22
 1681eaa92603
 
 // Round one parameters
-participants: 1,2
+participants: 1,3
 group_binding_factor_input: 0001824e9eddddf02b2a9caf5859825e999d791ca
 094f65b814a8bca6013d9cc312774c7e1271d2939a84a9a867e3a06579b4d25659b42
-7439ccf0d745b43f75b76600028013834ff4d48e7d6b76c2e732bc611f54720ef8933
+7439ccf0d745b43f75b76600038013834ff4d48e7d6b76c2e732bc611f54720ef8933
 c4ca4de7eaaa77ff5cd125e056ecc4f7c4657d3a742354430d768f945db229c335d25
 8e9622ad99f3e7582d07b35bd9849ce4af6ad403090d69a7d0eb88bba669a9f985175
 d70cd15ad5f1ef5b734c98a32b4aab7b43a57e93fc09281f2e7a207076b31e416ba63
 f53d9d
-group_binding_factor: f00ae6007f2d74a1507c962cf30006be77596106db28f2d
-5443fd66d755e780c
+group_binding_factor: c49ff163e816f4cdb8530b9b667900013f363a1f3cda3a7
+c64cd50564f5bbc03
 
 // Signer round one outputs
 S1 hiding_nonce: 349b3bb8464a1d87f7d6b56f4559a3f9a6335261a3266089a9b1
@@ -1425,26 +1482,26 @@ S1 hiding_nonce_commitment: 824e9eddddf02b2a9caf5859825e999d791ca094f
 65b814a8bca6013d9cc3127
 S1 binding_nonce_commitment: 74c7e1271d2939a84a9a867e3a06579b4d25659b
 427439ccf0d745b43f75b766
-S2 hiding_nonce: 4d66d319f20a728ec3d491cbf260cc6be687bd87cc2b5fdb4d5f
+S3 hiding_nonce: 4d66d319f20a728ec3d491cbf260cc6be687bd87cc2b5fdb4d5f
 528f65fd650d
-S2 binding_nonce: 278b9b1e04632e6af3f1a3c144d07922ffcf5efd3a341b47abc
+S3 binding_nonce: 278b9b1e04632e6af3f1a3c144d07922ffcf5efd3a341b47abc
 19c43f48ce306
-S2 hiding_nonce_commitment: 8013834ff4d48e7d6b76c2e732bc611f54720ef89
+S3 hiding_nonce_commitment: 8013834ff4d48e7d6b76c2e732bc611f54720ef89
 33c4ca4de7eaaa77ff5cd12
-S2 binding_nonce_commitment: 5e056ecc4f7c4657d3a742354430d768f945db22
+S3 binding_nonce_commitment: 5e056ecc4f7c4657d3a742354430d768f945db22
 9c335d258e9622ad99f3e758
 
 // Round two parameters
-participants: 1,2
+participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: 6a539c3a4ee281879a6fb350d20d53e17473f28cd3409ffc238dafe
-8d9330605
-S2 sig_share: 1d4e59636ee089bfaf548834b07658216649a37f87f0818d5190aa9
-b90957505
+S1 sig_share: 0acea0bccd3f841db8221d6f6e1ae6eca620c87682ce17d65d8a129
+f261d9e02
+S3 sig_share: be0660ec01443b773b86ce55e9cf27c099e4d2af6d494a587c073a2
+c81265908
 
-sig: 7e92309bf40993141acd5f2c7680a302cc5aa5dd291a833906da8e35bc39b03e
-87a1f59dbcc20b474ac43b858284ab02dbbc950c5b31218a751d5a846ac97b0a
+sig: b063fa4aae5478c0f0bacbcf58a2e97e3a41f7acf518ca9d4cd20b7318f51560
+c8d400a9cf83bf94f3a8ebc457ea0dad40059b26f017622eda914ccba743f70a
 ~~~
 
 ## FROST(P-256, SHA-256)
@@ -1471,15 +1528,15 @@ S3 signer_share: 7c7dde7d83f02ea37952ff1c45433d1e246b8d0927a9fba69d62
 00108e74ba17
 
 // Round one parameters
-participants: 1,2
+participants: 1,3
 group_binding_factor_input: 000102f34caab210d59324e12ba41f0802d9545f7
 f702906930766b86c462bb8ff7f3402b724640ea9e262469f401c9006991ba3247c2c
-91b97cdb1f0eeab1a777e24e1e0002037f8a998dfc2e60a7ad63bc987cb27b8abf78a
+91b97cdb1f0eeab1a777e24e1e0003037f8a998dfc2e60a7ad63bc987cb27b8abf78a
 68bd924ec6adb9f251850cbe711024a4e90422a19dd8463214e997042206c39d3df56
 168b458592462090c89dbcf84efca0c54f70a585d6aae28679482b4aed03ae5d38297
 b9092ab3376d46fdf55
-group_binding_factor: 9df349a9f34bf01627f6b4f8b376e8c8261d55508d1cac2
-919cdaf7f9cb20e70
+group_binding_factor: 56144cd3f4025a24263a662c3997d74de121b66964c341e
+cd0dc3c057fd7c4fd
 
 // Signer round one outputs
 S1 hiding_nonce: 3da92a503cf7e3f72f62dabedbb3ffcc9f555f1c1e78527940fe
@@ -1490,24 +1547,24 @@ S1 hiding_nonce_commitment: 02f34caab210d59324e12ba41f0802d9545f7f702
 906930766b86c462bb8ff7f34
 S1 binding_nonce_commitment: 02b724640ea9e262469f401c9006991ba3247c2c
 91b97cdb1f0eeab1a777e24e1e
-S2 hiding_nonce: 06cb4425031e695d1f8ac61320717d63918d3edc7a02fcd3f23a
+S3 hiding_nonce: 06cb4425031e695d1f8ac61320717d63918d3edc7a02fcd3f23a
 de47532b1fd9
-S2 binding_nonce: 2d965a4ea73115b8065c98c1d95c7085db247168012a834d828
+S3 binding_nonce: 2d965a4ea73115b8065c98c1d95c7085db247168012a834d828
 5a7c02f11e3e0
-S2 hiding_nonce_commitment: 037f8a998dfc2e60a7ad63bc987cb27b8abf78a68
+S3 hiding_nonce_commitment: 037f8a998dfc2e60a7ad63bc987cb27b8abf78a68
 bd924ec6adb9f251850cbe711
-S2 binding_nonce_commitment: 024a4e90422a19dd8463214e997042206c39d3df
+S3 binding_nonce_commitment: 024a4e90422a19dd8463214e997042206c39d3df
 56168b458592462090c89dbcf8
 
 // Round two parameters
-participants: 1,2
+participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: 0a658fe198caddf5ddc407ad58c4615458f02a58d0c1f7a38e25692
-98dc41df0
-S2 sig_share: e84d948cfec74b5e7540ad09fd69dcd1570f708f2d8573dbbf08cb0
-2bc872c75
+S1 sig_share: 9664d9729b2f276fd5d5fe09952179f03eb525c0b8808b121d285d4
+c81dee3f3
+S3 sig_share: be3710c71a3426be56ed97109cb4408bbc88ed6f6ffed52ef48a41c
+18592c6a4
 
-sig: 035cfbd148da711bbc823455b682ed01a1be3c5415cf692f4a91b7fe22d1dec3
-45f2b3246e979229545304b4b7562e3e25afff9ae7fe476b7f4d2e342c4a4b4a65
+sig: 032855ae1cb3e252b7ae01aa4549d5a9cfe9ef4d39ee98f5ba2a66fa7dd9f31a
+40549bea3ab5634e2d2cc3951a31d5ba7c3e5718828167c1bc1df8d44b0b0e8546
 ~~~

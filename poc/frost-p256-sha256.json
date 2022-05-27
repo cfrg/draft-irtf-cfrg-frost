@@ -24,9 +24,9 @@
     }
   },
   "round_one_outputs": {
-    "participants": "1,2",
-    "group_binding_factor_input": "000102f34caab210d59324e12ba41f0802d9545f7f702906930766b86c462bb8ff7f3402b724640ea9e262469f401c9006991ba3247c2c91b97cdb1f0eeab1a777e24e1e0002037f8a998dfc2e60a7ad63bc987cb27b8abf78a68bd924ec6adb9f251850cbe711024a4e90422a19dd8463214e997042206c39d3df56168b458592462090c89dbcf84efca0c54f70a585d6aae28679482b4aed03ae5d38297b9092ab3376d46fdf55",
-    "group_binding_factor": "9df349a9f34bf01627f6b4f8b376e8c8261d55508d1cac2919cdaf7f9cb20e70",
+    "participants": "1,3",
+    "group_binding_factor_input": "000102f34caab210d59324e12ba41f0802d9545f7f702906930766b86c462bb8ff7f3402b724640ea9e262469f401c9006991ba3247c2c91b97cdb1f0eeab1a777e24e1e0003037f8a998dfc2e60a7ad63bc987cb27b8abf78a68bd924ec6adb9f251850cbe711024a4e90422a19dd8463214e997042206c39d3df56168b458592462090c89dbcf84efca0c54f70a585d6aae28679482b4aed03ae5d38297b9092ab3376d46fdf55",
+    "group_binding_factor": "56144cd3f4025a24263a662c3997d74de121b66964c341ecd0dc3c057fd7c4fd",
     "signers": {
       "1": {
         "hiding_nonce": "3da92a503cf7e3f72f62dabedbb3ffcc9f555f1c1e78527940fe3fed6d45e56f",
@@ -34,7 +34,7 @@
         "hiding_nonce_commitment": "02f34caab210d59324e12ba41f0802d9545f7f702906930766b86c462bb8ff7f34",
         "binding_nonce_commitment": "02b724640ea9e262469f401c9006991ba3247c2c91b97cdb1f0eeab1a777e24e1e"
       },
-      "2": {
+      "3": {
         "hiding_nonce": "06cb4425031e695d1f8ac61320717d63918d3edc7a02fcd3f23ade47532b1fd9",
         "binding_nonce": "2d965a4ea73115b8065c98c1d95c7085db247168012a834d8285a7c02f11e3e0",
         "hiding_nonce_commitment": "037f8a998dfc2e60a7ad63bc987cb27b8abf78a68bd924ec6adb9f251850cbe711",
@@ -43,17 +43,17 @@
     }
   },
   "round_two_outputs": {
-    "participants": "1,2",
+    "participants": "1,3",
     "signers": {
       "1": {
-        "sig_share": "0a658fe198caddf5ddc407ad58c4615458f02a58d0c1f7a38e2569298dc41df0"
+        "sig_share": "9664d9729b2f276fd5d5fe09952179f03eb525c0b8808b121d285d4c81dee3f3"
       },
-      "2": {
-        "sig_share": "e84d948cfec74b5e7540ad09fd69dcd1570f708f2d8573dbbf08cb02bc872c75"
+      "3": {
+        "sig_share": "be3710c71a3426be56ed97109cb4408bbc88ed6f6ffed52ef48a41c18592c6a4"
       }
     }
   },
   "final_output": {
-    "sig": "035cfbd148da711bbc823455b682ed01a1be3c5415cf692f4a91b7fe22d1dec345f2b3246e979229545304b4b7562e3e25afff9ae7fe476b7f4d2e342c4a4b4a65"
+    "sig": "032855ae1cb3e252b7ae01aa4549d5a9cfe9ef4d39ee98f5ba2a66fa7dd9f31a40549bea3ab5634e2d2cc3951a31d5ba7c3e5718828167c1bc1df8d44b0b0e8546"
   }
 }
