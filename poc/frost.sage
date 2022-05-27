@@ -193,7 +193,7 @@ def verify_signature_share(G, H, identifier, public_key_share, sig_share, commit
 
     # Compute relation values
     l = sig_share * G.generator()
-    r = comm_share + (public_key_share * challenge * lambda_i)
+    r = comm_share + ((challenge * lambda_i) * public_key_share)
 
     return l == r
 

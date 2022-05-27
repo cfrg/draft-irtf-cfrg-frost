@@ -191,7 +191,8 @@ FROST depends on an abelian group of prime order `p`. We represent this
 group as the object `G` that additionally defines helper functions described below. The group operation
 for `G` is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
-`-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is equivalent to the repeated
+`-A` such that `A + (-A) = (-A) + A = I`. For convenience, we use `-` to denote
+the subtraction, e.g., `A - B = A + (-B)`. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element A with itself `r-1` times, this is denoted
 as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as a fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
@@ -261,7 +262,6 @@ the ciphersuite hash function `H`, `H4`:
     return H4(k_enc || secret_enc)
 ~~~
 
-
 ## Schnorr Signature Operations {#dep-schnorr}
 
 In the single-party setting, a Schnorr signature is generated with the
@@ -290,11 +290,14 @@ following operation.
     return (R, z)
 ~~~
 
-The corresponding verification operation is as follows.  Here, `h` is
-the cofactor for the group being operated over, e.g. `h=8` for the
-case of Curve25519, `h=4` for Ed448, and `h=1` for groups such as
-ristretto255 and secp256k1, etc.  This final scalar multiplication
-MUST be performed when `h>1`.
+The corresponding verification operation is as follows. By definition,
+this function assumes that all group Elements passed as input, including
+the signature R component and public key, belong to prime-order group G.
+Some ciphersuites defined in {{ciphersuites}} operate in settings where
+some inputs may not belong to this prime-order group, e.g., because they
+operate over an elliptic curve with a cofactor larger than 1. In these
+settings, input validation is required before invoking this verification
+function.
 
 ~~~
   schnorr_signature_verify(msg, sig, PK):
@@ -314,7 +317,7 @@ MUST be performed when `h>1`.
 
     l = G.ScalarBaseMult(z)
     r = R + (c * PK)
-    check = (l - r) * h
+    check = l - r
     return check == G.Identity()
 ~~~
 
@@ -454,7 +457,7 @@ on the signer commitment list and message to be signed.
   Inputs:
   - encoded_commitment_list, an encoded commitment list (as computed
     by encode_group_commitment_list)
-  - msg, the message to be signed (sent by the Coordinator).
+  - msg, the message to be signed.
 
   Outputs: A Scalar representing the binding factor
 
@@ -501,7 +504,7 @@ This section describes the subroutine for creating the per-message challenge.
   - group_commitment, an Element in G representing the group commitment
   - group_public_key, public key corresponding to the group signing key, an
     Element in G.
-  - msg, the message to be signed (sent by the Coordinator).
+  - msg, the message to be signed.
 
   Outputs: A Scalar representing the challenge
 
@@ -536,7 +539,7 @@ In particular, it is assumed that the coordinator and each signing participant `
 group info:
 
 - Group public key, an `Element` in `G`, denoted `PK = G.ScalarMultBase(s)`, corresponding
-  to the group secret key `s`, which is a `Scalar` in `GF(p)`. `PK` is an output from the group's
+  to the group secret key `s`, which is a `Scalar`. `PK` is an output from the group's
   key generation protocol, such as `trusted_dealer_keygen`or a DKG.
 - Public keys for each signer, denoted `PK_i = G.ScalarMultBase()`, which are similarly
   outputs from the group's key generation protocol, `Element`s in `G`.
@@ -544,7 +547,7 @@ group info:
 And that each participant with identifier `i`  where `i` is an integer in the range between 1
 and MAX_SIGNERS additionally knows the following:
 
-- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar` in `GF(p)`.
+- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
@@ -554,12 +557,14 @@ a single, trusted dealer, and the other which requires performing a distributed
 key generation protocol. We highlight key generation mechanism by a trusted dealer
 in {{dep-dealer}}, for reference.
 
-This signing variant of FROST requires signers to perform two network rounds: 1) generating and publishing commitments,
-and 2) signature share generation and publication. The first round serves
-for each participant to issue a commitment to a nonce. The second round receives commitments for all signers as well
-as the message, and issues a signature share with respect to that message. The Coordinator performs the coordination of each
-of these rounds. At the end of the second round, the Coordinator then performs an aggregation
-step and outputs the final signature. This complete interaction is shown in {{fig-frost}}.
+This signing variant of FROST requires signers to perform two network rounds:
+1) generating and publishing commitments, and 2) signature share generation and
+publication. The first round serves for each participant to issue a commitment to
+a nonce. The second round receives commitments for all signers as well as the message,
+and issues a signature share with respect to that message. The Coordinator performs
+the coordination of each of these rounds. At the end of the second round, the
+Coordinator then performs an aggregation step and outputs the final signature.
+This complete interaction is shown in {{fig-frost}}.
 
 ~~~
         (group info)            (group info,     (group info,
@@ -600,6 +605,11 @@ step and outputs the final signature. This complete interaction is shown in {{fi
 Details for round one are described in {{frost-round-one}}, and details for round two
 are described in {{frost-round-two}}. The final Aggregation step is described in
 {{frost-aggregation}}.
+
+FROST assumes that all inputs to each round, especially those of which are received
+over the network, are validated before use. In particular, this means that any value
+of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
+respectively, as these functions perform the necessary input validation steps.
 
 FROST assumes reliable message delivery between the Coordinator and signing participants in
 order for the protocol to complete. An attacker masquerading as another participant
@@ -662,7 +672,7 @@ procedure to produce its own signature share.
 ~~~
   Inputs:
   - identifier, Identifier i of the signer. Note identifier will never equal 0.
-  - sk_i, Signer secret key share, a Scalar in GF(p).
+  - sk_i, Signer secret key share, a Scalar.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
   - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in
@@ -763,7 +773,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
-    r = comm_share + (PK_i * challenge * lambda_i)
+    r = comm_share + ((challenge * lambda_i) * PK_i)
 
     return l == r
 ~~~
@@ -828,7 +838,6 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is empty.
 
 - Group: edwards25519 {{!RFC8032}}
-  - Cofactor (`h`): 8
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
   - Identity: As defined in {{RFC7748}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
@@ -865,7 +874,6 @@ This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash functi
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
-  - Cofactor (`h`): 1
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
   - Identity: As defined in {{RISTRETTO}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
@@ -895,7 +903,6 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is empty.
 
 - Group: edwards448 {{!RFC8032}}
-  - Cofactor (`h`): 4
   - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
   - Identity: As defined in {{RFC7748}}.
   - RandomScalar: Implemented by generating a random 48-byte string and invoking
@@ -932,7 +939,6 @@ This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
-  - Cofactor (`h`): 1
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{x9.62}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
@@ -992,7 +998,7 @@ The protocol as specified in this document does not target the following goals:
 
 * Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
-* Downgrade prevention. The sender and receiver are assumed to agree on what algorithms to use.
+* Downgrade prevention. All signing participants are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
 
@@ -1023,12 +1029,12 @@ We assume that every participant receives as input from an external source the
 message to be signed prior to performing the protocol.
 
 Every participant begins by performing `commit()` as is done in the setting
-where a coordinator is used. However, instead of sending the commitment
-`SigningCommitment` to the coordinator, every participant instead will publish
+where a coordinator is used. However, instead of sending commitments
+to the coordinator, every participant instead will publish
 this commitment to every other participant. Then, in the second round, instead of
-receiving a `SigningPackage` from the coordinator, signers will already have
+receiving signing instructions from the coordinator, signers will already have
 sufficient information to perform signing. They will directly perform `sign`.
-All participants will then publish a `SignatureShare` to one another. After having
+All participants will then publish their signature shares to one another. After having
 received all signature shares from all other signers, each signer will then perform
 `verify_signature_share` and then `aggregate` directly.
 
@@ -1261,9 +1267,9 @@ which is an input into the FROST signing protocol.
     derive_group_info(MAX_SIGNERS, MIN_SIGNERS, vss_commitment)
       PK = vss_commitment[0]
       signer_public_keys = []
-      for i in range(1, MAX_SIGNERS):
+      for i in range(1, MAX_SIGNERS+1):
         PK_i = G.Identity()
-        for j in range(0, MIN_SIGNERS-1):
+        for j in range(0, MIN_SIGNERS):
           PK_i += vss_commitment[j] * i^j
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
