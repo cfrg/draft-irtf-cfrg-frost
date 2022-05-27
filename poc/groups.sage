@@ -127,6 +127,7 @@ class GroupNISTCurve(Group):
     def hash_to_scalar(self, msg, dst=""):
         return hash_to_field(msg, 1, dst, self.order(), self.m, self.L, self.expand, self.H, self.k)[0][0]
 
+
 class GroupP256(GroupNISTCurve):
     def __init__(self):
         # See FIPS 186-3, section D.2.3
@@ -138,6 +139,7 @@ class GroupP256(GroupNISTCurve):
         gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
         gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
         GroupNISTCurve.__init__(self, "P-256", F, A, B, p, order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
+
 
 class GroupEd25519(Group):
     # Compute corresponding x-coordinate, with low bit corresponding to
