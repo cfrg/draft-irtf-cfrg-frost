@@ -5,7 +5,7 @@ import textwrap
 
 config_keys = [
     "MAX_SIGNERS",
-    "THRESHOLD_LIMIT",
+    "MIN_SIGNERS",
     "NUM_SIGNERS",
 ]
 
