@@ -263,8 +263,8 @@ class Signer(object):
 
 # Configure the setting
 MAX_SIGNERS = 3
-THRESHOLD_LIMIT = 2
-NUM_SIGNERS = THRESHOLD_LIMIT
+MIN_SIGNERS = 2
+NUM_SIGNERS = MIN_SIGNERS
 PARTICIPANT_LIST = [1, 3]
 message = _as_bytes("test")
 
@@ -275,24 +275,24 @@ ciphersuites = [
     ("frost-p256-sha256", "FROST(P-256, SHA-256)", GroupP256(), HashP256()),
 ]
 for (fname, name, G, H) in ciphersuites:
-    assert(THRESHOLD_LIMIT > 1)
-    assert(THRESHOLD_LIMIT <= NUM_SIGNERS)
+    assert(MIN_SIGNERS > 1)
+    assert(MIN_SIGNERS <= NUM_SIGNERS)
     assert(NUM_SIGNERS <= MAX_SIGNERS)
 
     config = {}
     config["MAX_SIGNERS"] = str(MAX_SIGNERS)
     config["NUM_SIGNERS"] = str(NUM_SIGNERS)
-    config["THRESHOLD_LIMIT"] = str(THRESHOLD_LIMIT)
+    config["MIN_SIGNERS"] = str(MIN_SIGNERS)
     config["name"] = name
     config["group"] = G.name
     config["hash"] = H.name
 
     # Create all inputs, including the group key and individual signer key shares
     group_secret_key = G.random_scalar()
-    signer_private_keys, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_SIGNERS, THRESHOLD_LIMIT)
-    assert(len(vss_commitment) == THRESHOLD_LIMIT)
+    signer_private_keys, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_SIGNERS, MIN_SIGNERS)
+    assert(len(vss_commitment) == MIN_SIGNERS)
 
-    group_public_key, signer_public_keys = derive_group_info(G, MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
+    group_public_key, signer_public_keys = derive_group_info(G, MAX_SIGNERS, MIN_SIGNERS, vss_commitment)
     assert(len(signer_public_keys) == MAX_SIGNERS)
     assert(group_public_key == vss_commitment[0])
 

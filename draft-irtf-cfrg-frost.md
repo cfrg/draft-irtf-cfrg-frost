@@ -158,11 +158,11 @@ The following notation and terminology are used throughout this document.
 * A participant is an entity that is trusted to hold a secret share.
 * `MAX_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into.
   This value MUST NOT exceed 2^16-1.
-* `THRESHOLD_LIMIT` denotes the threshold number of participants required to issue a signature. More specifically,
-  at least THRESHOLD_LIMIT shares must be combined to issue a valid signature.
+* `MIN_SIGNERS` denotes the threshold number of participants required to issue a signature. More specifically,
+  at least MIN_SIGNERS shares must be combined to issue a valid signature.
   This value MUST NOT exceed p.
 * `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
-  THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
+  MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
   This value MUST NOT exceed p.
 * `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
@@ -523,7 +523,7 @@ It involves signer participants and a coordinator. Signing participants are
 entities with signing key shares that participate in the threshold signing
 protocol. The coordinator is a distinguished signer with the following responsibilities:
 
-1. Determining which signers will participate (at least THRESHOLD_LIMIT in number);
+1. Determining which signers will participate (at least MIN_SIGNERS in number);
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
@@ -653,7 +653,7 @@ of FROST, and it MUST be generated from a source of secure randomness. The publi
 ## Round Two - Signature Share Generation {#frost-round-two}
 
 In round two, the Coordinator is responsible for sending the message to be signed, and
-for choosing which signers will participate (of number at least THRESHOLD_LIMIT). Signers
+for choosing which signers will participate (of number at least MIN_SIGNERS). Signers
 additionally require locally held data; specifically, their private key and the
 nonces corresponding to their commitment issued in round one.
 
@@ -791,7 +791,7 @@ and publishes the resulting signature.
   - group_commitment, the group commitment returned by compute_group_commitment,
     an Element in G.
   - sig_shares, a set of signature shares z_i, Scalar values, for each signer,
-    of length NUM_SIGNERS, where THRESHOLD_LIMIT <= NUM_SIGNERS <= MAX_SIGNERS.
+    of length NUM_SIGNERS, where MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
 
   Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
@@ -981,8 +981,8 @@ in this document assumes the following threat model.
 the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming at most `(THRESHOLD_LIMIT-1)` corrupted signers. So long as an adversary
-corrupts fewer than `THRESHOLD_LIMIT` participants, the scheme remains secure against Existential
+* Unforgeability assuming at most `(MIN_SIGNERS-1)` corrupted signers. So long as an adversary
+corrupts fewer than `MIN_SIGNERS` participants, the scheme remains secure against Existential
 Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
 Definition 13.2.
 
@@ -1090,7 +1090,7 @@ and 3) keep secret values confidential.
   Inputs:
   - s, a group secret, Scalar, that MUST be derived from at least Ns bytes of entropy
   - MAX_SIGNERS, the number of shares to generate, an integer
-  - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
+  - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
 
   Outputs:
   - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a Scalar value.
@@ -1098,8 +1098,8 @@ and 3) keep secret values confidential.
     in the polynomial defined by secret_key_shares and whose constant term is
     G.ScalarBaseMult(s).
 
-  def trusted_dealer_keygen(s, MAX_SIGNERS, THRESHOLD_LIMIT):
-    signer_private_keys, coefficients = secret_share_shard(secret_key, MAX_SIGNERS, THRESHOLD_LIMIT)
+  def trusted_dealer_keygen(s, MAX_SIGNERS, MIN_SIGNERS):
+    signer_private_keys, coefficients = secret_share_shard(secret_key, MAX_SIGNERS, MIN_SIGNERS)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
     return signer_private_keys, vss_commitment
@@ -1117,7 +1117,7 @@ and integrity. Mutually authenticated TLS is one possible deployment option.
 ## Shamir Secret Sharing {#dep-shamir}
 
 In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` participants
-in such a way that any cooperating subset of `THRESHOLD_LIMIT` participants can recover the
+in such a way that any cooperating subset of `MIN_SIGNERS` participants can recover the
 secret. There are two basic steps in this scheme: (1) splitting a secret into
 multiple shares, and (2) combining shares to reveal the resulting secret.
 
@@ -1127,12 +1127,12 @@ the scalar field of the prime-order group `G`.
 The procedure for splitting a secret into shares is as follows.
 
 ~~~
-  secret_share_shard(s, MAX_SIGNERS, THRESHOLD_LIMIT):
+  secret_share_shard(s, MAX_SIGNERS, MIN_SIGNERS):
 
   Inputs:
   - s, secret value to be shared, a Scalar
   - MAX_SIGNERS, the number of shares to generate, an integer
-  - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
+  - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
 
   Outputs:
   - secret_key_shares, A list of MAX_SIGNERS number of secret shares, which is a tuple
@@ -1141,18 +1141,18 @@ The procedure for splitting a secret into shares is as follows.
     a polynomial f.
 
   Errors:
-  - "invalid parameters", if THRESHOLD_LIMIT > MAX_SIGNERS or if THRESHOLD_LIMIT is less than 2
+  - "invalid parameters", if MIN_SIGNERS > MAX_SIGNERS or if MIN_SIGNERS is less than 2
 
-  def secret_share_shard(s, MAX_SIGNERS, THRESHOLD_LIMIT):
-    if THRESHOLD_LIMIT > MAX_SIGNERS:
+  def secret_share_shard(s, MAX_SIGNERS, MIN_SIGNERS):
+    if MIN_SIGNERS > MAX_SIGNERS:
       raise "invalid parameters"
-    if THRESHOLD_LIMIT < 2:
+    if MIN_SIGNERS < 2:
       raise "invalid parameters"
 
     # Generate random coefficients for the polynomial, yielding
-    # a polynomial of degree (THRESHOLD_LIMIT - 1)
+    # a polynomial of degree (MIN_SIGNERS - 1)
     coefficients = [s]
-    for i in range(1, THRESHOLD_LIMIT):
+    for i in range(1, MIN_SIGNERS):
       coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
@@ -1170,22 +1170,22 @@ evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i
 and the list of these shares as `shares`.
 `i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
-The procedure for combining a `shares` list of length `THRESHOLD_LIMIT` to recover the
+The procedure for combining a `shares` list of length `MIN_SIGNERS` to recover the
 secret `s` is as follows.
 
 ~~~
   secret_share_combine(shares):
 
   Inputs:
-  - shares, a list of at minimum THRESHOLD_LIMIT secret shares, each a tuple (i, f(i))
+  - shares, a list of at minimum MIN_SIGNERS secret shares, each a tuple (i, f(i))
 
   Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
   Errors:
-  - "invalid parameters", if less than THRESHOLD_LIMIT input shares are provided
+  - "invalid parameters", if less than MIN_SIGNERS input shares are provided
 
   def secret_share_combine(shares):
-    if len(shares) < THRESHOLD_LIMIT:
+    if len(shares) < MIN_SIGNERS:
       raise "invalid parameters"
     s = polynomial_interpolation(shares)
     return s
@@ -1200,13 +1200,13 @@ is the constant term. This check ensure that all participants have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
 the correct secret.
 
-The procedure for committing to a polynomial `f` of degree `THRESHOLD_LIMIT-1` is as follows.
+The procedure for committing to a polynomial `f` of degree `MIN_SIGNERS-1` is as follows.
 
 ~~~
   vss_commit(coeffs):
 
   Inputs:
-  - coeffs, a vector of the THRESHOLD_LIMIT coefficients which uniquely determine
+  - coeffs, a vector of the MIN_SIGNERS coefficients which uniquely determine
   a polynomial f.
 
   Outputs: a commitment vss_commitment, which is a vector commitment to each of the
@@ -1240,7 +1240,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     (i, sk_i) = share_i
     S_i = ScalarBaseMult(sk_i)
     S_i' = G.Identity()
-    for j in range(0, THRESHOLD_LIMIT):
+    for j in range(0, MIN_SIGNERS-1):
       S_i' += vss_commitment[j] * i^j
     if S_i == S_i':
       return 1
@@ -1251,11 +1251,11 @@ We now define how the coordinator and signing participants can derive group info
 which is an input into the FROST signing protocol.
 
 ~~~
-    derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment):
+    derive_group_info(MAX_SIGNERS, MIN_SIGNERS, vss_commitment):
 
     Inputs:
     - MAX_SIGNERS, the number of shares to generate, an integer
-    - THRESHOLD_LIMIT, the threshold of the secret sharing scheme, an integer
+    - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
     - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
     coefficients in coeffs, where each element of the vector commitment is an Element in G.
 
@@ -1264,12 +1264,12 @@ which is an input into the FROST signing protocol.
     - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS,
       where each PK_i is the public key, an Element, for participant i.
 
-    derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
+    derive_group_info(MAX_SIGNERS, MIN_SIGNERS, vss_commitment)
       PK = vss_commitment[0]
       signer_public_keys = []
       for i in range(1, MAX_SIGNERS+1):
         PK_i = G.Identity()
-        for j in range(0, THRESHOLD_LIMIT):
+        for j in range(0, MIN_SIGNERS):
           PK_i += vss_commitment[j] * i^j
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
@@ -1286,7 +1286,7 @@ string.
 Each test vector consists of the following information.
 
 - Configuration: This lists the fixed parameters for the particular instantiation
-  of FROST, including MAX_SIGNERS, THRESHOLD_LIMIT, and NUM_SIGNERS.
+  of FROST, including MAX_SIGNERS, MIN_SIGNERS, and NUM_SIGNERS.
 - Group input parameters: This lists the group secret key and shared public key,
   generated by a trusted dealer as described in {{dep-dealer}}, as well as the
   input message to be signed. All values are encoded as hexadecimal strings.
@@ -1307,7 +1307,7 @@ Each test vector consists of the following information.
 ~~~
 // Configuration information
 MAX_SIGNERS: 3
-THRESHOLD_LIMIT: 2
+MIN_SIGNERS: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
@@ -1373,7 +1373,7 @@ sig: 2bb37af3550e5a17a35df4cfb83f74e5d6343fb95581951766ca734b01f1d769
 ~~~
 // Configuration information
 MAX_SIGNERS: 3
-THRESHOLD_LIMIT: 2
+MIN_SIGNERS: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
@@ -1449,7 +1449,7 @@ f22a4885616646d1350c5b032929717753d835b3469e41f880af81af3e4036fc21904
 ~~~
 // Configuration information
 MAX_SIGNERS: 3
-THRESHOLD_LIMIT: 2
+MIN_SIGNERS: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
@@ -1515,7 +1515,7 @@ c8d400a9cf83bf94f3a8ebc457ea0dad40059b26f017622eda914ccba743f70a
 ~~~
 // Configuration information
 MAX_SIGNERS: 3
-THRESHOLD_LIMIT: 2
+MIN_SIGNERS: 2
 NUM_SIGNERS: 2
 
 // Group input parameters
