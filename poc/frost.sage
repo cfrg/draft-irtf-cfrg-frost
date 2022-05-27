@@ -1,7 +1,7 @@
 #!/usr/bin/sage
 # vim: syntax=python
 
-import random
+import os
 import sys
 import json
 
@@ -26,7 +26,7 @@ def to_hex(byte_string):
 
 
 def random_bytes(n):
-    return random.randbytes(n)
+    return os.urandom(n)
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-lagrange-coefficients
 def derive_lagrange_coefficient(G, i, L):
@@ -193,7 +193,7 @@ def verify_signature_share(G, H, identifier, public_key_share, sig_share, commit
 
     # Compute relation values
     l = sig_share * G.generator()
-    r = comm_share + (public_key_share * challenge * lambda_i)
+    r = comm_share + ((challenge * lambda_i) * public_key_share)
 
     return l == r
 
