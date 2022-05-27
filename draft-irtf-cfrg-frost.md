@@ -191,7 +191,8 @@ FROST depends on an abelian group of prime order `p`. We represent this
 group as the object `G` that additionally defines helper functions described below. The group operation
 for `G` is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
-`-A` such that `A + (-A) = (-A) + A = I`. Scalar multiplication is equivalent to the repeated
+`-A` such that `A + (-A) = (-A) + A = I`. For convenience, we use `-` to denote
+the subtraction, e.g., `A - B = A + (-B)`. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element A with itself `r-1` times, this is denoted
 as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as a fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
@@ -224,7 +225,7 @@ written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
 {{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
 H1, H2, H3, and H4, where H1, H2, and H4 map arbitrary byte strings to Scalar elements of
-the prime-order group scalar field, and H3 is an alias for H with a domain separator. 
+the prime-order group scalar field, and H3 is an alias for H with a domain separator.
 The details of H1, H2, H3, and H4 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
@@ -243,13 +244,13 @@ These sections describes these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
-To hedge against a bad RNG, we generate nonces by sourcing fresh randomness and 
-combine with the secret key, to create a domain-separated hash function from 
+To hedge against a bad RNG, we generate nonces by sourcing fresh randomness and
+combine with the secret key, to create a domain-separated hash function from
 the ciphersuite hash function `H`, `H4`:
 
 ~~~
   nonce_generate(secret):
-  
+
   Inputs:
   - secret, a Scalar
 
@@ -258,9 +259,8 @@ the ciphersuite hash function `H`, `H4`:
   def nonce_generate(secret):
     k_enc = random_bytes(32)
     secret_enc = G.SerializeScalar(secret)
-    return H4(k_enc || secret_enc) 
+    return H4(k_enc || secret_enc)
 ~~~
-
 
 ## Schnorr Signature Operations {#dep-schnorr}
 
@@ -290,11 +290,14 @@ following operation.
     return (R, z)
 ~~~
 
-The corresponding verification operation is as follows.  Here, `h` is
-the cofactor for the group being operated over, e.g. `h=8` for the
-case of Curve25519, `h=4` for Ed448, and `h=1` for groups such as
-ristretto255 and secp256k1, etc.  This final scalar multiplication
-MUST be performed when `h>1`.
+The corresponding verification operation is as follows. By definition,
+this function assumes that all group Elements passed as input, including
+the signature R component and public key, belong to prime-order group G.
+Some ciphersuites defined in {{ciphersuites}} operate in settings where
+some inputs may not belong to this prime-order group, e.g., because they
+operate over an elliptic curve with a cofactor larger than 1. In these
+settings, input validation is required before invoking this verification
+function.
 
 ~~~
   schnorr_signature_verify(msg, sig, PK):
@@ -314,7 +317,7 @@ MUST be performed when `h>1`.
 
     l = G.ScalarBaseMult(z)
     r = R + (c * PK)
-    check = (l - r) * h
+    check = l - r
     return check == G.Identity()
 ~~~
 
@@ -454,7 +457,7 @@ on the signer commitment list and message to be signed.
   Inputs:
   - encoded_commitment_list, an encoded commitment list (as computed
     by encode_group_commitment_list)
-  - msg, the message to be signed (sent by the Coordinator).
+  - msg, the message to be signed.
 
   Outputs: A Scalar representing the binding factor
 
@@ -501,7 +504,7 @@ This section describes the subroutine for creating the per-message challenge.
   - group_commitment, an Element in G representing the group commitment
   - group_public_key, public key corresponding to the group signing key, an
     Element in G.
-  - msg, the message to be signed (sent by the Coordinator).
+  - msg, the message to be signed.
 
   Outputs: A Scalar representing the challenge
 
@@ -763,7 +766,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
-    r = comm_share + (challenge * lambda_i * PK_i)
+    r = comm_share + ((challenge * lambda_i) * PK_i)
 
     return l == r
 ~~~
@@ -828,7 +831,6 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is empty.
 
 - Group: edwards25519 {{!RFC8032}}
-  - Cofactor (`h`): 8
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
   - Identity: As defined in {{RFC7748}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
@@ -865,7 +867,6 @@ This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash functi
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
-  - Cofactor (`h`): 1
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
   - Identity: As defined in {{RISTRETTO}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
@@ -895,7 +896,6 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is empty.
 
 - Group: edwards448 {{!RFC8032}}
-  - Cofactor (`h`): 4
   - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
   - Identity: As defined in {{RFC7748}}.
   - RandomScalar: Implemented by generating a random 48-byte string and invoking
@@ -932,7 +932,6 @@ This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256".
 
 - Group: P-256 (secp256r1) {{x9.62}}
-  - Cofactor (`h`): 1
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{x9.62}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
@@ -992,7 +991,7 @@ The protocol as specified in this document does not target the following goals:
 
 * Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
-* Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
+* Downgrade prevention. All signing participants are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
 
@@ -1023,11 +1022,11 @@ We assume that every participant receives as input from an external source the
 message to be signed prior to performing the protocol.
 
 Every participant begins by performing `commit()` as is done in the setting
-where a Coordinator is used. However, instead of sending the commitment
-to the Coordinator, every participant instead will publish
+where a coordinator is used. However, instead of sending commitments
+to the coordinator, every participant instead will publish
 this commitment to every other participant. Then, in the second round, signers will already have
 sufficient information to perform signing. They will directly perform `sign`.
-All participants will then publish a `SignatureShare` to one another. After having
+All participants will then publish their signature shares to one another. After having
 received all signature shares from all other signers, each signer will then perform
 `verify_signature_share` and then `aggregate` directly.
 
@@ -1233,7 +1232,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     (i, sk_i) = share_i
     S_i = ScalarBaseMult(sk_i)
     S_i' = G.Identity()
-    for j in range(0, THRESHOLD_LIMIT-1):
+    for j in range(0, THRESHOLD_LIMIT):
       S_i' += vss_commitment[j] * i^j
     if S_i == S_i':
       return 1
@@ -1260,9 +1259,9 @@ which is an input into the FROST signing protocol.
     derive_group_info(MAX_SIGNERS, THRESHOLD_LIMIT, vss_commitment)
       PK = vss_commitment[0]
       signer_public_keys = []
-      for i in range(1, MAX_SIGNERS):
+      for i in range(1, MAX_SIGNERS+1):
         PK_i = G.Identity()
-        for j in range(0, THRESHOLD_LIMIT-1):
+        for j in range(0, THRESHOLD_LIMIT):
           PK_i += vss_commitment[j] * i^j
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
