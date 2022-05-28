@@ -773,7 +773,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
-    r = comm_share + (challenge * lambda_i * PK_i)
+    r = comm_share + ((challenge * lambda_i) * PK_i)
 
     return l == r
 ~~~
