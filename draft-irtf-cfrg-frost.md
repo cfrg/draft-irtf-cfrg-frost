@@ -871,7 +871,7 @@ with {{!RFC8032}}, it is omitted.
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
-The value of the contextString parameter is "FROST-RISTRETTO255-SHA512".
+The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
@@ -936,7 +936,7 @@ with {{!RFC8032}}, it is omitted.
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-P256-SHA256".
+The value of the contextString parameter is "FROST-P256-SHA256-v5".
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
