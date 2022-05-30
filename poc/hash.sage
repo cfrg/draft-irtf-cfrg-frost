@@ -75,21 +75,21 @@ class HashRistretto255(Hash):
         Hash.__init__(self, GroupRistretto255(), sha512, "SHA-512")
 
     def H1(self, m):
-        hash_input = _as_bytes("FROST-RISTRETTO255-SHA512rho") + m
+        hash_input = _as_bytes("FROST-RISTRETTO255-SHA512-v5rho") + m
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
     def H2(self, m):
-        hash_input = _as_bytes("FROST-RISTRETTO255-SHA512chal") + m
+        hash_input = _as_bytes("FROST-RISTRETTO255-SHA512-v5chal") + m
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
     def H3(self, m):
         hasher = self.H()
-        hasher.update(_as_bytes("FROST-RISTRETTO255-SHA512digest"))
+        hasher.update(_as_bytes("FROST-RISTRETTO255-SHA512-v5digest"))
         hasher.update(m)
         return hasher.digest()
 
     def H4(self, m):
-        hash_input = _as_bytes("FROST-RISTRETTO255-SHA512nonce") + m
+        hash_input = _as_bytes("FROST-RISTRETTO255-SHA512-v5nonce") + m
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
 class HashP256(Hash):
@@ -97,16 +97,16 @@ class HashP256(Hash):
         Hash.__init__(self, GroupP256(), sha256, "SHA-256")
 
     def H1(self, m):
-        dst = _as_bytes("FROST-P256-SHA256rho")
+        dst = _as_bytes("FROST-P256-SHA256-v5rho")
         return self.G.hash_to_scalar(m, dst=dst)
 
     def H2(self, m):
-        dst = _as_bytes("FROST-P256-SHA256chal")
+        dst = _as_bytes("FROST-P256-SHA256-v5chal")
         return self.G.hash_to_scalar(m, dst=dst)
 
     def H3(self, m):
         hasher = self.H()
-        hasher.update(_as_bytes("FROST-P256-SHA256digest"))
+        hasher.update(_as_bytes("FROST-P256-SHA256-v5digest"))
         hasher.update(m)
         return hasher.digest()
 
