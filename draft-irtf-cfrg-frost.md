@@ -114,6 +114,7 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 draft-05
 
+- Update test vectors to include version string (#202, #203)
 - Rename THRESHOLD_LIMIT to MIN_SIGNERS (#192)
 - Use non-contiguous signers for the test vectors (#187)
 - Add more reasoning why the coordinator MUST abort (#183) 
@@ -128,7 +129,7 @@ draft-05
 - Use RandomNonzeroScalar for single-party Schnorr example (#148) 
 - Fix group notation and clarify member functions (#145) 
 - Update existing implementations table (#136) 
-- Various editorial improvements (#135, #143, #147, #149, #153, #158, #162, #167, #168, #169, #170, #175, #176, #177, #178, #184, #186, #193)
+- Various editorial improvements (#135, #143, #147, #149, #153, #158, #162, #167, #168, #169, #170, #175, #176, #177, #178, #184, #186, #193, #198, #199)
 
 draft-04
 
