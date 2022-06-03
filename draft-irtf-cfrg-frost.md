@@ -873,15 +873,15 @@ The value of the contextString parameter is empty.
     string. This function can fail if the input does not represent a Scalar between
     the value 0 and `G.Order() - 1`.
 - Hash (`H`): SHA-512, and Nh = 64.
-  - H1(m): Implemented by computing H("rho" || m), interpreting the lower
-    32 bytes as a little-endian integer, and reducing the resulting integer modulo
+  - H1(m): Implemented by computing H("rho" || m), interpreting the 64-byte digest
+    as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
-  - H2(m): Implemented by computing H(m), interpreting the lower 32 bytes
+  - H2(m): Implemented by computing H(m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
   - H3(m): Implemented as an alias for H, i.e., H(m).
-  - H4(m): Implemented by computing H("nonce" || m), interpreting the lower
-    32 bytes as a little-endian integer, and reducing the resulting integer modulo
+  - H4(m): Implemented by computing H("nonce" || m), interpreting the 64-byte digest
+    as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
 
 Normally H2 would also include a domain separator, but for backwards compatibility
