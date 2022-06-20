@@ -172,22 +172,26 @@ draft-00
 
 {::boilerplate bcp14}
 
-The following notation and terminology are used throughout this document.
+The following terminology are used throughout this document.
 
-* A participant is an entity that is trusted to hold a secret share.
-* `MAX_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into.
-  This value MUST NOT exceed 2^16-1.
-* `MIN_SIGNERS` denotes the threshold number of participants required to issue a signature. More specifically,
-  at least MIN_SIGNERS shares must be combined to issue a valid signature.
-  This value MUST NOT exceed p.
+* A participant is an entity that is trusted to hold and use a signing key share.
+* `MAX_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into. This value MUST NOT exceed 2^16-1.
+* `MIN_SIGNERS` denotes the threshold number of participants required to issue a signature, where MIN_SIGNERS <= MAX_SIGNERS.
 * `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
   MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
-  This value MUST NOT exceed p.
-* `len(x)` is the length of integer input `x` as an 8-byte, big-endian integer.
+* An identifier is an integer value associated with a participant, or signer,
+  and is a value in the range [1, MAX_SIGNERS].
+
+Additionally, the following notation is used throughout the document.
+
 * `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG).
+* `len(l)`: Outputs the length of input list `l`, e.g., `len([1,2,3]) = 3)`.
+* `reverse(l)`: Outputs the list `l` in reverse order, e.g., `reverse([1,2,3]) = [3,2,1]`.
+* `range(a, b)`: Outputs a list of integers from `a` to `b-1` in ascending order, e.g., `range(1, 4) = [1,2,3]`.
+* `pow(a, b)`: Output the integer result of `a` to the power of `b`, e.g., `pow(2, 3) = 8`.
 * \|\| denotes concatenation, i.e., x \|\| y = xy.
 * nil denotes an empty byte string.
 
@@ -211,12 +215,12 @@ group as the object `G` that additionally defines helper functions described bel
 for `G` is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. For convenience, we use `-` to denote
-the subtraction, e.g., `A - B = A + (-B)`. Scalar multiplication is equivalent to the repeated
+subtraction, e.g., `A - B = A + (-B)`. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element A with itself `r-1` times, this is denoted
 as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as a fixed generator
 of the group. Scalar base multiplication is equivalent to the repeated application of the group
 operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
-scalars corresponds to `GF(p)`, which refer to as the scalar field. This document uses types
+scalars corresponds to `GF(p)`, which we refer to as the scalar field. This document uses types
 `Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
 We denote equality comparison as `==` and assignment of values by `=`.
 
@@ -225,7 +229,6 @@ We now detail a number of member functions that can be invoked on `G`.
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity `Element` of the group (i.e. `I`).
 - RandomScalar(): Outputs a random `Scalar` element in GF(p).
-- RandomNonzeroScalar(): Outputs a random non-zero `Scalar` element in GF(p).
 - SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not a valid byte representation of an element of
@@ -242,7 +245,7 @@ We now detail a number of member functions that can be invoked on `G`.
 FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
-{{ciphersuites}}. Using H, we introduce three separate domain-separated hashes,
+{{ciphersuites}}. Using H, we introduce four separate domain-separated hashes,
 H1, H2, H3, and H4, where H1, H2, and H4 map arbitrary byte strings to Scalar elements of
 the prime-order group scalar field, and H3 is an alias for H with a domain separator.
 The details of H1, H2, H3, and H4 vary based on ciphersuite. See {{ciphersuites}}
@@ -263,9 +266,10 @@ These sections describes these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
-To hedge against a bad RNG, we generate nonces by sourcing fresh randomness and
-combine with the secret key, to create a domain-separated hash function from
-the ciphersuite hash function `H`, `H4`:
+To hedge against a bad RNG that outputs predictable values, we generate
+nonces by sourcing fresh randomness and combine with the secret key,
+to create a domain-separated hash function from the ciphersuite hash
+function `H`, `H4`:
 
 ~~~
   nonce_generate(secret):
@@ -315,8 +319,8 @@ the signature R component and public key, belong to prime-order group G.
 Some ciphersuites defined in {{ciphersuites}} operate in settings where
 some inputs may not belong to this prime-order group, e.g., because they
 operate over an elliptic curve with a cofactor larger than 1. In these
-settings, input validation is required before invoking this verification
-function.
+settings, input validation as specified in {{ciphersuites}} is required
+before invoking this verification function.
 
 ~~~
   schnorr_signature_verify(msg, sig, PK):
@@ -336,8 +340,7 @@ function.
 
     l = G.ScalarBaseMult(z)
     r = R + (c * PK)
-    check = l - r
-    return check == G.Identity()
+    return l == r
 ~~~
 
 ## Polynomial Operations {#dep-polynomial}
@@ -366,21 +369,19 @@ particular input `x`, i.e., `y = f(x)` using Horner's method.
 
   def polynomial_evaluate(x, coeffs):
     value = 0
-    for (counter, coeff) in coeffs.reverse():
-      if counter == coeffs.len() - 1:
-        value += coeff // add the constant term
-      else:
-        value += coeff
-        value *= x
+    for coeff in reverse(coeffs):
+      value *= x
+      value += coeff
     return value
 ~~~
 
 ### Lagrange coefficients
 
 The function `derive_lagrange_coefficient` derives a Lagrange coefficient
-to later perform polynomial interpolation, and is provided a set of x-coordinates as input.
-Lagrange coefficients are used in FROST to evaluate a polynomial
-`f` at point 0, i.e., `f(0)`, given a set of `t` other points.
+to later perform polynomial interpolation, and is provided a list of x-coordinates
+as input. Note that `derive_lagrange_coefficient` does not permit any x-coordinate
+to equal 0. Lagrange coefficients are used in FROST to evaluate a polynomial `f`
+at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
 
 ~~~
   derive_lagrange_coefficient(x_i, L):
@@ -392,7 +393,8 @@ Lagrange coefficients are used in FROST to evaluate a polynomial
   Outputs: L_i, the i-th Lagrange coefficient
 
   Errors:
-  - "invalid parameters", if any coordinate is equal to 0
+  - "invalid parameters", if any x-coordinate is equal to 0 or if x_i
+    is not in L
 
   def derive_lagrange_coefficient(x_i, L):
     if x_i = 0:
@@ -400,9 +402,11 @@ Lagrange coefficients are used in FROST to evaluate a polynomial
     for x_j in L:
       if x_j = 0:
         raise "invalid parameters"
+    if x_i not in L:
+      raise "invalid parameters"
 
-    numerator = 1
-    denominator = 1
+    numerator = Scalar(1)
+    denominator = Scalar(1)
     for x_j in L:
       if x_j == x_i: continue
       numerator *= x_j
@@ -431,7 +435,7 @@ interpolation, defined as follows.
     for point in points:
       L.append(point.x)
 
-    f_zero = 0
+    f_zero = Scalar(0)
     for point in points:
       delta = point.y * derive_lagrange_coefficient(point.x, L)
       f_zero = f_zero + delta
@@ -439,13 +443,12 @@ interpolation, defined as follows.
     return f_zero
 ~~~
 
-Note that these coefficients can be computed once and then stored, as these
-values remain constant across FROST signing sessions.
-
-## Commitment List Encoding {#dep-encoding}
+## Commitment List Operations {#dep-encoding}
 
 This section describes the subroutine used for encoding a list of signer
-commitments into a bytestring that is used in the FROST protocol.
+commitments into a bytestring that is used in the FROST protocol, as well
+as a helper function for extracting signer participant identifiers from
+a commitment list.
 
 ~~~
   Inputs:
@@ -465,6 +468,26 @@ commitments into a bytestring that is used in the FROST protocol.
                            G.SerializeElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
     return encoded_group_commitment
+~~~
+
+The following function is used to extract participant identifiers from a commitment
+list.
+
+~~~
+  Inputs:
+  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
+    a list of commitments issued by each signer, where each element in the list
+    indicates the signer identifier i and their two commitment Element values
+    (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
+    in ascending order by signer identifier.
+
+  Outputs: A list of signer participant identifiers
+
+def participants_from_commitment_list(commitment_list):
+  identifiers = []
+  for (identifier, _, _) in commitment_list:
+    identifiers.append(identifier)
+  return identifiers
 ~~~
 
 ## Binding Factor Computation {#dep-binding-factor}
@@ -538,7 +561,7 @@ This section describes the subroutine for creating the per-message challenge.
 # Two-Round FROST Signing Protocol {#frost-spec}
 
 We now present the two-round variant of the FROST threshold signature protocol for producing Schnorr signatures.
-It involves signer participants and a Coordinator. Signing participants are
+It involves signer participants and a Coordinator. Signer participants are
 entities with signing key shares that participate in the threshold signing
 protocol. The Coordinator is an entity with the following responsibilities:
 
@@ -554,19 +577,19 @@ for more information.
 Because key generation is not specified, all signers are assumed to have the (public) group state that we refer to as "group info"
 below, and their corresponding signing key shares.
 
-In particular, it is assumed that the Coordinator and each signing participant `P_i` knows the following
+In particular, it is assumed that the Coordinator and each signer participant `P_i` knows the following
 group info:
 
-- Group public key, an `Element` in `G`, denoted `PK = G.ScalarMultBase(s)`, corresponding
-  to the group secret key `s`, which is a `Scalar`. `PK` is an output from the group's
-  key generation protocol, such as `trusted_dealer_keygen`or a DKG.
-- Public keys for each signer, denoted `PK_i = G.ScalarMultBase()`, which are similarly
-  outputs from the group's key generation protocol, `Element`s in `G`.
+- Group public key, an `Element` in `G`, denoted `PK`, corresponding
+  to the group secret key `s`, which is a `Scalar`. `PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen` or a DKG.
+- Public keys for each signer, denoted `PK_i`, which are similarly outputs
+  from the group's key generation protocol, `Element`s in `G`.
 
-And that each participant with identifier `i`  where `i` is an integer in the range between 1
-and MAX_SIGNERS additionally knows the following:
+And that each participant with identifier `i` additionally knows the following:
 
 - Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar`.
+
+By construction, `PK = G.ScalarBaseMult(s)` and `PK_i = G.ScalarMultBase(sk_i)` for each participant `i`.
 
 The exact key generation mechanism is out of scope for this specification. In general,
 key generation is a protocol that outputs (1) a shared, group public key PK owned
@@ -630,7 +653,7 @@ over the network, are validated before use. In particular, this means that any v
 of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
 respectively, as these functions perform the necessary input validation steps.
 
-FROST assumes reliable message delivery between the Coordinator and signing participants in
+FROST assumes reliable message delivery between the Coordinator and signer participants in
 order for the protocol to complete. An attacker masquerading as another participant
 will result only in an invalid signature; see {{sec-considerations}}. However, in order
 to identify any participant which has misbehaved (resulting in the protocol aborting)
@@ -677,11 +700,11 @@ additionally require locally held data; specifically, their private key and the
 nonces corresponding to their commitment issued in round one.
 
 The Coordinator begins by sending each signer the message to be signed along with the
-set of signing commitments for all other signers in the participant list. Each signer
+set of signing commitments for all signers in the participant list. Each signer
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Applications which require that signers not process arbitrary
+MUST abort the protocol. Moreover, each signer MUST ensure that their commitment from the first round appears in commitment_list. Applications which require that signers not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
 
@@ -701,7 +724,7 @@ procedure to produce its own signature share.
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each signer and sent by the Coordinator.
     Each element in the list indicates the signer identifier j and their two commitment
-    Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).s
+    Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by signer identifier.
 
   Outputs: a Scalar value representing the signature share
@@ -734,6 +757,10 @@ The output of this procedure is a signature share. Each signer then sends
 these shares back to the Coordinator. Each signer MUST delete the nonce and
 corresponding commitment after this round completes.
 
+Note that the `lambda_i` value derived during this procedure does not change
+across FROST signing operations for the same signing group. As such, signers
+can compute it once and store it for reuse across signing sessions.
+
 Upon receipt from each Signer, the Coordinator MUST validate the input
 signature share using DeserializeElement. If validation fails, the Coordinator MUST abort
 the protocol. If validation succeeds, the Coordinator then verifies the set of
@@ -760,7 +787,7 @@ parameters, to check that the signature share is valid using the following proce
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each signer, where each element
     in the list indicates the signer identifier j and their two commitment
-    Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).s
+    Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by signer identifier.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
@@ -861,8 +888,6 @@ The value of the contextString parameter is empty.
   - Identity: As defined in {{RFC7748}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
     DeserializeScalar on the result.
-  - RandomNonZeroScalar: Implemented by generating a random 32-byte string that
-    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -897,8 +922,6 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
   - Identity: As defined in {{RISTRETTO}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
     DeserializeScalar on the result.
-  - RandomNonZeroScalar: Implemented by generating a random 32-byte string that
-    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
@@ -926,8 +949,6 @@ The value of the contextString parameter is empty.
   - Identity: As defined in {{RFC7748}}.
   - RandomScalar: Implemented by generating a random 48-byte string and invoking
     DeserializeScalar on the result.
-  - RandomNonZeroScalar: Implemented by generating a random 48-byte string that
-    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -962,8 +983,6 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
   - Identity: As defined in {{x9.62}}.
   - RandomScalar: Implemented by generating a random 32-byte string and invoking
     DeserializeScalar on the result.
-  - RandomNonZeroScalar: Implemented by generating a random 32-byte string that
-    is not equal to the all-zero string and invoking DeserializeScalar on the result.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
@@ -972,7 +991,7 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
     {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
     coordinates of the resulting point are in the correct range, that the point is on
     the curve, and that the point is not the point at infinity. Additionally, this function
-    validates  that the resulting element is not the group identity element.
+    validates that the resulting element is not the group identity element.
     If these checks fail, deserialization returns an error.
   - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
     according to {{SECG}}.
@@ -1008,7 +1027,7 @@ Definition 13.2.
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
 denial of service attack. A denial of service would include any action which either
 prevents the protocol from completing or causing the resulting signature to be invalid.
-Such actions for the latter include sending inconsistent values to signing participants,
+Such actions for the latter include sending inconsistent values to signer participants,
 such as messages or the set of individual commitments. Note that the Coordinator
 is *not* trusted with any private information and communication at the time of signing
 can be performed over a public but reliable channel.
@@ -1123,9 +1142,9 @@ and 3) keep secret values confidential.
     return signer_private_keys, vss_commitment
 ~~~
 
-It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `C`.
-After receiving their secret key share and `C`, participants MUST abort if they do not have the same view of `C`.
-Otheriwise, each participant MUST perform `vss_verify(secret_key_share_i, C)`, and abort if the check fails.
+It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `vss_commitment`.
+After receiving their secret key share and `vss_commitment`, participants MUST abort if they do not have the same view of `vss_commitment`.
+Otherwise, each participant MUST perform `vss_verify(secret_key_share_i, vss_commitment)`, and abort if the check fails.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
@@ -1203,7 +1222,7 @@ secret `s` is as follows.
   - "invalid parameters", if less than MIN_SIGNERS input shares are provided
 
   def secret_share_combine(shares):
-    if len(shares) < MIN_SIGNERS:
+    if shares.len() < MIN_SIGNERS:
       raise "invalid parameters"
     s = polynomial_interpolation(shares)
     return s
@@ -1258,14 +1277,14 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     (i, sk_i) = share_i
     S_i = ScalarBaseMult(sk_i)
     S_i' = G.Identity()
-    for j in range(0, MIN_SIGNERS-1):
-      S_i' += vss_commitment[j] * i^j
+    for j in range(0, MIN_SIGNERS):
+      S_i' += pow(i, j) * vss_commitment[j]
     if S_i == S_i':
       return 1
     return 0
 ~~~
 
-We now define how the Coordinator and signing participants can derive group info,
+We now define how the Coordinator and signer participants can derive group info,
 which is an input into the FROST signing protocol.
 
 ~~~
@@ -1288,7 +1307,7 @@ which is an input into the FROST signing protocol.
       for i in range(1, MAX_SIGNERS+1):
         PK_i = G.Identity()
         for j in range(0, MIN_SIGNERS):
-          PK_i += vss_commitment[j] * i^j
+          PK_i += pow(i, j) * vss_commitment[j]
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
 ~~~
