@@ -33,6 +33,11 @@ def derive_lagrange_coefficient(G, i, L):
     assert(i != 0)
     for j in L:
       assert(j != 0)
+    in_L = False
+    for x in L:
+        if i == x:
+            in_L = True
+    assert(in_L)
 
     num = 1
     den = 1
@@ -47,14 +52,9 @@ def derive_lagrange_coefficient(G, i, L):
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-evaluation-of-a-polynomial
 def polynomial_evaluate(G, x, coeffs):
     value = 0
-
-    for i, coeff in enumerate(reversed(coeffs)):
-        if i == (len(coeffs) - 1):
-            value = (value + coeff) % G.order()
-        else:
-            value = (value + coeff) % G.order()
-            value = (value * x) % G.order()
-
+    for coeff in reversed(coeffs):
+        value *= x % G.order()
+        value += coeff % G.order()
     return value
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
