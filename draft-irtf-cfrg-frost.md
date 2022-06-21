@@ -583,7 +583,7 @@ group info:
 - Group public key, an `Element` in `G`, denoted `PK`, corresponding
   to the group secret key `s`, which is a `Scalar`. `PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen` or a DKG.
 - Public keys for each signer, denoted `PK_i`, which are similarly outputs
-  from the group's key generation protocol, `Element`s in `G`.
+  from the group's key generation protocol, `Element` values in `G`.
 
 And that each participant with identifier `i` additionally knows the following:
 
