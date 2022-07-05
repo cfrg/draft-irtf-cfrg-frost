@@ -172,7 +172,7 @@ draft-00
 
 {::boilerplate bcp14}
 
-The following terminology are used throughout this document.
+The following terminology is used throughout this document.
 
 * A participant is an entity that is trusted to hold and use a signing key share.
 * `MAX_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into. This value MUST NOT exceed 2^16-1.
@@ -346,7 +346,7 @@ before invoking this verification function.
 ## Polynomial Operations {#dep-polynomial}
 
 This section describes operations on and associated with polynomials over Scalars
-that are used in the main signing protocol. A polynomial of degree t
+that are used in the main signing protocol. A polynomial of maximum degree t
 is represented as a list of t coefficients, where the constant term of the polynomial
 is in the first position and the highest-degree coefficient is in the last position.
 A point on the polynomial is a tuple (x, y), where `y = f(x)`. For notational
@@ -397,10 +397,10 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
     is not in L
 
   def derive_lagrange_coefficient(x_i, L):
-    if x_i = 0:
+    if x_i == 0:
       raise "invalid parameters"
     for x_j in L:
-      if x_j = 0:
+      if x_j == 0:
         raise "invalid parameters"
     if x_i not in L:
       raise "invalid parameters"
@@ -704,7 +704,8 @@ set of signing commitments for all signers in the participant list. Each signer
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Moreover, each signer MUST ensure that their commitment from the first round appears in commitment_list. Applications which require that signers not process arbitrary
+MUST abort the protocol. Moreover, each signer MUST ensure that their identifier as well as their commitment as from the first round appears in commitment_list.
+Applications which require that signers not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
 
@@ -755,7 +756,8 @@ procedure to produce its own signature share.
 
 The output of this procedure is a signature share. Each signer then sends
 these shares back to the Coordinator. Each signer MUST delete the nonce and
-corresponding commitment after this round completes.
+corresponding commitment after this round completes, and MUST use the nonce to generate at most one
+signature share.
 
 Note that the `lambda_i` value derived during this procedure does not change
 across FROST signing operations for the same signing group. As such, signers
@@ -886,12 +888,13 @@ The value of the contextString parameter is empty.
 - Group: edwards25519 {{!RFC8032}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
   - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by generating a random 32-byte string and invoking
-    DeserializeScalar on the result.
+  - RandomScalar: Implemented by repeatedly generating a random 32-byte string
+    and invoking DeserializeScalar on the result until success.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
-    identity element.
+    identity element and is in the prime-order subgroup.
+[[TODO: describe how this check is done.]]
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
@@ -920,8 +923,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
   - Identity: As defined in {{RISTRETTO}}.
-  - RandomScalar: Implemented by generating a random 32-byte string and invoking
-    DeserializeScalar on the result.
+  - RandomScalar: Implemented by repeatedly generating a random 32-byte string and
+    invoking DeserializeScalar on the result until success.
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
@@ -947,8 +950,8 @@ The value of the contextString parameter is empty.
 - Group: edwards448 {{!RFC8032}}
   - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
   - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by generating a random 48-byte string and invoking
-    DeserializeScalar on the result.
+  - RandomScalar: Implemented by repeatedly generating a random 48-byte string and
+    invoking DeserializeScalar on the result until success.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -981,8 +984,8 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
 - Group: P-256 (secp256r1) {{x9.62}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{x9.62}}.
-  - RandomScalar: Implemented by generating a random 32-byte string and invoking
-    DeserializeScalar on the result.
+  - RandomScalar: Implemented by repeatedly generating a random 32-byte string
+    and invoking DeserializeScalar on the result until success.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
@@ -1132,7 +1135,7 @@ and 3) keep secret values confidential.
   Outputs:
   - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a Scalar value.
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
-    in the polynomial defined by secret_key_shares and whose constant term is
+    in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
 
   def trusted_dealer_keygen(s, MAX_SIGNERS, MIN_SIGNERS):
@@ -1222,7 +1225,7 @@ secret `s` is as follows.
   - "invalid parameters", if less than MIN_SIGNERS input shares are provided
 
   def secret_share_combine(shares):
-    if shares.len() < MIN_SIGNERS:
+    if len(shares) < MIN_SIGNERS:
       raise "invalid parameters"
     s = polynomial_interpolation(shares)
     return s
