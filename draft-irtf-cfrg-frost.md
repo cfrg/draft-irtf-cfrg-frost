@@ -757,7 +757,8 @@ procedure to produce its own signature share.
 
 The output of this procedure is a signature share. Each signer then sends
 these shares back to the Coordinator. Each signer MUST delete the nonce and
-corresponding commitment after this round completes, and MUST use the nonce to generate only a single signature share.
+corresponding commitment after this round completes, and MUST use the nonce to generate at most one
+signature share.
 
 Note that the `lambda_i` value derived during this procedure does not change
 across FROST signing operations for the same signing group. As such, signers
