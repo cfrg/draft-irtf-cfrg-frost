@@ -958,7 +958,7 @@ The value of the contextString parameter is empty.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 48-byte
     string. This function can fail if the input does not represent a Scalar between
     the value 0 and `G.Order() - 1`.
-- Hash (`H`): SHAKE256, and Nh = 117.
+- Hash (`H`): SHAKE256, and Nh = 114.
   - H1(m): Implemented by computing H("rho" || m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
