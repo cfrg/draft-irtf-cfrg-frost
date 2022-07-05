@@ -68,7 +68,6 @@ informative:
       - name: Victor Shoup
     date: 2020-01
 
-
 --- abstract
 
 In this draft, we present the two-round signing variant of FROST, a Flexible Round-Optimized
