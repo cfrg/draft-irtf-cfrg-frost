@@ -895,6 +895,7 @@ The value of the contextString parameter is empty.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element and is in the prime-order subgroup.
+[[TODO: describe how this check is done.]]
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
