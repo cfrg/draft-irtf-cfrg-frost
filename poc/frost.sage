@@ -53,8 +53,8 @@ def derive_lagrange_coefficient(G, i, L):
 def polynomial_evaluate(G, x, coeffs):
     value = 0
     for coeff in reversed(coeffs):
-        value *= x % G.order()
-        value += coeff % G.order()
+        value = (value * x) % G.order()
+        value = (value + coeff) % G.order()
     return value
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
