@@ -12,7 +12,8 @@ This is the working area for the individual Internet-Draft, "Two-Round Threshold
 | Implementation                                                             | Language | Ciphersuites                   | Version |
 | -------------------------------------------------------------------------- | :------- | :------------------------------| :------ |
 | [Reference](https://github.com/cfrg/draft-irtf-cfrg-frost/tree/master/poc) | Sage     | All                            | main    |
-| [frost-ristretto255](https://github.com/ZcashFoundation/frost/tree/main/frost-ristretto255) | Rust     | FROST(ristretto255, SHA-512)                            | 03   |
+| [frost-ristretto255](https://github.com/ZcashFoundation/frost/tree/main/frost-ristretto255) | Rust     | FROST(ristretto255, SHA-512)                            | 04   |
+| [frost-p256](https://github.com/ZcashFoundation/frost/tree/main/frost-p256) | Rust     | FROST(P-256, SHA-256)                            | 04   |
 | [ecc](https://github.com/aldenml/ecc)                                      | C        | FROST(ristretto255, SHA-512)   | 02 |
 | [modular-frost](https://github.com/serai-dex/serai/tree/develop/crypto/frost) | Rust     | All except FROST(Ed448, SHAKE256)   | 05 |
 
