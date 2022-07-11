@@ -887,6 +887,7 @@ with {{!RFC8032}}, it is omitted.
 ~~~
 
 
+{{!RFC8032}} instructs to check the group equation "[8][S]B = [8]R + [8][k]A'". We recommend this verification check as it maintains consistency with batch verification equations and handles any low-order group elements correctly, which the {{!RFC8032}} "sufficient, but not required" check does not.
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
