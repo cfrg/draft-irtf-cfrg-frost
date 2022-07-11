@@ -492,11 +492,10 @@ on the signer commitment list and message to be signed.
 
   def compute_binding_factors(commitment_list, msg):
     msg_hash = H3(msg)
+    encoded_commitment_hash = H3(encode_group_commitment_list(commitment_list))
+    rho_input_prefix = msg_hash || encoded_commitment_hash
+
     binding_factor_list = []
-
-    encoded_commitment_list = encode_group_commitment_list(commitment_list)
-    rho_input_prefix = msg_hash || encoded_commitment_list
-
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       rho_input = rho_input_prefix || encode_uint16(identifier)
       binding_factor = H1(rho_input)

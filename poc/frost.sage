@@ -146,8 +146,8 @@ def encode_group_commitment_list(G, commitment_list):
 
 def compute_binding_factors(G, H, commitment_list, msg):
     msg_hash = H.H3(msg)
-    encoded_commitment_list = encode_group_commitment_list(G, commitment_list)
-    rho_input_prefix = msg_hash + encoded_commitment_list
+    encoded_commitment_hash = H.H3(encode_group_commitment_list(G, commitment_list))
+    rho_input_prefix = msg_hash + encoded_commitment_hash
 
     binding_factors = {}
     rho_inputs = {}
