@@ -271,7 +271,6 @@ Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
 
 - Nonce generation, {{dep-nonces}}
-- Schnorr signatures, {{dep-schnorr}};
 - Polynomial operations, {{dep-polynomial}};
 - Encoding operations, {{dep-encoding}};
 - Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}
@@ -297,64 +296,6 @@ function `H`, `H4`:
     k_enc = random_bytes(32)
     secret_enc = G.SerializeScalar(secret)
     return H4(k_enc || secret_enc)
-~~~
-
-## Schnorr Signature Operations {#dep-schnorr}
-
-In the single-party setting, a Schnorr signature is generated with the
-following operation.
-
-~~~
-  schnorr_signature_generate(msg, sk):
-
-  Inputs:
-  - msg, message to be signed, a byte string
-  - sk, private key, a Scalar
-
-  Outputs: signature (R, z), a pair consisting of (Element, Scalar) values
-
-  def schnorr_signature_generate(msg, sk):
-    PK = G.ScalarBaseMult(sk)
-    k = nonce_generate(sk)
-    R = G.ScalarBaseMult(k)
-
-    comm_enc = G.SerializeElement(R)
-    pk_enc = G.SerializeElement(PK)
-    challenge_input = comm_enc || pk_enc || msg
-    c = H2(challenge_input)
-
-    z = k + (c * sk)
-    return (R, z)
-~~~
-
-The corresponding verification operation is as follows. By definition,
-this function assumes that all group Elements passed as input, including
-the signature R component and public key, belong to prime-order group G.
-Some ciphersuites defined in {{ciphersuites}} operate in settings where
-some inputs may not belong to this prime-order group, e.g., because they
-operate over an elliptic curve with a cofactor larger than 1. In these
-settings, input validation as specified in {{ciphersuites}} is required
-before invoking this verification function.
-
-~~~
-  schnorr_signature_verify(msg, sig, PK):
-
-  Inputs:
-  - msg, signed message, a byte string
-  - sig, a tuple (R, z) output from schnorr_signature_generate or FROST
-  - PK, public key, an Element
-
-  Outputs: 1 if signature is valid, and 0 otherwise
-
-  def schnorr_signature_verify(msg, sig = (R, z), PK):
-    comm_enc = G.SerializeElement(R)
-    pk_enc = G.SerializeElement(PK)
-    challenge_input = comm_enc || pk_enc || msg
-    c = H2(challenge_input)
-
-    l = G.ScalarBaseMult(z)
-    r = R + (c * PK)
-    return l == r
 ~~~
 
 ## Polynomial Operations {#dep-polynomial}
@@ -900,6 +841,10 @@ to the description in {{dep-pog}}. Validation steps for these functions
 are described for each the ciphersuites below. Future ciphersuites MUST
 describe how input validation is done for DeserializeElement and DeserializeScalar.
 
+Each ciphersuite includes explicit instructions for verifying signatures produced
+by FROST. Note that these instructions are equivalent to those produced by a single
+signer.
+
 ## FROST(Ed25519, SHA-512)
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
@@ -922,6 +867,7 @@ The value of the contextString parameter is empty.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
     string. This function can fail if the input does not represent a Scalar between
     the value 0 and `G.Order() - 1`.
+
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H("rho" || m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
@@ -936,6 +882,10 @@ The value of the contextString parameter is empty.
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
+
+Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
+constraint that implementations MUST check the group group equation [8][S]B = [8]R + [8][k]A'.
+The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
@@ -954,6 +904,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
     string. This function can fail if the input does not represent a Scalar between
     the value 0 and `G.Order() - 1`.
+
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
@@ -962,6 +913,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
   - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
   - H4(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
+
+Signature verification is as specified in {{prime-order-verify}}.
 
 ## FROST(Ed448, SHAKE256)
 
@@ -983,6 +936,7 @@ The value of the contextString parameter is empty.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 48-byte
     string. This function can fail if the input does not represent a Scalar between
     the value 0 and `G.Order() - 1`.
+
 - Hash (`H`): SHAKE256, and Nh = 114.
   - H1(m): Implemented by computing H("rho" || m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
@@ -997,6 +951,10 @@ The value of the contextString parameter is empty.
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
+
+Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
+constraint that implementations MUST check the group group equation [4][S]B = [4]R + [4][k]A'.
+The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 
 ## FROST(P-256, SHA-256)
 
@@ -1023,6 +981,7 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SECG}}. This function can fail if the
     input does not represent a Scalar between the value 0 and `G.Order() - 1`.
+
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
@@ -1034,6 +993,8 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
   - H4(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
     prime modulus equal to `Order()`.
+
+Signature verification is as specified in {{prime-order-verify}}.
 
 # Security Considerations {#sec-considerations}
 
@@ -1136,6 +1097,33 @@ do not operate as signing oracles for arbitrary messages.
 # Acknowledgments
 
 This document was improved based on input and contributions by the Zcash Foundation engineering team.
+
+# Schnorr Signature Verification for Prime-Order Groups {#prime-order-verify}
+
+This section contains a routine for verifying Schnorr signatures with validated inputs.
+Specifically, it assumes that signature R component and public key belong to the
+prime-order group.
+
+~~~
+  prime_order_verify(msg, sig, PK):
+
+  Inputs:
+  - msg, signed message, a byte string
+  - sig, a tuple (R, z) output from signature generation
+  - PK, public key, an Element
+
+  Outputs: 1 if signature is valid, and 0 otherwise
+
+  def prime_order_verify(msg, sig = (R, z), PK):
+    comm_enc = G.SerializeElement(R)
+    pk_enc = G.SerializeElement(PK)
+    challenge_input = comm_enc || pk_enc || msg
+    c = H2(challenge_input)
+
+    l = G.ScalarBaseMult(z)
+    r = R + (c * PK)
+    return l == r
+~~~
 
 # Trusted Dealer Key Generation {#dep-dealer}
 
