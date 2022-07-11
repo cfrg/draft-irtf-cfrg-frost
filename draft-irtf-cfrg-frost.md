@@ -992,10 +992,12 @@ with {{!RFC8032}}, it is omitted.
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
-    l = G.ScalarBaseMult(z)
-    r = R + (c * PK)
+    l = 4 * G.ScalarBaseMult(z)
+    r = 4 * (R + (c * PK))
     return l == r
 ~~~
+
+{{!RFC8032}} instructs to check the group equation "[4][S]B = [4]R + [4][k]A'". We recommend this verification check as it maintains consistency with batch verification equations and handles any low-order group elements correctly, which the {{!RFC8032}} "sufficient, but not required" check does not.
 
 ## FROST(P-256, SHA-256)
 
