@@ -507,7 +507,7 @@ on the signer commitment list and message to be signed.
 
   Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
 
-  def compute_binding_factors(encoded_commitment_list, msg):
+  def compute_binding_factors(commitment_list, msg):
     msg_hash = H3(msg)
     binding_factor_list = []
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
