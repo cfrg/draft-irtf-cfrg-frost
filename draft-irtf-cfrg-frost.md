@@ -881,8 +881,8 @@ with {{!RFC8032}}, it is omitted.
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
-    l = G.ScalarBaseMult(z)
-    r = R + (c * PK)
+    l = 8 * G.ScalarBaseMult(z)
+    r = 8 * (R + (c * PK))
     return l == r
 ~~~
 
