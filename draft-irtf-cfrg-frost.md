@@ -60,6 +60,14 @@ informative:
       - name: Chelsea Komlo
       - name: Mary Maller
     date: 2021-10-11
+  StrongerSec22:
+    target: https://eprint.iacr.org/2022/833
+    title: "Stronger Security for Non-Interactive Threshold Signatures: BLS and FROST"
+    author:
+      - name: Mihir Bellare
+      - name: Stefano Tessaro
+      - name: Chenzhi Zhu
+    date: 2022-06-01
   BonehShoup:
     target: http://toc.cryptobook.us/book.pdf
     title: "A Graduate Course in Applied Cryptography"
@@ -98,14 +106,20 @@ This document presents a variant of a Flexible Round-Optimized Schnorr Threshold
 signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during
 threshold signing operations while employing a novel technique to protect against forgery
 attacks applicable to prior Schnorr-based threshold signature constructions. The variant of
-FROST presented in this document requires two rounds to compute a signature, and implements
-signing efficiency improvements described by {{Schnorr21}}. Single-round signing with FROST
-is out of scope.
+FROST presented in this document requires two rounds to compute a signature. Single-round
+signing with FROST is out of scope.
 
 For select ciphersuites, the signatures produced by this draft are compatible with
 {{!RFC8032}}. However, unlike {{!RFC8032}}, signatures produced by FROST are not
 deterministic, since deriving nonces deterministically allows for a complete key-recovery
 attack in multi-party discrete logarithm-based signatures, such as FROST.
+
+While an optimization to FROST was shown in {{Schnorr21}} that reduces scalar multiplications
+from linear in the number of signers to constant, this draft does not specify that optimization
+due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
+Specifically, this optimization removes the guarantee that the set of signers that started
+round one of the protocol is the same set of signers that produced the signature output by
+round two. 
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
 key generation with a trusted dealer is specified in {{dep-dealer}}.
