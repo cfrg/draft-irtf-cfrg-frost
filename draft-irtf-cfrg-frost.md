@@ -408,9 +408,29 @@ interpolation, defined as follows.
 
 ## List Operations {#dep-encoding}
 
-This section describes a helper function for extracting signer participant
-identifiers from a commitment list. It also describes a helper function
-for extracting a given participant's binding factor from a list.
+This section describes helper functions that work on lists of values produced
+during the FROST protocol. The following function encodes a list of signer
+commitments into a bytestring for use in the FROST protocol.
+
+~~~
+  Inputs:
+  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
+    a list of commitments issued by each signer, where each element in the list
+    indicates the signer identifier i and their two commitment Element values
+    (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
+    in ascending order by signer identifier.
+
+  Outputs: A byte string containing the serialized representation of commitment_list
+
+  def encode_group_commitment_list(commitment_list):
+    encoded_group_commitment = nil
+    for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+      encoded_commitment = encode_uint16(identifier) ||
+                           G.SerializeElement(hiding_nonce_commitment) ||
+                           G.SerializeElement(binding_nonce_commitment)
+      encoded_group_commitment = encoded_group_commitment || encoded_commitment
+    return encoded_group_commitment
+~~~
 
 The following function is used to extract participant identifiers from a commitment
 list.
@@ -473,11 +493,12 @@ on the signer commitment list and message to be signed.
   def compute_binding_factors(commitment_list, msg):
     msg_hash = H3(msg)
     binding_factor_list = []
+
+    encoded_commitment_list = encode_group_commitment_list(commitment_list)
+    rho_input_prefix = msg_hash + encoded_commitment_list
+
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      encoded_commitment = encode_uint16(identifier) ||
-                           G.SerializeElement(hiding_nonce_commitment) ||
-                           G.SerializeElement(binding_nonce_commitment)
-      rho_input = encoded_commitment + msg_hash
+      rho_input = rho_input_prefix + encode_uint16(identifier)
       binding_factor = H1(rho_input)
       binding_factor_list.append((identifier, binding_factor))
     return binding_factor_list
