@@ -119,8 +119,7 @@ from linear in the number of signers to constant, this draft does not specify th
 due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
 Specifically, this optimization removes the guarantee that the set of signers that started
 round one of the protocol is the same set of signers that produced the signature output by
-round two. Implementations that require performance over the strong guarantee in the set of signers
-may wish to implement this optimization.
+round two. 
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
 key generation with a trusted dealer is specified in {{dep-dealer}}.
