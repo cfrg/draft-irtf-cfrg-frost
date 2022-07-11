@@ -136,18 +136,26 @@ class Signature(object):
     def encode(self):
         return self.G.serialize(self.R) + self.G.serialize_scalar(self.z)
 
+def encode_group_commitment_list(G, commitment_list):
+    B_es = [I2OSP(i, 2) + G.serialize(D) + G.serialize(E) for (i, D, E) in commitment_list]
+    B_e = B_es[0]
+    for i, v in enumerate(B_es):
+        if i > 0:
+            B_e = B_e + v
+    return B_e
+
 def compute_binding_factors(G, H, commitment_list, msg):
-    def binding_factor(commitment):
-        (i, D, E) = commitment
-        return I2OSP(i, 2) + G.serialize(D) + G.serialize(E)
+    msg_hash = H.H3(msg)
+    encoded_commitment_hash = H.H3(encode_group_commitment_list(G, commitment_list))
+    rho_input_prefix = msg_hash + encoded_commitment_hash
+
     binding_factors = {}
     rho_inputs = {}
-    msg_hash = H.H3(msg)
-    for _, commitment in enumerate(commitment_list):
-        rho_input = binding_factor(commitment) + msg_hash
-        factor = H.H1(rho_input)
-        rho_inputs[commitment[0]] = rho_input
-        binding_factors[commitment[0]] = factor
+    for _, (i, D, E) in enumerate(commitment_list):
+        rho_input = rho_input_prefix + I2OSP(i, 2)
+        binding_factor = H.H1(rho_input)
+        rho_inputs[i] = rho_input
+        binding_factors[i] = binding_factor
     return binding_factors, rho_inputs
 
 def compute_group_commitment(G, commitment_list, binding_factors):
