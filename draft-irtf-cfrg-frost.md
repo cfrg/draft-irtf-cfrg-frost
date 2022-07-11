@@ -473,7 +473,7 @@ The following function is used to extract a binding factor from a list of bindin
 
 ~~~
   Inputs:
-  - binding_factor_list = [(i, binding_factor_i), ...],
+  - binding_factor_list = [(i, binding_factor), ...],
     a list of binding factors for each signer, where each element in the list
     indicates the signer identifier i and their binding factor. This list MUST be sorted
     in ascending order by signer identifier.
