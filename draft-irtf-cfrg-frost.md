@@ -490,24 +490,33 @@ def participants_from_commitment_list(commitment_list):
   return identifiers
 ~~~
 
-## Binding Factor Computation {#dep-binding-factor}
+## Binding Factors Computation {#dep-binding-factor}
 
-This section describes the subroutine for computing the binding factor based
+This section describes the subroutine for computing binding factors based
 on the signer commitment list and message to be signed.
 
 ~~~
   Inputs:
-  - encoded_commitment_list, an encoded commitment list (as computed
-    by encode_group_commitment_list)
+  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
+    a list of commitments issued by each signer, where each element in the list
+    indicates the signer identifier i and their two commitment Element values
+    (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
+    in ascending order by signer identifier.
   - msg, the message to be signed.
 
-  Outputs: A Scalar representing the binding factor
+  Outputs: A list of Scalar representing the binding factors,
 
   def compute_binding_factor(encoded_commitment_list, msg):
     msg_hash = H3(msg)
-    rho_input = encoded_commitment_list || msg_hash
-    binding_factor = H1(rho_input)
-    return binding_factor
+    binding_factors = []
+    for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+      encoded_commitment = encode_uint16(identifier) ||
+                           G.SerializeElement(hiding_nonce_commitment) ||
+                           G.SerializeElement(binding_nonce_commitment)
+      rho_input = encoded_commitment + msg_hash
+      binding_factor = H1(rho_input)
+      binding_factors.append(binding_factor)
+    return binding_factors
 ~~~
 
 ## Group Commitment Computation {#dep-group-commit}
@@ -731,14 +740,11 @@ procedure to produce its own signature share.
   Outputs: a Scalar value representing the signature share
 
   def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
-    # Encode the commitment list
-    encoded_commitments = encode_group_commitment_list(commitment_list)
-
     # Compute the binding factor
-    binding_factor = compute_binding_factor(encoded_commitments, msg)
+    binding_factors = compute_binding_factors(commitment_list, msg)
 
     # Compute the group commitment
-    group_commitment = compute_group_commitment(commitment_list, binding_factor)
+    group_commitment = compute_group_commitment(commitment_list, binding_factors)
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
@@ -799,14 +805,11 @@ parameters, to check that the signature share is valid using the following proce
 
   def verify_signature_share(identifier, PK_i, comm_i, sig_share_i, commitment_list,
                              group_public_key, msg):
-    # Encode the commitment list
-    encoded_commitments = encode_group_commitment_list(commitment_list)
-
-    # Compute the binding factor
-    binding_factor = compute_binding_factor(encoded_commitments, msg)
+    # Compute the binding factors
+    binding_factors = compute_binding_factors(commitment_list, msg)
 
     # Compute the group commitment
-    group_commitment = compute_group_commitment(commitment_list, binding_factor)
+    group_commitment = compute_group_commitment(commitment_list, binding_factors)
 
     # Compute the commitment share
     (hiding_nonce_commitment, binding_nonce_commitment) = comm_i

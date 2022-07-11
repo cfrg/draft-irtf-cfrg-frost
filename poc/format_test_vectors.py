@@ -21,8 +21,6 @@ input_signer_keys = [
 
 round_one_keys = [
     "participants",
-    "group_binding_factor_input",
-    "group_binding_factor",
 ]
 
 round_one_outputs_keys = [
@@ -30,6 +28,8 @@ round_one_outputs_keys = [
     "binding_nonce",
     "hiding_nonce_commitment",
     "binding_nonce_commitment",
+    "binding_factor_input",
+    "binding_factor",
 ]
 
 round_two_keys = [
@@ -38,7 +38,6 @@ round_two_keys = [
 
 round_two_outputs_keys = [
     "sig_share",
-    "group_commitment_share",
 ]
 
 final_output_keys = [
