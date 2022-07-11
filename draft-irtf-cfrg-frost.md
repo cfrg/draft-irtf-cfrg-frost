@@ -860,7 +860,6 @@ The value of the contextString parameter is empty.
   - H4(m): Implemented by computing H("nonce" || m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
-    
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
 
