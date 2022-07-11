@@ -119,12 +119,20 @@ from linear in the number of signers to constant, this draft does not specify th
 due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
 Specifically, this optimization removes the guarantee that the set of signers that started
 round one of the protocol is the same set of signers that produced the signature output by
-round two. 
+round two.
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
 key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
+
+draft-06
+
+- Make verification a per-ciphersuite functionality (#219)
+- Use per-signer values of rho to mitigate protocol malleability (#217)
+- Correct prime-order subgroup checks (#215, #211)
+- Fix bug in ed25519 ciphersuite description (#205)
+- Various editorial improvements (#208, #209, #210, #218)
 
 draft-05
 
