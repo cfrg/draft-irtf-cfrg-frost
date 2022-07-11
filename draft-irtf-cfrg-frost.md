@@ -443,32 +443,11 @@ interpolation, defined as follows.
     return f_zero
 ~~~
 
-## Commitment List Operations {#dep-encoding}
+## List Operations {#dep-encoding}
 
-This section describes the subroutine used for encoding a list of signer
-commitments into a bytestring that is used in the FROST protocol, as well
-as a helper function for extracting signer participant identifiers from
-a commitment list.
-
-~~~
-  Inputs:
-  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
-    a list of commitments issued by each signer, where each element in the list
-    indicates the signer identifier i and their two commitment Element values
-    (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by signer identifier.
-
-  Outputs: A byte string containing the serialized representation of commitment_list
-
-  def encode_group_commitment_list(commitment_list):
-    encoded_group_commitment = nil
-    for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      encoded_commitment = encode_uint16(identifier) ||
-                           G.SerializeElement(hiding_nonce_commitment) ||
-                           G.SerializeElement(binding_nonce_commitment)
-      encoded_group_commitment = encoded_group_commitment || encoded_commitment
-    return encoded_group_commitment
-~~~
+This section describes a helper function for extracting signer participant
+identifiers from a commitment list. It also describes a helper function
+for extracting a given participant's binding factor from a list.
 
 The following function is used to extract participant identifiers from a commitment
 list.
@@ -490,24 +469,55 @@ def participants_from_commitment_list(commitment_list):
   return identifiers
 ~~~
 
-## Binding Factor Computation {#dep-binding-factor}
+The following function is used to extract a binding factor from a list of binding factors.
 
-This section describes the subroutine for computing the binding factor based
+~~~
+  Inputs:
+  - binding_factors = [(i, binding_factor_i), ...],
+    a list of binding factors for each signer, where each element in the list
+    indicates the signer identifier i and their binding factor. This list MUST be sorted
+    in ascending order by signer identifier.
+  - identifier, Identifier i of the signer.
+
+  Outputs: A Scalar value.
+
+  Errors: "invalid participant", when the designated participant is not known
+
+def binding_factor_for_participant(binding_factor_list, identifier):
+  binding_factors = []
+  for (i, binding_factor) in commitment_list:
+    if identifier == i:
+      return binding_factor
+  raise "invalid participant"
+~~~
+
+## Binding Factors Computation {#dep-binding-factor}
+
+This section describes the subroutine for computing binding factors based
 on the signer commitment list and message to be signed.
 
 ~~~
   Inputs:
-  - encoded_commitment_list, an encoded commitment list (as computed
-    by encode_group_commitment_list)
+  - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
+    a list of commitments issued by each signer, where each element in the list
+    indicates the signer identifier i and their two commitment Element values
+    (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
+    in ascending order by signer identifier.
   - msg, the message to be signed.
 
-  Outputs: A Scalar representing the binding factor
+  Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
 
-  def compute_binding_factor(encoded_commitment_list, msg):
+  def compute_binding_factors(encoded_commitment_list, msg):
     msg_hash = H3(msg)
-    rho_input = encoded_commitment_list || msg_hash
-    binding_factor = H1(rho_input)
-    return binding_factor
+    binding_factor_list = []
+    for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+      encoded_commitment = encode_uint16(identifier) ||
+                           G.SerializeElement(hiding_nonce_commitment) ||
+                           G.SerializeElement(binding_nonce_commitment)
+      rho_input = encoded_commitment + msg_hash
+      binding_factor = H1(rho_input)
+      binding_factor_list.append((identifier, binding_factor))
+    return binding_factor_list
 ~~~
 
 ## Group Commitment Computation {#dep-group-commit}
@@ -523,18 +533,19 @@ from a commitment list.
     indicates the signer identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be
     sorted in ascending order by signer identifier.
-  - binding_factor, a Scalar
+  - binding_factor_list = [(i, binding_factor), ...],
+    a list of (identifier, Scalar) tuples representing the binding factor Scalar
+    for the given identifier. This list MUST be sorted in ascending order by identifier.
 
   Outputs: An Element in G representing the group commitment
 
-  def compute_group_commitment(commitment_list, binding_factor):
-    group_hiding_commitment = G.Identity()
-    group_binding_commitment = G.Identity()
-
-    for (_, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      group_hiding_commitment = group_hiding_commitment + hiding_nonce_commitment
-      group_binding_commitment = group_binding_commitment + binding_nonce_commitment
-    return (group_hiding_commitment + group_binding_commitment * binding_factor)
+  def compute_group_commitment(commitment_list, binding_factor_list):
+    group_commitment = G.Identity()
+    for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
+      binding_factor = binding_factor_for_participant(binding_factors, identifier)
+      group_commitment = group_commitment +
+        (hiding_nonce_commitment + (binding_factor * binding_nonce_commitment))
+    return group_commitment
 ~~~
 
 ## Signature Challenge Computation {#dep-sig-challenge}
@@ -731,14 +742,12 @@ procedure to produce its own signature share.
   Outputs: a Scalar value representing the signature share
 
   def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
-    # Encode the commitment list
-    encoded_commitments = encode_group_commitment_list(commitment_list)
-
-    # Compute the binding factor
-    binding_factor = compute_binding_factor(encoded_commitments, msg)
+    # Compute the binding factor(s)
+    binding_factor_list = compute_binding_factors(commitment_list, msg)
+    binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
 
     # Compute the group commitment
-    group_commitment = compute_group_commitment(commitment_list, binding_factor)
+    group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
@@ -799,14 +808,12 @@ parameters, to check that the signature share is valid using the following proce
 
   def verify_signature_share(identifier, PK_i, comm_i, sig_share_i, commitment_list,
                              group_public_key, msg):
-    # Encode the commitment list
-    encoded_commitments = encode_group_commitment_list(commitment_list)
-
-    # Compute the binding factor
-    binding_factor = compute_binding_factor(encoded_commitments, msg)
+    # Compute the binding factors
+    binding_factor_list = compute_binding_factors(commitment_list, msg)
+    binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
 
     # Compute the group commitment
-    group_commitment = compute_group_commitment(commitment_list, binding_factor)
+    group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
 
     # Compute the commitment share
     (hiding_nonce_commitment, binding_nonce_commitment) = comm_i
@@ -1369,45 +1376,50 @@ bdea643a9a02
 
 // Round one parameters
 participants: 1,3
-group_binding_factor_input: 000165600ffa0fa6af339deb0c9237e60defc4444
-c90c117351916bb56d46d0e4a866c0f71de419ec78fad43cdd8075386f8dc88b6c29b
-51164d0ea80f83b838b5ec00030240580b6b54457ffe21200a16dad7b23532739340b
-46cbbb75257ae1ee176855fdea859ce7a61dae083a3d3de4e3ca5133c18a7d856442f
-223c55934bfbc7d7ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a
-5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f500
-28a8ff
-group_binding_factor: d715d01b68ed6744820dfe5630e7d51e986fb5dd0a8d0c1
-6547d5382e9afeb0f
 
 // Signer round one outputs
-S1 hiding_nonce: 8c76af04340e83bb5fc427c117d38347fc8ef86d5397feea9aa6
-412d96c05b0a
-S1 binding_nonce: 14a37ddbeae8d9e9687369e5eb3c6d54f03dc19d76bb54fb542
-5131bc37a600b
-S1 hiding_nonce_commitment: 65600ffa0fa6af339deb0c9237e60defc4444c90c
-117351916bb56d46d0e4a86
-S1 binding_nonce_commitment: 6c0f71de419ec78fad43cdd8075386f8dc88b6c2
-9b51164d0ea80f83b838b5ec
-S3 hiding_nonce: 5ca39ebab6874f5e7b5089f3521819a2aa1e2cf738bae6974ee8
-0555de2ef70e
-S3 binding_nonce: 0afe3650c4815ff37becd3c6948066e906e929ea9b8f546c74e
-10002dbcc150c
-S3 hiding_nonce_commitment: 0240580b6b54457ffe21200a16dad7b2353273934
-0b46cbbb75257ae1ee17685
-S3 binding_nonce_commitment: 5fdea859ce7a61dae083a3d3de4e3ca5133c18a7
-d856442f223c55934bfbc7d7
+S1 hiding_nonce: 42e5cefdf382cb279f4eee375fea8a4afd7982f1220c38b866c4
+9aab73889e0b
+S1 binding_nonce: 9538e161f627b743822519df2ae5362392fd2b9ee4713d55afa
+61e3ab81cf809
+S1 hiding_nonce_commitment: a714f49b5bc398a440e1453d75a4ac1ca5e657b5d
+117ed70d5d8457a8f24a9e8
+S1 binding_nonce_commitment: e2affb883a99b8935cdcfbec5b06540558389767
+adfad862d78441c0970d2754
+S1 binding_factor_input: 0001a714f49b5bc398a440e1453d75a4ac1ca5e657b5
+d117ed70d5d8457a8f24a9e8e2affb883a99b8935cdcfbec5b06540558389767adfad
+862d78441c0970d2754ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f88
+19a5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f
+50028a8ff
+S1 binding_factor: a1d1faa05d915ee9f2f8483376e6273b890dcb2cc14aaddfc1
+d9667212bda101
+S3 hiding_nonce: ea3f9ea63e4e37ff2db9cb44f4569eea0485cbc8563e01fff138
+a9bbbabdb00a
+S3 binding_nonce: d24cfe373f8c4c59c12b5f1ee975fce551197b13347ffaaf73b
+2599645082b01
+S3 hiding_nonce_commitment: 265fff4558d26c2bf8c30000af67c3d0541136e38
+e4b0cfda9a24bb34c17e9fc
+S3 binding_nonce_commitment: ff653a4ee02ac104298a541041b6e9ef787496d5
+54e8fae7bbec58454cc303cf
+S3 binding_factor_input: 0003265fff4558d26c2bf8c30000af67c3d0541136e3
+8e4b0cfda9a24bb34c17e9fcff653a4ee02ac104298a541041b6e9ef787496d554e8f
+ae7bbec58454cc303cfee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f88
+19a5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f
+50028a8ff
+S3 binding_factor: de137760febec6c0764fb9de4862f8a81f535e26a213ea258d
+bc027994d7f50a
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: 4369474a398aa10357b60d683da91ea6a767dcf53fd541a8ed6b4d7
-80827ea0a
-S3 sig_share: 32fcc690d926075e45d2dfb746bab71447943cddbefe80d122c3917
-4aa2e1004
+S1 sig_share: a6a2344a6689c9b2c755a746705934a128fdc0dd5975089e925a27e
+f31aacd02
+S3 sig_share: 83e610a191b6da739f092587adb91da427aa9fd842c631249e36b0c
+265b4920b
 
-sig: 2b8d9c6995333c5990e3a3dd6568785539d3322f7f0376452487ea35cfda587b
-75650edb12b1a8619c88ed1f8463d6baeefb18d3fed3c279102fdfecb255fa0e
+sig: e535ce3e2e92a3f0fabf8099246821cb361898ec78e7f197f9c536f1169060cf
+298945ebf73fa426675fcccd1d13524550a760b69c3b3ac23091d7b1975e600e
 ~~~
 
 ## FROST(Ed448, SHAKE256)
@@ -1435,55 +1447,62 @@ S3 signer_share: 00db7a8146f995db0a7cf844ed89d8e94c2b5f259378ff66e39d
 
 // Round one parameters
 participants: 1,3
-group_binding_factor_input: 0001473d732afb8ee9647e1ace23bf148a099c356
-e964b3a22652c89008792d6a699a9db4b830b100ce16ddef6d9780d1f8b2c099dc9a4
-0c827a0025a10958a534d96765609b368f35b6d36cd45db6c5fbc00aee224671b2a37
-fe736dbadfb5e67161b4184d1628b378bdde07afc49a36300ec000003b80d36d789a1
-bbc65e6855067b90526cbe81d0bf3da05054594c5f05884db4c002c7794b139399b68
-591424803611332b9eaf8517b4475dc80445f70b75b6b9530601a229be805a64529e0
-74f6901788e6cfad2614d50d6c9f1f94c6c34a180b345953636b9834b9bc6b6faa569
-d1fff5000b54ff7255705a71ee2925e4a3e30e41aed489a579d5595e0df13e32e1e4d
-d202a7c7f68b31d6418d9845eb4d757adda6ab189e1bb340db818e5b3bc725d992faf
-63e9b0500db10517fe09d3f566fba3a80e46a403e0c7d41548fbf75cf2662b00225b5
-02961f98d8c9ff937de0b24c231845
-group_binding_factor: f5e7fa47177f80fab386db6caa1cc43908152857480ddd3
-7234ceba39bf741e17df4ea8d174c978ea22e1ce46bd0466b83a51be0daf3123000
 
 // Signer round one outputs
-S1 hiding_nonce: 2e5150a128bc7a396a1b0cc1f1f1fdc056a4cba6ee1abbfd7515
-18cc1558209d7ba5464d4cb93e8fc1ae5a5bd2ecc479dd005ecfad19523300
-S1 binding_nonce: 94745d0ad6abba6ae42d869e42a513a587a6627ab026a832f5e
-f0cee24f439e0045b99795b26853f3812d839a6fdc2f9602ef74e5b39052900
-S1 hiding_nonce_commitment: 473d732afb8ee9647e1ace23bf148a099c356e964
-b3a22652c89008792d6a699a9db4b830b100ce16ddef6d9780d1f8b2c099dc9a40c82
-7a00
-S1 binding_nonce_commitment: 25a10958a534d96765609b368f35b6d36cd45db6
-c5fbc00aee224671b2a37fe736dbadfb5e67161b4184d1628b378bdde07afc49a3630
-0ec00
-S3 hiding_nonce: ad1dfc11fd6b70c67544f63d431e7158b27157a8f794b3db03fa
-4c3f06c034d115864964cc8ccff0825e17bc717ed01185a06adcfa995d3400
-S3 binding_nonce: 3c4c254def4d85abd5bad3d9b50208c9c5da934c5ec14c4c004
-a8e86e49f351543c14305172b6f3f429ed1c268abfbeae718aeeb90793f0200
-S3 hiding_nonce_commitment: b80d36d789a1bbc65e6855067b90526cbe81d0bf3
-da05054594c5f05884db4c002c7794b139399b68591424803611332b9eaf8517b4475
-dc80
-S3 binding_nonce_commitment: 445f70b75b6b9530601a229be805a64529e074f6
-901788e6cfad2614d50d6c9f1f94c6c34a180b345953636b9834b9bc6b6faa569d1ff
-f5000
+S1 hiding_nonce: 72f4d531bcab1b35f095645cbf842d8ef8be8ce83d0770e95ef8
+85fbbd88cf8cd8fc2c0bcec92878a187694f5c4144d89f01eb78b74fd23200
+S1 binding_nonce: ba8d552d566e49c2c61a2d26af1b790f81c7763c192702ff417
+ed954d7e99be67efa98d37f0cccfb167b5f64c1153ff880bbf9fce6ebac0100
+S1 hiding_nonce_commitment: 2093c227274b136ec5be5459bb0419a15414e2d1e
+9e23d34cc634c190edcf300bca182893196b467fb592b0ec330aa30fbc30df0dec361
+da00
+S1 binding_nonce_commitment: 477ef40941d495d605b77c170a39295b20b59760
+c469dca34d458a42badcb324d75e3e057830e5f53504d1b68ac563c86336bda7dfd22
+fcd80
+S1 binding_factor_input: 00012093c227274b136ec5be5459bb0419a15414e2d1
+e9e23d34cc634c190edcf300bca182893196b467fb592b0ec330aa30fbc30df0dec36
+1da00477ef40941d495d605b77c170a39295b20b59760c469dca34d458a42badcb324
+d75e3e057830e5f53504d1b68ac563c86336bda7dfd22fcd80b54ff7255705a71ee29
+25e4a3e30e41aed489a579d5595e0df13e32e1e4dd202a7c7f68b31d6418d9845eb4d
+757adda6ab189e1bb340db818e5b3bc725d992faf63e9b0500db10517fe09d3f566fb
+a3a80e46a403e0c7d41548fbf75cf2662b00225b502961f98d8c9ff937de0b24c2318
+45
+S1 binding_factor: 52d6bebf50455e6fe9f382ef6be14f03f91a44d16d5fb1b76c
+00c82681640901ab8cc81dc0dcc97178b160f5e0347d4d39f0f6b026cf473c00
+S3 hiding_nonce: c7b8690b88cb666c06e07d31fb6ccc523b1553d648fe53ed8669
+dae9eabf77df584ff1ba41751c79607585a1cfb299e335ab8c433bed2e0100
+S3 binding_nonce: 8cdd0fd2ebefb909d941e4888116bce5f3b9fecbe256d7906c1
+055cda9c71372132e63801a338f2779bf052bee63895a394552a2b6436d1900
+S3 hiding_nonce_commitment: 03338fd87f4bf12a667ae037f5752064e1f16c427
+b5638808f0d334cf68384caf402aadf3d28ed95153ed3e5f985f6e5f13e5f9f0c24ff
+3280
+S3 binding_nonce_commitment: c53dd8ff88a58db456bc211032b38cf12b1b073e
+86592e2d45fac062d5a59a412a2dbc15555cd9019b20f3a6ac407e4711a72b04a57dd
+e9500
+S3 binding_factor_input: 000303338fd87f4bf12a667ae037f5752064e1f16c42
+7b5638808f0d334cf68384caf402aadf3d28ed95153ed3e5f985f6e5f13e5f9f0c24f
+f3280c53dd8ff88a58db456bc211032b38cf12b1b073e86592e2d45fac062d5a59a41
+2a2dbc15555cd9019b20f3a6ac407e4711a72b04a57dde9500b54ff7255705a71ee29
+25e4a3e30e41aed489a579d5595e0df13e32e1e4dd202a7c7f68b31d6418d9845eb4d
+757adda6ab189e1bb340db818e5b3bc725d992faf63e9b0500db10517fe09d3f566fb
+a3a80e46a403e0c7d41548fbf75cf2662b00225b502961f98d8c9ff937de0b24c2318
+45
+S3 binding_factor: f2c269e6c0c282bf48b0a32d000c4b4d57d780729c8c6f057a
+4d04a46dfb7bbd513d39826b2423a0663433f2b31db6c4896c812cba79e81900
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: 3df924a06903772f1c3098d98bb708bd2462011e64f184d455bea8f
-5eada8a421c02538fb8fe205ac533b17870e4e3db005dddd47722e40900
-S3 sig_share: 4416c13f953466f268afce361518db4b11d61639d26a36496371e11
-22a1eae0a26fd863135ccc5f56799643d4039067fac11775f983bf02100
+S1 sig_share: 15cbd5433d8a83c4a5fa627a92382ae9deef5ea8cd9bc2f12be8f39
+dc31a3a3b9e7e02401e503c478592b4955009feceb0bc97f45d3ff23600
+S3 sig_share: 09c9cae33f3e7b961377335bc6142dbd9ff5f14dc42ca29517a873a
+76ef37ac060df674ed8ea4f94633636f7490b342c42b6ef255d915a2800
 
-sig: c5b1a31ec5a998f190a30bf9f3023aae73cadcfbf0c7781a946b39d0f0e7ee43
-90f46f11d540825e05bbd82fc6415f175f9a0302af3c131880810fe6dffe37dd2185d
-f6610a1cfe30836381857365cbb1db92f8a0815f9384d42ffd9c0edcae64f2dcd15b6
-b01dea5aad6e5434105ed42b00
+sig: 229634c3575567ee8629693e9fcc92698abfa981cb8a85682e1c589acbb334e6
+0b58db08e63e3e0d935006ab98a3ccb516ffaff6d86e486f802b4f487cea05863764e
+2d047e68aea84eeae7a4748ed15c3596c9dc8320eb5fbfe5d6a8ef63a8cdbe8c8ea8c
+9a1432fbf272871abbd04c1f00
 ~~~
 
 ## FROST(ristretto255, SHA-512)
@@ -1511,45 +1530,50 @@ S3 signer_share: f17e505f0e2581c6acfe54d3846a622834b5e7b50cad9a2109a9
 
 // Round one parameters
 participants: 1,3
-group_binding_factor_input: 00015c01341bd0a948e71fe1b9bf09f8b8ee258bf
-cf3abddee42ef74c8068e0b224584a209c6c3e812283378fb6a15e4b9a64aa9eed51f
-7ae405d09b56ee56bc58500003c0fc5ffaf124fa69206a9ed77bd57fa1d8ca505f613
-9794f82778ce15ee0be3cb6718f8139e49d08741ab9f030da29e557451eab58bc770c
-0c05ef4e2ff8001e678630bf982c566949d7f22d2aefb94f252c664216d332f34e2c8
-fdcd7045f207f854504d0daa534a5b31dbdf4183be30eb4fdba4f962d8a6b69cf20c2
-734043
-group_binding_factor: af4288aad52765341b2238007777ea2bb2d0dfb4e92423b
-0646d4bec426e3d0d
 
 // Signer round one outputs
-S1 hiding_nonce: b358743151e33d84bf00c12f71808f4103957c3e2cabab7b895c
-436b5e70f90c
-S1 binding_nonce: 7bd112153b9ae1ab9b31f5e78f61f5c4ca9ee67b7ea6d118179
-9c409d14c350c
-S1 hiding_nonce_commitment: 5c01341bd0a948e71fe1b9bf09f8b8ee258bfcf3a
-bddee42ef74c8068e0b2245
-S1 binding_nonce_commitment: 84a209c6c3e812283378fb6a15e4b9a64aa9eed5
-1f7ae405d09b56ee56bc5850
-S3 hiding_nonce: 22acad88478e0d0373a991092a322ebd1b9a2dad90451a976d0d
-b3215426af0e
-S3 binding_nonce: 9155e3d7bcf7cd468b980c7e20b2c77cbdfbe33a1dcae031fd8
-bc6b1403f4b04
-S3 hiding_nonce_commitment: c0fc5ffaf124fa69206a9ed77bd57fa1d8ca505f6
-139794f82778ce15ee0be3c
-S3 binding_nonce_commitment: b6718f8139e49d08741ab9f030da29e557451eab
-58bc770c0c05ef4e2ff8001e
+S1 hiding_nonce: 3cf8b6a42b311cbc2f060367ebded506db2f5a121fba9ba361db
+1ad8cc944205
+S1 binding_nonce: ed61710236f4134d34ed7b428d755b8d54ccb7040ad13b90fea
+5798734f5ed05
+S1 hiding_nonce_commitment: 86ecceaf9ed59af0a929610ceff4352ba27b5d48a
+9f0d4b1449e883d96331e60
+S1 binding_nonce_commitment: 7a2ba81809ebd6c9f0aae1dfc3af985d2ceb223f
+0fa974f604df44d36f6c0869
+S1 binding_factor_input: 000186ecceaf9ed59af0a929610ceff4352ba27b5d48
+a9f0d4b1449e883d96331e607a2ba81809ebd6c9f0aae1dfc3af985d2ceb223f0fa97
+4f604df44d36f6c0869678630bf982c566949d7f22d2aefb94f252c664216d332f34e
+2c8fdcd7045f207f854504d0daa534a5b31dbdf4183be30eb4fdba4f962d8a6b69cf2
+0c2734043
+S1 binding_factor: 619d93f3195e83c511da81244d74b5103ed1f3ae871188d043
+7a01e0fd3b0007
+S3 hiding_nonce: cc183d431e17936f2cf062317559e573046b4a9b0d6181866439
+7a972739560a
+S3 binding_nonce: 4b3ecac5986d70715208824ccfc3e3d2d763ecd514967af2eb6
+4879edbd0e50c
+S3 hiding_nonce_commitment: 9a8311d83dc068ee9001925c9ac56995fc7a053b8
+0d24d4f3c86065c1cee506c
+S3 binding_nonce_commitment: d2634b748b09cd713b2a1cb793dae3160335186f
+9544996cbc0785a9c0f95a37
+S3 binding_factor_input: 00039a8311d83dc068ee9001925c9ac56995fc7a053b
+80d24d4f3c86065c1cee506cd2634b748b09cd713b2a1cb793dae3160335186f95449
+96cbc0785a9c0f95a37678630bf982c566949d7f22d2aefb94f252c664216d332f34e
+2c8fdcd7045f207f854504d0daa534a5b31dbdf4183be30eb4fdba4f962d8a6b69cf2
+0c2734043
+S3 binding_factor: e4a4eba45d74c37e7c86572f80f2cda9c5572204b90ad11492
+2bb68d6ce34501
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: ff801b4e0839faa67f16dee4127b9f7fbcf5fd007900257b0e2bbc0
-2cbe5e709
-S3 sig_share: afdf5481023c855bf3411a5c8a5fafa92357296a078c3b80dc168f2
-94cb4f504
+S1 sig_share: 61b7796e5e407a7ef048127b3e44ae321fd7e6a0633b84ba15525ed
+0d220a105
+S3 sig_share: 0ab799d0fc968acac04fc6b7456c2dcf2801bd32d8d9d6b4085bbfc
+80312df0e
 
-sig: deae61af10e8ee48ba492573592fba547f5debeff6bd6e2024e8673584746f5e
-ae6070cf0a757f027358f8409dda4e29e04c276b808c60fbea414b2c179add0e
+sig: a6a348a36a2bdddf98fdf4810b185f15574ac2caf3e4024843bb155f8e20ae10
+7e9a1de24074f2f0dafbe08fa5b6fcec47d8a3d33b155b6f1ead1d99d6328004
 ~~~
 
 ## FROST(P-256, SHA-256)
@@ -1577,42 +1601,46 @@ b2d53c09d928
 
 // Round one parameters
 participants: 1,3
-group_binding_factor_input: 000102688facca4e2540ef303734c5aee8e7cdba0
-bc7ab94abfe63d05ebc68dde0f4c702ae64b6f0506acc3395fecd4bc70a9eb9f8e539
-4264c2d2aa0c8faff857ea3058000303c21b8ee50b6478ac845c0687504db6792873f
-5a327ff6a3115558070b517299302f3c73c912838f707f549bf4d63432f1fbe128fa3
-5ec8ba6eca849ebd248aa46a7a753fed12531fbcd151e1d84702927c39063e780e91c
-01f02bd11b60d7632bf
-group_binding_factor: cf7ffe4b8ad6edb6237efaa8cbfb2dfb2fd08d163b6ad90
-63720f14779a9e143
 
 // Signer round one outputs
-S1 hiding_nonce: 081617b24375e069b39f649d4c4ce2fba6e38b73e7c16759de0b
-6079a22c4c7e
-S1 binding_nonce: 4de5fb77d99f03a2491a83a6a4cb91ca3c82a3f34ce94cec939
-174f47c9f95dd
-S1 hiding_nonce_commitment: 02688facca4e2540ef303734c5aee8e7cdba0bc7a
-b94abfe63d05ebc68dde0f4c7
-S1 binding_nonce_commitment: 02ae64b6f0506acc3395fecd4bc70a9eb9f8e539
-4264c2d2aa0c8faff857ea3058
-S3 hiding_nonce: d186ea92593f83ea83181b184d41aa93493301ac2bc5b4b1767e
-94d2db943e38
-S3 binding_nonce: 486e2ee25a3fbc8e6399d748b077a2755fde99fa85cc24fa647
-ea4ebf5811a15
-S3 hiding_nonce_commitment: 03c21b8ee50b6478ac845c0687504db6792873f5a
-327ff6a3115558070b5172993
-S3 binding_nonce_commitment: 02f3c73c912838f707f549bf4d63432f1fbe128f
-a35ec8ba6eca849ebd248aa46a
+S1 hiding_nonce: b9dd98dc56ee8c459fab8b1f89596845f8881ae8d712ec0f09a3
+cb04272612b9
+S1 binding_nonce: 56c70c1c757e476577d3140f4f1f0feab0fc986f54345cc51fe
+681f578846b48
+S1 hiding_nonce_commitment: 02ea6aa232aba56862698f5a6f08acb654355c5f9
+df716a20307a03f49a738da31
+S1 binding_nonce_commitment: 0240c93ccee20133828e187a10c6bbde1251e7db
+12d3fb499db26cdc3d0d6f27a7
+S1 binding_factor_input: 000102ea6aa232aba56862698f5a6f08acb654355c5f
+9df716a20307a03f49a738da310240c93ccee20133828e187a10c6bbde1251e7db12d
+3fb499db26cdc3d0d6f27a77a753fed12531fbcd151e1d84702927c39063e780e91c0
+1f02bd11b60d7632bf
+S1 binding_factor: a7f1d45fa0e3e07603c439288f449dcb17aa352266d59c37d5
+59e07e1c9e264d
+S3 hiding_nonce: 19288ddf1365773e269ed9640c603c12e6fc2294846781e585cb
+eafdde722122
+S3 binding_nonce: 88c53ef39789f8b1688fdc9271502240a45121dea65e4e8e452
+e30c91c0ec3d5
+S3 hiding_nonce_commitment: 03c3d693daa7364b542dd3d4d5e9222ce6db38814
+1f04f8dcb714f17b916204bf6
+S3 binding_nonce_commitment: 02a3c6f61313f9e374b3975cbe2ffc9e65017657
+97a352827ad92d7287411bfc36
+S3 binding_factor_input: 000303c3d693daa7364b542dd3d4d5e9222ce6db3881
+41f04f8dcb714f17b916204bf602a3c6f61313f9e374b3975cbe2ffc9e6501765797a
+352827ad92d7287411bfc367a753fed12531fbcd151e1d84702927c39063e780e91c0
+1f02bd11b60d7632bf
+S3 binding_factor: 3f4fd2a116d55e03c14da535c59a059e21bcc177c0b31a8f9f
+d1be754d991e8d
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: 9e4d8865faf8c7b3193a3b35eda3d9e12118447114b1e7d5b4809ea
-28067f8a9
-S3 sig_share: b7d094eab6305ae74daeed1acd31abba9ab81f638d38b72c132cb25
-a5dfae1fc
+S1 sig_share: e3207dbbd919229d231bb611b0f4b85448ea37377ab071747fba9d9
+c7236fd11
+S3 sig_share: 08cb6abe0b56a45ff962401490df9cfd922930b555fd824a7977a00
+4cd69918d
 
-sig: 0342c14c77f9d4ef9b8bd64fb0d7bbfdb9f8216a44e5f7bbe6ac0f3ed5e1a573
-67561e1d51b129229966e92850bad5859bfee96926fad3007cd3f38639e1ffb554
+sig: 025356bedbd2be03fc26694acca13c453ad6858fac4f10936a26e4e93660cce8
+33ebebe879e46fc6fd1c7df62641d45551db1367ecd0adf3bef9323da13fa08e9e
 ~~~
