@@ -498,7 +498,7 @@ on the signer commitment list and message to be signed.
     rho_input_prefix = msg_hash || encoded_commitment_list
 
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      rho_input = rho_input_prefix + encode_uint16(identifier)
+      rho_input = rho_input_prefix || encode_uint16(identifier)
       binding_factor = H1(rho_input)
       binding_factor_list.append((identifier, binding_factor))
     return binding_factor_list
