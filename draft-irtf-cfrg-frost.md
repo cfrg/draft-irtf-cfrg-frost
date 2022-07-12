@@ -40,10 +40,14 @@ normative:
     author:
       -
         org: ANSI
-  SECG:
+  SEC1:
     title: "Elliptic Curve Cryptography, Standards for Efficient Cryptography Group, ver. 2"
     target: https://secg.org/sec1-v2.pdf
     date: 2009
+  SEC2:
+    title: "Recommended Elliptic Curve Domain Parameters, Standards for Efficient Cryptography Group, ver. 2"
+    target: https://secg.org/sec2-v2.pdf
+    date: 2010
 informative:
   FROST20:
     target: https://eprint.iacr.org/2020/852.pdf
@@ -995,9 +999,9 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
   - RandomScalar: Implemented by repeatedly generating a random 32-byte string
     and invoking DeserializeScalar on the result until success.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SECG}}.
+    method according to {{SEC1}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
-    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SECG}},
+    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
     {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
     coordinates of the resulting point are in the correct range, that the point is on
@@ -1005,9 +1009,49 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
     validates that the resulting element is not the group identity element.
     If these checks fail, deserialization returns an error.
   - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
-    according to {{SECG}}.
+    according to {{SEC1}}.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
-    string using Octet-String-to-Field-Element from {{SECG}}. This function can fail if the
+    string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
+    input does not represent a Scalar between the value 0 and `G.Order() - 1`.
+
+- Hash (`H`): SHA-256, and Nh = 32.
+  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
+    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
+    prime modulus equal to `Order()`.
+  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
+    prime modulus equal to `Order()`.
+  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
+  - H4(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
+    prime modulus equal to `Order()`.
+
+Signature verification is as specified in {{prime-order-verify}}.
+
+## FROST(secp256k1, SHA-256)
+
+This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function `H`.
+The value of the contextString parameter is "FROST-secp256k1-SHA256-v7".
+
+- Group: secp256k1 {{SEC2}}
+  - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+  - Identity: As defined in {{SEC2}}.
+  - RandomScalar: Implemented by repeatedly generating a random 32-byte string
+    and invoking DeserializeScalar on the result until success.
+  - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SEC1}}.
+  - DeserializeElement: Implemented by attempting to deserialize a public key using
+    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+    and then performs partial public-key validation as defined in section 3.2.2.1 of
+    {{SEC1}}. This includes checking that the coordinates of the resulting point are
+    in the correct range, that the point is on the curve, and that the point is not
+    the point at infinity. Additionally, this function validates that the resulting
+    element is not the group identity element. If these checks fail, deserialization
+    returns an error.
+  - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
+    according to {{SEC1}}.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
+    string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar between the value 0 and `G.Order() - 1`.
 
 - Hash (`H`): SHA-256, and Nh = 32.
@@ -1672,3 +1716,69 @@ S3 sig_share: 9651d355ca1dea2557ba1f73e38a9f4ff1f1afc565323ef27f88a9d
 sig: 02dfba781e17b830229ae4ed22ebe402873683d9dfd945d01762217fb3172c2a
 71f83a8d1a3efd188c04d41cf48a716e11b8eff38607023c1f9bb0d36fe1d9f2e9
 ~~~
+
+## FROST(secp256k1, SHA-256)
+
+~~~
+// Configuration information
+MAX_SIGNERS: 3
+MIN_SIGNERS: 2
+NUM_SIGNERS: 2
+
+// Group input parameters
+group_secret_key: 0d004150d27c3bf2a42f312683d35fac7394b1e9e318249c1bf
+e7f0795a83114
+group_public_key: 02f37c34b66ced1fb51c34a90bdae006901f10625cc06c4f646
+63b0eae87d87b4f
+message: 74657374
+
+// Signer input parameters
+S1 signer_share: 08f89ffe80ac94dcb920c26f3f46140bfc7f95b493f8310f5fc1
+ea2b01f4254c
+S2 signer_share: 04f0feac2edcedc6ce1253b7fab8c86b856a797f44d83d82a385
+554e6e401984
+S3 signer_share: 00e95d59dd0d46b0e303e500b62b7ccb0e555d49f5b849f5e748
+c071da8c0dbc
+
+// Round one parameters
+participants: 1,3
+
+// Signer round one outputs
+S1 hiding_nonce: 31c3c1b76b76664569859b9251fbabed9d4d432c6f5aaa03ed41
+f9c231935798
+S1 binding_nonce: 206f4ffaeb602ccb57cbe50e146ac690e6d7317d4b93377061d
+9d1b4caf78a26
+S1 hiding_nonce_commitment: 02e5cf6c824cbf9d9ec39a1e7c0f3995a384357f7
+ee0818d7a79c1bc508e619446
+S1 binding_nonce_commitment: 03453f15f93b7dbd442356b750b9f2b3d844c5f4
+fb937722a78cf07229d8f4abbd
+S1 binding_factor_input: 438e28eeb12763bfa03ed970fe8ec3a7d98e6c4e6455
+e112f7fdd586153c400c49ca042ae424b39243de9b8e85f77a9f3cae250342aa758e3
+c3ed0595291b9300001
+S1 binding_factor: 55cfed415491694231b25f0ba59a5ac6fa3df1011bde4c0f7f
+8b139859c2edc5
+S3 hiding_nonce: 0d3945bc1553676a5dd910cb4f14437d99ed421516b2617357b9
+84820fdca520
+S3 binding_nonce: 635e0fd90caaf40b5e986d0ee0f58778e4d88731bc6ac70350e
+f702ffe20a21b
+S3 hiding_nonce_commitment: 03c457ef827be177a640910b9ef08de6b5c9e177b
+37a4589b2e6e171481fb74e42
+S3 binding_nonce_commitment: 03298c7bd009d14c9a89a083101fb6d72d8d1211
+7a48b3e042272d17ccbdfa4eed
+S3 binding_factor_input: 438e28eeb12763bfa03ed970fe8ec3a7d98e6c4e6455
+e112f7fdd586153c400c49ca042ae424b39243de9b8e85f77a9f3cae250342aa758e3
+c3ed0595291b9300003
+S3 binding_factor: 24901763ab07e0d288c212bace7a1f9f33496a8556800e8a86
+aa0e3569cfcc79
+
+// Round two parameters
+participants: 1,3
+
+// Signer round two outputs
+S1 sig_share: 18b71e284c5d008896ed8847b234ec829eda376d6208838ee7faf2c
+e21b154c1
+S3 sig_share: a452a49c8116124d0a283f3589a96b704894b43246e47e59d376353
+bcc638311
+
+sig: 03dafb28ee7ad033fd15ed470d07156617260d74a9d76a15d371d7b613d2b111
+e7bd09c2c4cd7312d5a115c77d3bde57f2e76eeb9fa8ed01e8bb712809ee14d7d2

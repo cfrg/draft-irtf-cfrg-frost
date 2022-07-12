@@ -140,6 +140,21 @@ class GroupP256(GroupNISTCurve):
         gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
         GroupNISTCurve.__init__(self, "P-256", F, A, B, p, order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
 
+# Marker to denote the origin of the curve, relying on the coinciding specs
+class GroupSECGCurve(GroupNISTCurve):
+  pass
+
+class GroupSecp256k1(GroupSECGCurve):
+    def __init__(self):
+        # See SEC 2 v2, section 2.4.1
+        p = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
+        F = GF(p)
+        A = F(0)
+        B = F(7)
+        order = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+        gx = 0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
+        gy = 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8
+        GroupSECGCurve.__init__(self, "secp256k1", F, A, B, p, order, gx, gy, 48, hashlib.sha256, expand_message_xmd, 128)
 
 class GroupEd25519(Group):
     # Compute corresponding x-coordinate, with low bit corresponding to
