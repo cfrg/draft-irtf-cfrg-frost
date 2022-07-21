@@ -770,7 +770,7 @@ parameters, to check that the signature share is valid using the following proce
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the signer. Note identifier will never equal 0.
+  - identifier, Identifier i of the signer. Note: identifier MUST never equal 0.
   - PK_i, the public key for the ith signer, where PK_i = G.ScalarBaseMult(sk_i),
     an Element in G
   - comm_i, pair of Element values in G (hiding_nonce_commitment, binding_nonce_commitment)
