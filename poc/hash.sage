@@ -40,14 +40,14 @@ class HashEd25519(Hash):
         Hash.__init__(self, GroupEd25519(), sha512, "SHA-512")
 
     def H1(self, m):
-        hash_input = _as_bytes("rho") + m
+        hash_input = _as_bytes("FROST-ED25519-SHA512-" + VERSION + "rho") + m
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
     def H2(self, m):
         return int.from_bytes(sha512(m).digest(), "little") % self.G.order()
 
     def H3(self, m):
-        hash_input = _as_bytes("nonce") + m
+        hash_input = _as_bytes("FROST-ED25519-SHA512-" + VERSION + "nonce") + m
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
     def H4(self, m):
@@ -67,14 +67,14 @@ class HashEd448(Hash):
         Hash.__init__(self, GroupEd448(), shake_256, "SHAKE256")
 
     def H1(self, m):
-        hash_input = _as_bytes("rho") + m
+        hash_input = _as_bytes("FROST-ED448-SHAKE256-" + VERSION + "rho") + m
         return int.from_bytes(shake_256(hash_input).digest(int(114)), "little") % self.G.order()
 
     def H2(self, m):
         return int.from_bytes(shake_256(m).digest(int(114)), "little") % self.G.order()
 
     def H3(self, m):
-        hash_input = _as_bytes("nonce") + m
+        hash_input = _as_bytes("FROST-ED448-SHAKE256-" + VERSION + "nonce") + m
         return int.from_bytes(shake_256(hash_input).digest(int(114)), "little") % self.G.order()
 
     def H4(self, m):
@@ -130,7 +130,7 @@ class HashP256(Hash):
         return self.G.hash_to_scalar(m, dst=dst)
 
     def H3(self, m):
-        dst = _as_bytes("FROST-P256-SHA256nonce")
+        dst = _as_bytes("FROST-P256-SHA256-" + VERSION + "nonce")
         return self.G.hash_to_scalar(m, dst=dst)
 
     def H4(self, m):
