@@ -126,6 +126,10 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
 
+draft-07
+
+- Fix bug in per-rho signer computation (#222)
+
 draft-06
 
 - Make verification a per-ciphersuite functionality (#219)
@@ -267,10 +271,13 @@ We now detail a number of member functions that can be invoked on `G`.
 FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
-{{ciphersuites}}. Using H, we introduce four separate domain-separated hashes,
-H1, H2, H3, and H4, where H1, H2, and H4 map arbitrary byte strings to Scalar elements of
-the prime-order group scalar field, and H3 is an alias for H with a domain separator.
-The details of H1, H2, H3, and H4 vary based on ciphersuite. See {{ciphersuites}}
+{{ciphersuites}}. Using H, we introduce separate domain-separated hashes,
+H1, H2, H3, H4, and H5:
+
+- H1, H2, and H3 map arbitrary byte strings to Scalar elements of the prime-order group scalar field.
+- H4 and H5 are aliases for H with distinct domain separators.
+
+The details of H1, H2, H3, H4, and H5 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
 # Helper functions {#helpers}
@@ -303,7 +310,7 @@ function `H`, `H4`:
   def nonce_generate(secret):
     k_enc = random_bytes(32)
     secret_enc = G.SerializeScalar(secret)
-    return H4(k_enc || secret_enc)
+    return H3(k_enc || secret_enc)
 ~~~
 
 ## Polynomial Operations {#dep-polynomial}
@@ -491,8 +498,8 @@ on the signer commitment list and message to be signed.
   Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
 
   def compute_binding_factors(commitment_list, msg):
-    msg_hash = H3(msg)
-    encoded_commitment_hash = H3(encode_group_commitment_list(commitment_list))
+    msg_hash = H4(msg)
+    encoded_commitment_hash = H5(encode_group_commitment_list(commitment_list))
     rho_input_prefix = msg_hash || encoded_commitment_hash
 
     binding_factor_list = []
@@ -877,7 +884,7 @@ signer.
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed25519 as specified in {{!RFC8032}}.
-The value of the contextString parameter is empty.
+The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
 
 - Group: edwards25519 {{!RFC8032}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
@@ -903,10 +910,12 @@ The value of the contextString parameter is empty.
   - H2(m): Implemented by computing H(m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
-  - H3(m): Implemented as an alias for H, i.e., H(m).
-  - H4(m): Implemented by computing H("nonce" || m), interpreting the 64-byte digest
+  - H3(m): Implemented by computing H("nonce" || m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
+
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
@@ -918,7 +927,7 @@ The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
-The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
+The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
@@ -938,9 +947,10 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
-  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
-  - H4(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
+  - H3(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
@@ -948,7 +958,7 @@ Signature verification is as specified in {{prime-order-verify}}.
 
 This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
-The value of the contextString parameter is empty.
+The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
 
 - Group: edwards448 {{!RFC8032}}
   - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
@@ -972,10 +982,11 @@ The value of the contextString parameter is empty.
   - H2(m): Implemented by computing H(m), interpreting the lower 57 bytes
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
-  - H3(m): Implemented as an alias for H, i.e., H(m).
-  - H4(m): Implemented by computing H("nonce" || m), interpreting the lower
+  - H3(m): Implemented by computing H("nonce" || m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
@@ -987,7 +998,7 @@ The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-P256-SHA256-v5".
+The value of the contextString parameter is "FROST-P256-SHA256-v8".
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
@@ -1017,10 +1028,11 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
   - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
     prime modulus equal to `Order()`.
-  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
-  - H4(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
     prime modulus equal to `Order()`.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
