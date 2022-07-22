@@ -882,8 +882,8 @@ The value of the contextString parameter is empty.
 - Group: edwards25519 {{!RFC8032}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
   - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by repeatedly generating a random 32-byte string
-    and invoking DeserializeScalar on the result until success.
+  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -923,8 +923,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
   - Identity: As defined in {{RISTRETTO}}.
-  - RandomScalar: Implemented by repeatedly generating a random 32-byte string and
-    invoking DeserializeScalar on the result until success.
+  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
@@ -953,8 +953,8 @@ The value of the contextString parameter is empty.
 - Group: edwards448 {{!RFC8032}}
   - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
   - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by repeatedly generating a random 48-byte string and
-    invoking DeserializeScalar on the result until success.
+  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
@@ -992,8 +992,8 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
 - Group: P-256 (secp256r1) {{x9.62}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{x9.62}}.
-  - RandomScalar: Implemented by repeatedly generating a random 32-byte string
-    and invoking DeserializeScalar on the result until success.
+  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
@@ -1672,3 +1672,28 @@ S3 sig_share: 9651d355ca1dea2557ba1f73e38a9f4ff1f1afc565323ef27f88a9d
 sig: 02dfba781e17b830229ae4ed22ebe402873683d9dfd945d01762217fb3172c2a
 71f83a8d1a3efd188c04d41cf48a716e11b8eff38607023c1f9bb0d36fe1d9f2e9
 ~~~
+
+
+# Random Scalar Generation {#random-scalar}
+
+Two popular algorithms for generating a random integer uniformbly distributed in
+the range \[0, G.Order() -1\] are as follows:
+
+## Rejection Sampling
+
+Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
+by calling `DeserializeScalar`. If it works, return the result. If it fails,
+try again with another random byte array, until the procedure succeeds.
+
+Note the that the Scalar size might be some bits smaller than the array size,
+which can result in the loop iterating more times than required. In that case
+it's acceptable to set the high-order bits to 0 before calling `DeserializeScalar`,
+but care must be taken to not set to zero more bits than required. For example,
+in the `FROST(Ed25519, SHA-512)` ciphersuite, the order has 253 bits while
+the array has 256; thus the top 3 bits of the last byte can be set to zero.
+
+## Wide Reduction
+
+Generate a random byte array with `Ns * 2` bytes, and interpret it as a
+little-endian integer; reduce the integer modulo `G.Order()` and return the
+result.
