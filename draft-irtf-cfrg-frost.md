@@ -261,6 +261,8 @@ We now detail a number of member functions that can be invoked on `G`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
   This function can raise a DeserializeError if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
+- IdentifierToScalar(i): Maps an identifier `i` to a Scalar with the same numeric
+  value (e.g. the identifier 1 must be mapped into the Scalar 1).
 
 ## Cryptographic Hash Function {#dep-hash}
 
@@ -734,7 +736,7 @@ procedure to produce its own signature share.
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
+    lambda_i = derive_lagrange_coefficient(G.IdentifierToScalar(identifier), participant_list)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -807,7 +809,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
+    lambda_i = derive_lagrange_coefficient(G.IdentifierToScalar(identifier), participant_list)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
@@ -1171,7 +1173,8 @@ and 3) keep secret values confidential.
   - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a Scalar value.
+  - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a tuple
+    consisting of the participant identifier and the key share (a Scalar).
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
     in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
@@ -1213,8 +1216,8 @@ The procedure for splitting a secret into shares is as follows.
   - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - secret_key_shares, A list of MAX_SIGNERS number of secret shares, which is a tuple
-    consisting of the participant identifier and the key share, each of which is a Scalar
+  - secret_key_shares, A list of MAX_SIGNERS number of secret shares, each a tuple
+    consisting of the participant identifier and the key share (a Scalar)
   - coefficients, a vector of the t coefficients which uniquely determine
     a polynomial f.
 
@@ -1236,7 +1239,7 @@ The procedure for splitting a secret into shares is as follows.
     # Evaluate the polynomial for each point x=1,...,n
     secret_key_shares = []
     for x_i in range(1, MAX_SIGNERS + 1):
-      y_i = polynomial_evaluate(x_i, coefficients)
+      y_i = polynomial_evaluate(G.IdentifierToScalar(x_i), coefficients)
       secret_key_share_i = (x_i, y_i)
       secret_key_share.append(secret_key_share_i)
     return secret_key_shares, coefficients
@@ -1256,6 +1259,7 @@ secret `s` is as follows.
 
   Inputs:
   - shares, a list of at minimum MIN_SIGNERS secret shares, each a tuple (i, f(i))
+    where i is an identifier and f(i) is a Scalar
 
   Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
@@ -1265,7 +1269,8 @@ secret `s` is as follows.
   def secret_share_combine(shares):
     if len(shares) < MIN_SIGNERS:
       raise "invalid parameters"
-    s = polynomial_interpolation(shares)
+    scalar_shares = [(G.IdentifierToScalar(x), y) for x, y in shares]
+    s = polynomial_interpolation(scalar_shares)
     return s
 ~~~
 
