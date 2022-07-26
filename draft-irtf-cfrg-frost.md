@@ -882,7 +882,7 @@ The value of the contextString parameter is empty.
 - Group: edwards25519 {{!RFC8032}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
   - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
