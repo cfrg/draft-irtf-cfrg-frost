@@ -923,7 +923,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
   - Identity: As defined in {{RISTRETTO}}.
-  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
@@ -953,7 +953,7 @@ The value of the contextString parameter is empty.
 - Group: edwards448 {{!RFC8032}}
   - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
   - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
@@ -992,7 +992,7 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
 - Group: P-256 (secp256r1) {{x9.62}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{x9.62}}.
-  - RandomScalar: Implemented by returning a uniformbly random Scalar in the range
+  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SECG}}.
@@ -1676,7 +1676,7 @@ sig: 02dfba781e17b830229ae4ed22ebe402873683d9dfd945d01762217fb3172c2a
 
 # Random Scalar Generation {#random-scalar}
 
-Two popular algorithms for generating a random integer uniformbly distributed in
+Two popular algorithms for generating a random integer uniformly distributed in
 the range \[0, G.Order() -1\] are as follows:
 
 ## Rejection Sampling
