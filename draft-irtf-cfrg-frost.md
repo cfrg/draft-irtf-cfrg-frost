@@ -912,7 +912,7 @@ Normally H2 would also include a domain separator, but for backwards compatibili
 with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
-constraint that implementations MUST check the group group equation [8][S]B = [8]R + [8][k]A'.
+constraint that implementations MUST check the group equation [8][S]B = [8]R + [8][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
@@ -981,7 +981,7 @@ Normally H2 would also include a domain separator, but for backwards compatibili
 with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
-constraint that implementations MUST check the group group equation [4][S]B = [4]R + [4][k]A'.
+constraint that implementations MUST check the group equation [4][S]B = [4]R + [4][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 
 ## FROST(P-256, SHA-256)
