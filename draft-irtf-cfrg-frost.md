@@ -892,9 +892,9 @@ The value of the contextString parameter is empty.
     checking that the result is the identity element.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
-    string. This function can fail if the input does not represent a Scalar between
-    the value 0 and `G.Order() - 1`.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+    little-endian 32-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H("rho" || m), interpreting the 64-byte digest
@@ -929,9 +929,9 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
-    string. This function can fail if the input does not represent a Scalar between
-    the value 0 and `G.Order() - 1`.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+    little-endian 32-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
@@ -961,9 +961,9 @@ The value of the contextString parameter is empty.
     identity element.
   - SerializeScalar: Implemented by outputting the little-endian 48-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 48-byte
-    string. This function can fail if the input does not represent a Scalar between
-    the value 0 and `G.Order() - 1`.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+    little-endian 48-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHAKE256, and Nh = 114.
   - H1(m): Implemented by computing H("rho" || m), interpreting the lower
@@ -1008,7 +1008,7 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
     according to {{SECG}}.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SECG}}. This function can fail if the
-    input does not represent a Scalar between the value 0 and `G.Order() - 1`.
+    input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
