@@ -1353,6 +1353,31 @@ which is an input into the FROST signing protocol.
       return PK, signer_public_keys
 ~~~
 
+# Random Scalar Generation {#random-scalar}
+
+Two popular algorithms for generating a random integer uniformly distributed in
+the range \[0, G.Order() -1\] are as follows:
+
+## Rejection Sampling
+
+Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
+by calling `DeserializeScalar`. If it works, return the result. If it fails,
+try again with another random byte array, until the procedure succeeds.
+
+Note the that the Scalar size might be some bits smaller than the array size,
+which can result in the loop iterating more times than required. In that case
+it's acceptable to set the high-order bits to 0 before calling `DeserializeScalar`,
+but care must be taken to not set to zero more bits than required. For example,
+in the `FROST(Ed25519, SHA-512)` ciphersuite, the order has 253 bits while
+the array has 256; thus the top 3 bits of the last byte can be set to zero.
+
+## Wide Reduction
+
+Generate a random byte array with `L = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
+bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
+result.
+
+
 # Test Vectors
 
 This section contains test vectors for all ciphersuites listed in {{ciphersuites}}.
@@ -1672,28 +1697,3 @@ S3 sig_share: 9651d355ca1dea2557ba1f73e38a9f4ff1f1afc565323ef27f88a9d
 sig: 02dfba781e17b830229ae4ed22ebe402873683d9dfd945d01762217fb3172c2a
 71f83a8d1a3efd188c04d41cf48a716e11b8eff38607023c1f9bb0d36fe1d9f2e9
 ~~~
-
-
-# Random Scalar Generation {#random-scalar}
-
-Two popular algorithms for generating a random integer uniformly distributed in
-the range \[0, G.Order() -1\] are as follows:
-
-## Rejection Sampling
-
-Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
-by calling `DeserializeScalar`. If it works, return the result. If it fails,
-try again with another random byte array, until the procedure succeeds.
-
-Note the that the Scalar size might be some bits smaller than the array size,
-which can result in the loop iterating more times than required. In that case
-it's acceptable to set the high-order bits to 0 before calling `DeserializeScalar`,
-but care must be taken to not set to zero more bits than required. For example,
-in the `FROST(Ed25519, SHA-512)` ciphersuite, the order has 253 bits while
-the array has 256; thus the top 3 bits of the last byte can be set to zero.
-
-## Wide Reduction
-
-Generate a random byte array with `L = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
-bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
-result.
