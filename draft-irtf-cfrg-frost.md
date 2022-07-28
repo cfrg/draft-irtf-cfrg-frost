@@ -1694,6 +1694,6 @@ the array has 256; thus the top 3 bits of the last byte can be set to zero.
 
 ## Wide Reduction
 
-Generate a random byte array with `Ns * 2` bytes, and interpret it as a
-little-endian integer; reduce the integer modulo `G.Order()` and return the
+Generate a random byte array with `L = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
+bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
 result.
