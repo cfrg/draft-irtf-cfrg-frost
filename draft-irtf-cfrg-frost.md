@@ -904,13 +904,13 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
     the value 0 and `G.Order() - 1`.
 
 - Hash (`H`): SHA-512, and Nh = 64.
-  - H1(m): Implemented by computing H(contextString || "rho" || m), interpreting the 64-byte digest
+  - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
   - H2(m): Implemented by computing H(m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
-  - H3(m): Implemented by computing H(contextString || "nonce" || m), interpreting the 64-byte digest
+  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
@@ -947,7 +947,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
-  - H3(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
+  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
@@ -976,13 +976,13 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
     the value 0 and `G.Order() - 1`.
 
 - Hash (`H`): SHAKE256, and Nh = 114.
-  - H1(m): Implemented by computing H(contextString || "rho" || m), interpreting the lower
+  - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H2(m): Implemented by computing H(m), interpreting the lower 57 bytes
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
-  - H3(m): Implemented by computing H(contextString || "nonce" || m), interpreting the lower
+  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
