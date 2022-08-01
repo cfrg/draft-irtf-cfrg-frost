@@ -1073,7 +1073,7 @@ The rest of this section documents issues particular to implementations or deplo
 {{dep-nonces}} describes the procedure that signers use to produce nonces during
 the first round of singing. The randomness produced in this procedure MUST be sampled
 uniformly at random. The resulting nonces produced via `nonce_generate` are indistinguishable
-from values sampled uniformly at random randomly. This requirement is necessary to avoid
+from values sampled uniformly at random. This requirement is necessary to avoid
 replay attacks initiated by other signers, which allows for a complete key-recovery attack.
 The Coordinator MAY further hedge against nonce reuse attacks by tracking signer nonce
 commitments used for a given group key, at the cost of additional state.
