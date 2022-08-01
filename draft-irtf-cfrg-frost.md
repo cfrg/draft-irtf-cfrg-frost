@@ -1049,19 +1049,19 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{SEC2}}.
   - RandomScalar: Implemented by repeatedly generating a random 32-byte string
-  and invoking DeserializeScalar on the result until success.
+    and invoking DeserializeScalar on the result until success.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-  method according to {{SEC1}}.
+    method according to {{SEC1}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
-  the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
-  and then performs partial public-key validation as defined in section 3.2.2.1 of
-  {{SEC1}}. This includes checking that the coordinates of the resulting point are
-  in the correct range, that the point is on the curve, and that the point is not
-  the point at infinity. Additionally, this function validates that the resulting
-  element is not the group identity element. If these checks fail, deserialization
-  returns an error.
+    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+    and then performs partial public-key validation as defined in section 3.2.2.1 of
+    {{SEC1}}. This includes checking that the coordinates of the resulting point are
+    in the correct range, that the point is on the curve, and that the point is not
+    the point at infinity. Additionally, this function validates that the resulting
+    element is not the group identity element. If these checks fail, deserialization
+    returns an error.
   - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
-  according to {{SEC1}}.
+    according to {{SEC1}}.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
@@ -1795,3 +1795,4 @@ e9d4aee1b
 
 sig: 0364b02292a4b0e61f849f4d6fac0e67c2f698a21e1cba9e4a5b8fa535f2f931
 0d0b7f016a14b07e59209b31d7096733bfced0ddaa6398ee64d5e220ddc2d4ae77
+~~~
