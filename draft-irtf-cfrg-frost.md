@@ -1361,7 +1361,7 @@ the range \[0, G.Order() -1\] are as follows:
 ## Rejection Sampling
 
 Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
-by calling `DeserializeScalar`. If it works, return the result. If it fails,
+by calling `DeserializeScalar`. If it succeeds, return the result. If it fails,
 try again with another random byte array, until the procedure succeeds.
 
 Note the that the Scalar size might be some bits smaller than the array size,
@@ -1375,7 +1375,7 @@ the array has 256; thus the top 3 bits of the last byte can be set to zero.
 
 Generate a random byte array with `L = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
 bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
-result.
+result. See {{Section 5 of HASH-TO-CURVE}} for the underlying derivation of `L`.
 
 
 # Test Vectors
