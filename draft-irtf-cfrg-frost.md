@@ -130,6 +130,10 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
 
+draft-07
+
+- Fix bug in per-rho signer computation (#222)
+
 draft-06
 
 - Make verification a per-ciphersuite functionality (#219)
@@ -271,10 +275,13 @@ We now detail a number of member functions that can be invoked on `G`.
 FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
-{{ciphersuites}}. Using H, we introduce four separate domain-separated hashes,
-H1, H2, H3, and H4, where H1, H2, and H4 map arbitrary byte strings to Scalar elements of
-the prime-order group scalar field, and H3 is an alias for H with a domain separator.
-The details of H1, H2, H3, and H4 vary based on ciphersuite. See {{ciphersuites}}
+{{ciphersuites}}. Using H, we introduce separate domain-separated hashes,
+H1, H2, H3, H4, and H5:
+
+- H1, H2, and H3 map arbitrary byte strings to Scalar elements of the prime-order group scalar field.
+- H4 and H5 are aliases for H with distinct domain separators.
+
+The details of H1, H2, H3, H4, and H5 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
 # Helper functions {#helpers}
@@ -294,7 +301,7 @@ These sections describes these operations in more detail.
 To hedge against a bad RNG that outputs predictable values, we generate
 nonces by sourcing fresh randomness and combine with the secret key,
 to create a domain-separated hash function from the ciphersuite hash
-function `H`, `H4`:
+function `H`, `H3`:
 
 ~~~
   nonce_generate(secret):
@@ -307,7 +314,7 @@ function `H`, `H4`:
   def nonce_generate(secret):
     k_enc = random_bytes(32)
     secret_enc = G.SerializeScalar(secret)
-    return H4(k_enc || secret_enc)
+    return H3(k_enc || secret_enc)
 ~~~
 
 ## Polynomial Operations {#dep-polynomial}
@@ -495,8 +502,8 @@ on the signer commitment list and message to be signed.
   Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
 
   def compute_binding_factors(commitment_list, msg):
-    msg_hash = H3(msg)
-    encoded_commitment_hash = H3(encode_group_commitment_list(commitment_list))
+    msg_hash = H4(msg)
+    encoded_commitment_hash = H5(encode_group_commitment_list(commitment_list))
     rho_input_prefix = msg_hash || encoded_commitment_hash
 
     binding_factor_list = []
@@ -774,7 +781,7 @@ parameters, to check that the signature share is valid using the following proce
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the signer. Note identifier will never equal 0.
+  - identifier, Identifier i of the signer. Note: identifier MUST never equal 0.
   - PK_i, the public key for the ith signer, where PK_i = G.ScalarBaseMult(sk_i),
     an Element in G
   - comm_i, pair of Element values in G (hiding_nonce_commitment, binding_nonce_commitment)
@@ -881,7 +888,7 @@ signer.
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed25519 as specified in {{!RFC8032}}.
-The value of the contextString parameter is empty.
+The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
 
 - Group: edwards25519 {{!RFC8032}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
@@ -896,33 +903,35 @@ The value of the contextString parameter is empty.
     checking that the result is the identity element.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
-    string. This function can fail if the input does not represent a Scalar between
-    the value 0 and `G.Order() - 1`.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+    little-endian 32-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-512, and Nh = 64.
-  - H1(m): Implemented by computing H("rho" || m), interpreting the 64-byte digest
+  - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
   - H2(m): Implemented by computing H(m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
-  - H3(m): Implemented as an alias for H, i.e., H(m).
-  - H4(m): Implemented by computing H("nonce" || m), interpreting the 64-byte digest
+  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^252+27742317777372353535851937790883648493.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
+
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
-constraint that implementations MUST check the group group equation [8][S]B = [8]R + [8][k]A'.
+constraint that implementations MUST check the group equation [8][S]B = [8]R + [8][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
-The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
+The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
@@ -933,18 +942,19 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v5".
   - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
   - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
-    string. This function can fail if the input does not represent a Scalar between
-    the value 0 and `G.Order() - 1`.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+    little-endian 32-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
-  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
-  - H4(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
+  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
@@ -952,7 +962,7 @@ Signature verification is as specified in {{prime-order-verify}}.
 
 This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
-The value of the contextString parameter is empty.
+The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
 
 - Group: edwards448 {{!RFC8032}}
   - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
@@ -965,33 +975,34 @@ The value of the contextString parameter is empty.
     identity element.
   - SerializeScalar: Implemented by outputting the little-endian 48-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 48-byte
-    string. This function can fail if the input does not represent a Scalar between
-    the value 0 and `G.Order() - 1`.
+  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+    little-endian 48-byte string. This function can fail if the input does not
+    represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHAKE256, and Nh = 114.
-  - H1(m): Implemented by computing H("rho" || m), interpreting the lower
+  - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H2(m): Implemented by computing H(m), interpreting the lower 57 bytes
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
-  - H3(m): Implemented as an alias for H, i.e., H(m).
-  - H4(m): Implemented by computing H("nonce" || m), interpreting the lower
+  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the lower
     57 bytes as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
-constraint that implementations MUST check the group group equation [4][S]B = [4]R + [4][k]A'.
+constraint that implementations MUST check the group equation [4][S]B = [4]R + [4][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
 
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-P256-SHA256-v5".
+The value of the contextString parameter is "FROST-P256-SHA256-v8".
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
@@ -1012,7 +1023,7 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
     according to {{SEC1}}.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
-    input does not represent a Scalar between the value 0 and `G.Order() - 1`.
+    input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
@@ -1021,38 +1032,39 @@ The value of the contextString parameter is "FROST-P256-SHA256-v5".
   - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
     prime modulus equal to `Order()`.
-  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
-  - H4(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
     prime modulus equal to `Order()`.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
 ## FROST(secp256k1, SHA-256)
 
 This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-secp256k1-SHA256-v7".
+The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
 
 - Group: secp256k1 {{SEC2}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{SEC2}}.
   - RandomScalar: Implemented by repeatedly generating a random 32-byte string
-    and invoking DeserializeScalar on the result until success.
+  and invoking DeserializeScalar on the result until success.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SEC1}}.
+  method according to {{SEC1}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
-    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
-    and then performs partial public-key validation as defined in section 3.2.2.1 of
-    {{SEC1}}. This includes checking that the coordinates of the resulting point are
-    in the correct range, that the point is on the curve, and that the point is not
-    the point at infinity. Additionally, this function validates that the resulting
-    element is not the group identity element. If these checks fail, deserialization
-    returns an error.
+  the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+  and then performs partial public-key validation as defined in section 3.2.2.1 of
+  {{SEC1}}. This includes checking that the coordinates of the resulting point are
+  in the correct range, that the point is on the curve, and that the point is not
+  the point at infinity. Additionally, this function validates that the resulting
+  element is not the group identity element. If these checks fail, deserialization
+  returns an error.
   - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
-    according to {{SEC1}}.
+  according to {{SEC1}}.
   - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
-    input does not represent a Scalar between the value 0 and `G.Order() - 1`.
+    input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
@@ -1061,10 +1073,11 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v7".
   - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
     prime modulus equal to `Order()`.
-  - H3(m): Implemented by computing H(contextString \|\| "digest" \|\| m).
-  - H4(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
     prime modulus equal to `Order()`.
+  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
@@ -1102,12 +1115,13 @@ The rest of this section documents issues particular to implementations or deplo
 
 ## Nonce Reuse Attacks
 
-Nonces generated by each participant in the first round of signing must be sampled
-uniformly at random and cannot be derived from some deterministic function. This
-is to avoid replay attacks initiated by other signers, which allows for a complete
-key-recovery attack. The Coordinator MAY further hedge against nonce reuse attacks by
-tracking signer nonce commitments used for a given group key, at the cost of additional
-state.
+{{dep-nonces}} describes the procedure that signers use to produce nonces during
+the first round of singing. The randomness produced in this procedure MUST be sampled
+uniformly at random. The resulting nonces produced via `nonce_generate` are indistinguishable
+from values sampled uniformly at random. This requirement is necessary to avoid
+replay attacks initiated by other signers, which allows for a complete key-recovery attack.
+The Coordinator MAY further hedge against nonce reuse attacks by tracking signer nonce
+commitments used for a given group key, at the cost of additional state.
 
 ## Protocol Failures
 
@@ -1424,7 +1438,6 @@ Each test vector consists of the following information.
   output signature share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
 
-
 ## FROST(Ed25519, SHA-512)
 
 ~~~
@@ -1452,48 +1465,48 @@ bdea643a9a02
 participants: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce: d9aad97e1a1127bb87702ce8d81d8c07c7cbca89e784868d8e38
-76ff6b459700
-S1 binding_nonce: 5063be2774520d08a5ccd7f1213fb1179a5fa292bf13bc91cb2
-8e7bd4d4a690c
-S1 hiding_nonce_commitment: 33fc1eacb8d168e54ab811320196b7715a9918461
-e1e00c3688e503ace1628d5
-S1 binding_nonce_commitment: b32d41ce5a230b459de8c49b0619cb5fbde46690
-752ec94ef05aa1f8647301df
-S1 binding_factor_input: ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e
-473f8819a5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8
-e6f57f50028a8ff7b5e7b0a8efad964ba83310b56607920b6c3c979e38e583aa9d02a
-df541c58ea92a259b5c8a184d0a7c5ea978e42a8ff84608c38cbb22475bd54858c4ff
-d524e0001
-S1 binding_factor: a523eba59830d1b5dbe6914e954862c5396b979bcd258fe323
-e324335db81101
-S3 hiding_nonce: 86961f3a429ac0c5696f49e6d796817ff653f83c07f34e9e1f4d
-4c8c515b7900
-S3 binding_nonce: 72225ec11c1315d9f1ea0e78b1160ed95800fadd0191d23fd2f
-2c90ac96cb307
-S3 hiding_nonce_commitment: 493651312d26af93d2bc5b92eeecc12f1d6da9e18
-4911e0943ebeb5ec59d3926
-S3 binding_nonce_commitment: 8dae85381a582288c934741defbcaeba7a1b944e
-3a2df0aa0ac96aec4431c690
-S3 binding_factor_input: ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e
-473f8819a5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8
-e6f57f50028a8ff7b5e7b0a8efad964ba83310b56607920b6c3c979e38e583aa9d02a
-df541c58ea92a259b5c8a184d0a7c5ea978e42a8ff84608c38cbb22475bd54858c4ff
-d524e0003
-S3 binding_factor: c900ec81622c4b4b756139607357c1bf531df1a3b055304af2
-15278aadb84b02
+S1 hiding_nonce: 1c406170127e33142b8611bc02bf14d5909e49d5cb87150eff3e
+c9804212920c
+S1 binding_nonce: 5be4edde8b7acd79528721191626810c94fbc2bcc814b7a67d3
+01fbd7fc16e07
+S1 hiding_nonce_commitment: eab073cf90278e1796c2db197566c8d1f62f9992d
+399a5329239481f9cbb5811
+S1 binding_nonce_commitment: 13172c94dec7b22eb0a910e93fa1af8a79e27f61
+b69981e1ebb227438ca3be84
+S1 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
+d84dd46d0dcbf3a21d21a23a776628859678a968acc8c8564c4641a1fd4b29a12d536
+7ca12ab10b6b497980a7514dabb157e25a78ab2f02572efad70a677a398de943abb9a
+f16d2decc1197f36000ae9db37db3b39f3fbf9d854bbed9cb84d41973ac81af76ad63
+7166a0001
+S1 binding_factor: c538ab7707e484ba5d29bb80d9ac795e0542e8089debbaca4d
+f090e92a6d5504
+S3 hiding_nonce: 795f87122f05b7efc4b1a52f435c3d28597411b1a6fec198ce9c
+818c5451c401
+S3 binding_nonce: c9193aaef37bc074ea3286d0361c815f7201bf764cd9e7d8bb4
+eb5ecca840a09
+S3 hiding_nonce_commitment: 049e0a8d62db8fd2f8401fb027e0a51374f5c4c79
+6a1765ecf14467df8c4829a
+S3 binding_nonce_commitment: eeb691d3dc19e0dbc33471c7a7681a51801c481d
+a34a8f55efe3070a75e9991d
+S3 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
+d84dd46d0dcbf3a21d21a23a776628859678a968acc8c8564c4641a1fd4b29a12d536
+7ca12ab10b6b497980a7514dabb157e25a78ab2f02572efad70a677a398de943abb9a
+f16d2decc1197f36000ae9db37db3b39f3fbf9d854bbed9cb84d41973ac81af76ad63
+7166a0003
+S3 binding_factor: 9e4474b925576c54c8e50ec27e09a04537c837f38b0f71312a
+58a8c12861b408
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: caae171b83bff0c2c6f56a1276892918ba228146f6344b85d2ec6ef
-eb6f16d0d
-S3 sig_share: ea6fdbf61683cf5f1f742e1b91583f0f667f0369efd2e33399b96d5
-a3ff0300d
+S1 sig_share: 1f16a3989b4aa2cc3782a503331b9a21d7ba56c9c5455d06981b542
+5306c9d01
+S3 sig_share: 4c8f33c301c05871b434a686847d5818417a01e50a59e9e7fddaefd
+e7d244207
 
-sig: 5da10008c13c04dd72328ba8e0f72b63cad43c3bf4b7eaada1c78225afbd977e
-c74afdb47fdfadca0fcda18a28e8891220a284afe5072fb96ba6dc58f6e19e0a
+sig: 1aff2259ecb59cfcbb36ae77e02a9b134422abeae47cf7ff56c85fdf90932b18
+6ba5d65b9d0afb3decb64b8ab798f239183558aed09e46ee95f64304ae90df08
 ~~~
 
 ## FROST(Ed448, SHAKE256)
@@ -1523,60 +1536,60 @@ S3 signer_share: 00db7a8146f995db0a7cf844ed89d8e94c2b5f259378ff66e39d
 participants: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce: a7fa56e3dc9935845e58275131eeda30d648432cba7ec3e3c522
-dea613962439cdbd016cd78d54eb72ba8ec4e1b4e6cb41d3afb55a28f40300
-S1 binding_nonce: 66480d4125faf4033babeee514f0b8d26118618ad05d6e3f8e6
-4ea7082249b460c9eee5259f6ca6d1036db968923a89534b679c6ec96181b00
-S1 hiding_nonce_commitment: b4b449e692a233b7661da0dbe4c337dd1c8c8369f
-c0786d6d1537ab371bb8afc4e59812de18300aef79b26920696c180e2f78f96bfb0d9
-1100
-S1 binding_nonce_commitment: 705e18f4f601754c700ef93591fb24af5d3ca0c8
-052a890de5aa2dc9231903b5d0d8a56c0dfe5b3c66e94b8615f705e7a5086fe93c020
-b5600
-S1 binding_factor_input: b54ff7255705a71ee2925e4a3e30e41aed489a579d55
-95e0df13e32e1e4dd202a7c7f68b31d6418d9845eb4d757adda6ab189e1bb340db818
-e5b3bc725d992faf63e9b0500db10517fe09d3f566fba3a80e46a403e0c7d41548fbf
-75cf2662b00225b502961f98d8c9ff937de0b24c231845c16de964d8b11ffe861c657
-afc6656a15d98dc9e6df3d2371d0fd2e0d990ad977470d0a371c1510accd90bb9fe51
-4da13c4c2d97488a7980cb7ea47ac5124ec710faa8692c009794b7c7a9e29b8cc5ea4
-cd9418c853676e55971349c313f84b902c1a112a0ecdbecb5fb6030ad874161ff7c00
+S1 hiding_nonce: bc449f3c5a05ab89eca0578a83ec16541c53867e56ff6bed852d
+fda64785047245a0aa539a0ca7f4ba04d788e20f81210c9ee4688d25a82800
+S1 binding_nonce: 7b34c981d62440777a1481dc62ec3629742a72b59cb1987209a
+2d9be358ed0980f5695666c1a43837f471e0f5c311a6a223502bbea3fe21900
+S1 hiding_nonce_commitment: 6bc549d7741bc4816d2baa27b8092b4e3b723d185
+8cb706f618ec5ba0d1e9f22a1737a9a0659478dcb1d55e5270e7b2d5af6a0ba8d9358
+7f00
+S1 binding_nonce_commitment: 5fba493104d0ce08fb78bf1cfa600f9858183aa0
+b561744449e2f069a6711f9736c65bd07145a0b82d9afb58b117a6e61b0bb7c9bf508
+66200
+S1 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
+e1a5b8fa8ea5adaf3e7989b2c167a38a42a1693ad69cfd674e089a498672753563d53
+54654ba106d5fdffb134a8917fae91d412164436f734b95572af6208605744400c6ff
+9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef02da59085fa87ee0f01ff5b94
+2dd66846e07ff61868d5f8ab2e11e6e59682cb8d9fec6bb1d3559b84facb63cac87e0
+d9ef46411497f1866830953485da9c5ed2492c0cd23d775bcb160bc43427cf1d2a2e6
+fd32488f37fc41c27e0efdf4be9f7d843dbb6673faef7f981e5b40795608d80d74700
 01
-S1 binding_factor: 63e240eeaa6d10b99561d7eb813fd4164f3cde8eeffcf2c973
-c9de583ea075e471efbeb949af4fb11e7659bfacbd67eba4d9aa58c653190f00
-S3 hiding_nonce: 6341f043b08f518d5f12ce4d699e3827e0ad7a8f2a4bcdcee64f
-afe99dfbbe4187a01ebdf967a3503bbd84af24e0af93b078ab8d1cda533c00
-S3 binding_nonce: 1716d9dc1e4c97553708f2ebc65039a50d00919a68940afd660
-f31d1939e6e5f4a88631693f1acb2e737feff2bef7b0cdb1d3baae603272900
-S3 hiding_nonce_commitment: 8dd1e8cf1e0330bbcdeced3e8e325e48bba2b0caf
-34185a53bd8227f1c96be778681164417a582d39f1bea23a8dfe5a9e0a96d3dbbf8ee
-6180
-S3 binding_nonce_commitment: 58df1966884f46af333e26b6c1cace2720e2bd70
-39a21b1b8483e28974237bcea8c5649cfe460e821afc94021d0b686029681a1148cd3
-f0e00
-S3 binding_factor_input: b54ff7255705a71ee2925e4a3e30e41aed489a579d55
-95e0df13e32e1e4dd202a7c7f68b31d6418d9845eb4d757adda6ab189e1bb340db818
-e5b3bc725d992faf63e9b0500db10517fe09d3f566fba3a80e46a403e0c7d41548fbf
-75cf2662b00225b502961f98d8c9ff937de0b24c231845c16de964d8b11ffe861c657
-afc6656a15d98dc9e6df3d2371d0fd2e0d990ad977470d0a371c1510accd90bb9fe51
-4da13c4c2d97488a7980cb7ea47ac5124ec710faa8692c009794b7c7a9e29b8cc5ea4
-cd9418c853676e55971349c313f84b902c1a112a0ecdbecb5fb6030ad874161ff7c00
+S1 binding_factor: c1b2ad1032bf0fec6504d2af7d09b1b39691f33b7f5a64f6da
+61322f7a8d88d8af1f2c2a474909812a956fbfa26441e08f86eab74d1b342900
+S3 hiding_nonce: a1546a8083c9ccc1c5553e4376a4be3f90f5ab6d44be636032b0
+645afabedd70ba4d84c5845b3b7b7c07c2d027263c4ed40c501e19076c2900
+S3 binding_nonce: b8ae00851628a94ee932227f8b7b61c1a7ff878d034bc682087
+dd7460b49c26956c68a9ad6303a003ae11b87bb76dd6a4e4af8073e0daf2300
+S3 hiding_nonce_commitment: b7fbafb73633ca009e40671a926996bda341ce50b
+6473013e865a445c64b8097c314603f2996b94a564f71322e51f4c224710252bf708f
+3800
+S3 binding_nonce_commitment: a9e8016ebac078f133ed18ccbaff75cb8c213cbe
+03809dd2e6480e8c0b9c743af242eec49a4e1d38808956c7d6f1fb96795ed949f02cd
+e5880
+S3 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
+e1a5b8fa8ea5adaf3e7989b2c167a38a42a1693ad69cfd674e089a498672753563d53
+54654ba106d5fdffb134a8917fae91d412164436f734b95572af6208605744400c6ff
+9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef02da59085fa87ee0f01ff5b94
+2dd66846e07ff61868d5f8ab2e11e6e59682cb8d9fec6bb1d3559b84facb63cac87e0
+d9ef46411497f1866830953485da9c5ed2492c0cd23d775bcb160bc43427cf1d2a2e6
+fd32488f37fc41c27e0efdf4be9f7d843dbb6673faef7f981e5b40795608d80d74700
 03
-S3 binding_factor: bb8b3d669199e180628a91097a03422c12103b2f34c7931f98
-0accb20574a506d8cf966c444fcf5fd5bbfbc6943440aa981ef6fb070fad0600
+S3 binding_factor: 470a1fbfd4ab8f72a976b3f3a583fb9f7b7b45691a519efec8
+54fa47db6335e9ab41cc95d26066a6809722523b1583f02469950bca37680c00
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: a2697f5e866a4b61651f16df4105b80a47365294522dbfa26ed9f8b
-cb66954dec45326f5645590f2e0a8664e8870c053ec8ba5a58526a42f00
-S3 sig_share: 1bce211bc3a8ccd27721c091bc426f422314f70b0bde3f4c45bfad2
-48e57643f68983bcba53e6c500bbb4d19de4b5320e44a757c8997042c00
+S1 sig_share: 7aee2e4005d5ad2ea252cd954d42376a5f962973211dfca267eeea5
+f8dadc2b729ea136817e8f7652ac7beb49983ffdcef1d75ffa69c821a00
+S3 sig_share: dc8075aee647361bfa613637fcc5a276705b1e79acff7dadcfecd4f
+f9f73b32b78cbed3c633ee22eae9d023f17488624088cfaf54599dd2d00
 
-sig: 60cf90055083501d04f38c133c01f121444a6c6889745363555cea964285d5eb
-bdb25690cdff9ca96a28b10bab68aa721b0fca9288a7efbe80caf248ceb6509f1088b
-110e38b85ba2bda1373f11330b02aca74dc6445c1b81d2dec61c00a94fc42ec63b467
-66bc1374d0d61a220fbea81b00
+sig: e8832eb0488e7a2b4a063eff722da98549c2ca3ffc4dec1ae2e9e5704c0880f4
+f7d545bb9f47d97c62d2eec9be19027879367f6b276046db80632a4c43595a6b26472
+53e3fd7456dbf3fbb713d84412b8c4db7f5e22d2176e3a1b501a57a26da94d864c1f3
+b0cb8501f8a96ff5ec35600800
 ~~~
 
 ## FROST(ristretto255, SHA-512)
@@ -1606,48 +1619,48 @@ S3 signer_share: f17e505f0e2581c6acfe54d3846a622834b5e7b50cad9a2109a9
 participants: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce: eb0dc12ae7b746d36e3f2de46ce3833a05b9d4af5434eeb8cafa
-efda76906d00
-S1 binding_nonce: 491e91aa9df514ef598d5e0c7c5cdd088fbde4965b96069d546
-c0f04f1822b03
-S1 hiding_nonce_commitment: c6fe28df6a13f2ea80a911dd7a284e4b185bc8d3e
-3102adaf88807a5e3d3813c
-S1 binding_nonce_commitment: a413722bcfc71ba044bb2846b814401e60fed6b2
-fc5bfb25f5a49e63474b7011
-S1 binding_factor_input: 678630bf982c566949d7f22d2aefb94f252c664216d3
-32f34e2c8fdcd7045f207f854504d0daa534a5b31dbdf4183be30eb4fdba4f962d8a6
-b69cf20c2734043c229faa47541463641bcc7c23a4576d74e536dea0d7f7ae6e2c846
-1a63f4fe97599d8d83005d520a104f937ce3b8181281348fad246e1c0d89ed4cca7d5
-22e750001
-S1 binding_factor: 2e81f15e28874f517b6d2023291e49000f71f998852b484aae
-f945000478ea05
-S3 hiding_nonce: abd12b8e6f255ee1e540eab029003a6e956567617720f61115f0
-941615892209
-S3 binding_nonce: 218e22625f93f262f025bd2d13c46ba722aa29fe585ceed66ff
-442d98fe4e509
-S3 hiding_nonce_commitment: 5450c4c98c3fc6bb579bded17fcdc23073d2ecfb7
-61e3f9433cbc991e1496068
-S3 binding_nonce_commitment: 0ae0cf608fcba285ec1f6c84c955572c91a4fafc
-c1f1120f4f30b25e40fbcc0a
-S3 binding_factor_input: 678630bf982c566949d7f22d2aefb94f252c664216d3
-32f34e2c8fdcd7045f207f854504d0daa534a5b31dbdf4183be30eb4fdba4f962d8a6
-b69cf20c2734043c229faa47541463641bcc7c23a4576d74e536dea0d7f7ae6e2c846
-1a63f4fe97599d8d83005d520a104f937ce3b8181281348fad246e1c0d89ed4cca7d5
-22e750003
-S3 binding_factor: 240d5257c68e377c1994481081a8a4c4362b9e82e523088c30
-d91f8c2811890e
+S1 hiding_nonce: 1eaee906e0554a5e533415e971eefa909f3c614c7c75e27f381b
+0270a9afe308
+S1 binding_nonce: 16175fc2e7545baf7180e8f5b6e1e73c4f2769323cc76754bdd
+79fe93ab0bd0b
+S1 hiding_nonce_commitment: 80d35700fda011d9e2b2fad4f237bf88f2978d954
+382dfd36a517ab0497a474f
+S1 binding_nonce_commitment: 40f0fecaf94e656b3f802ba9827fca9fa994c13c
+98a5ff257973f8bdbc733324
+S1 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
+016254dc7c9d4869cbae0f6e4d94b23e5781b91bc74a25e0c773446b2640290d07c83
+f0b067ff870a80179b2d1262816a7a4fad96b747bd6b35ccf4a912a793c5701d54852
+db80904a767cbbd6e37377eec77f407b22890c01190995066cce59d88a14ac56ac40b
+3bdc90001
+S1 binding_factor: c0f5ee2613c448137bae256a4e95d56deb8c59f934332c0c00
+41720b8819680f
+S3 hiding_nonce: 48d78b8c2de1a515513f9d3fc464a19a72304fac522f17cc6477
+06cb22c21403
+S3 binding_nonce: 5c0f10966b3f1386660a87de0fafd69decbe9ffae1a152a88b7
+d83bb4fb1c908
+S3 hiding_nonce_commitment: 20dec6ad0795f82009a1a94b6ad79f01a1e95ae8e
+308d8d8fae8285982308113
+S3 binding_nonce_commitment: 98437dafb20fdb18255464072bee514889aeeec3
+24f149d49747143c3613056d
+S3 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
+016254dc7c9d4869cbae0f6e4d94b23e5781b91bc74a25e0c773446b2640290d07c83
+f0b067ff870a80179b2d1262816a7a4fad96b747bd6b35ccf4a912a793c5701d54852
+db80904a767cbbd6e37377eec77f407b22890c01190995066cce59d88a14ac56ac40b
+3bdc90003
+S3 binding_factor: 8ea449e545706bb3b42c66423005451457e4bb4dea2c2d0b1d
+157e6bb652ec09
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: efae3a83437fa8cd96194aacc56a7eb841630c280da99e7764a81d1
-340323306
-S3 sig_share: 96ddc4582e45eabce46f07b9e9375f8b49d35d1510fd34ac02b1e79
-d6100a602
+S1 sig_share: 5ae13621ebeef844e39454eb3478a50c4531d25939e1065f44f5b04
+a8535090e
+S3 sig_share: aa432dcf274a9441c205e76fe43497be99efe374f9853477bd5add2
+075f6970c
 
-sig: 7ec584cef9a383afb43883b73bcaa6313afe878bd5fe75a608311b866a76ec67
-858cffdb71c4928a7b895165afa2dd438b366a3d1da6d323675905b1a132d908
+sig: 9c407badb8cacf10f306d94e31fb2a71d6a8398039802b4d80a1278472397206
+17516e93f8d57a2ecffd43b83ab35db6de20b6ce32673bd601508e6bfa2ba10a
 ~~~
 
 ## FROST(P-256, SHA-256)
@@ -1677,44 +1690,44 @@ b2d53c09d928
 participants: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce: 33a519cf070a166f9ef41a798d03423743f3e7d0b0efd5d0d963
-773c4c53205e
-S1 binding_nonce: 307d208d0c5728f323ae374f1ebd7f14a1a49b77d9d4bc1eab2
-22218a17765ff
-S1 hiding_nonce_commitment: 021e5c8b286dc859314eb1c0a2024a2077ad49b60
-3112dd7bfaf326591d3fab332
-S1 binding_nonce_commitment: 039431f230cf2bd90ad556a7f3d6b5a5686efd19
-4c863356628d7296c2a3fa5900
-S1 binding_factor_input: 7a753fed12531fbcd151e1d84702927c39063e780e91
-c01f02bd11b60d7632bf44df5a9e0d49f359549018a13a586b5ede02cadef80472f75
-d195b82160f43ea0001
-S1 binding_factor: 71f09a2c4a1fc2f7a1379102809b4ac3247837c532cc5cf091
-3782496c515655
-S3 hiding_nonce: a614eadb972dc37b88aeceb6e899903f3104742d13f379a0e014
-541decbea4a4
-S3 binding_nonce: e509791018504c5bb87edaf0f44761cc840888507c4cd802379
-71d78e65f70f2
-S3 hiding_nonce_commitment: 0282308b1a22eb8efa13d4655f795f1cbf6525d88
-63ac0d60c4e164b7436d41778
-S3 binding_nonce_commitment: 036549bda4158ec5f76611275360a57e6ad5007d
-6c072462feb42c8f2a25ec94ea
-S3 binding_factor_input: 7a753fed12531fbcd151e1d84702927c39063e780e91
-c01f02bd11b60d7632bf44df5a9e0d49f359549018a13a586b5ede02cadef80472f75
-d195b82160f43ea0003
-S3 binding_factor: 57a1061da0837cc0cd7e901a1d33f46efa18af9c3e6468cca8
-8edd2d4a16e78d
+S1 hiding_nonce: e9165dad654fc20a9e31ca6f32ac032ec327b551a50e8ac5cf25
+f5c4c9e20757
+S1 binding_nonce: e9059a232598a0fba0e495a687580e624ab425337c3221246fb
+2c716905bc9e7
+S1 hiding_nonce_commitment: 0228df2e7f6c254b40a9f8853cf6c4f21eacbb6f0
+663027384966816b57e513304
+S1 binding_nonce_commitment: 02f5b7f48786f8b83ebefed6249825650c4fa657
+da66ae0da1b2613dedbe122ec8
+S1 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
+7c4b72a298d1eaae5766b730d2e6594ea697a5971f15e989ac47ecc015692ad88b615
+a41e652a306c7e50001
+S1 binding_factor: 95f987c0ab590507a8c4deaf506ffc182d3626e30386306f7a
+b3aaf0b0013cd3
+S3 hiding_nonce: b9d136e29eb758bd77cb83c317ac4e336cf8cda830c089deddf6
+d5ec81da9884
+S3 binding_nonce: 5261e2d00ce227e67bb9b38990294e2c82970f335b2e6d9f1d0
+7a72ba43d01f0
+S3 hiding_nonce_commitment: 02f87bd95ab5e08ea292a96e21caf9bdc5002ebf6
+e3ce14f922817d26a4d08144d
+S3 binding_nonce_commitment: 0263cb513e347fcf8492c7f97843ed4c3797f2f3
+fe925b1e68f65fb90826fe9597
+S3 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
+7c4b72a298d1eaae5766b730d2e6594ea697a5971f15e989ac47ecc015692ad88b615
+a41e652a306c7e50003
+S3 binding_factor: 2f21db4f811b13f938a13b8f2633467d250703fe5bd63cd24f
+08bef6fd2f3c29
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: 61e8b9c474df2e66ad19fd80a6e6cec1c6fe43c0a1cffd2d1c28299
-e93e1bbdb
-S3 sig_share: 9651d355ca1dea2557ba1f73e38a9f4ff1f1afc565323ef27f88a9d
-14df8370e
+S1 sig_share: bdaa275f10ca57e3a3a9a7a0d95aeabb517897d8482873a8f9713d4
+58f94756f
+S3 sig_share: 0e8fd85386939e8974a8748e66641df0fe043323c52487a2b10b8a3
+97897de21
 
-sig: 02dfba781e17b830229ae4ed22ebe402873683d9dfd945d01762217fb3172c2a
-71f83a8d1a3efd188c04d41cf48a716e11b8eff38607023c1f9bb0d36fe1d9f2e9
+sig: 03c41521412528dce484c35b6b9b7cc8150102ab3e4bdf858d702270c05098e6
+c6cc39ffb2975df66d18521c2f3fbf08ac4f7ccafc0d4cfb4baa7cc77f082c5390
 ~~~
 
 ## FROST(secp256k1, SHA-256)
@@ -1744,41 +1757,41 @@ c071da8c0dbc
 participants: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce: 31c3c1b76b76664569859b9251fbabed9d4d432c6f5aaa03ed41
-f9c231935798
-S1 binding_nonce: 206f4ffaeb602ccb57cbe50e146ac690e6d7317d4b93377061d
-9d1b4caf78a26
-S1 hiding_nonce_commitment: 02e5cf6c824cbf9d9ec39a1e7c0f3995a384357f7
-ee0818d7a79c1bc508e619446
-S1 binding_nonce_commitment: 03453f15f93b7dbd442356b750b9f2b3d844c5f4
-fb937722a78cf07229d8f4abbd
-S1 binding_factor_input: 438e28eeb12763bfa03ed970fe8ec3a7d98e6c4e6455
-e112f7fdd586153c400c49ca042ae424b39243de9b8e85f77a9f3cae250342aa758e3
-c3ed0595291b9300001
-S1 binding_factor: 55cfed415491694231b25f0ba59a5ac6fa3df1011bde4c0f7f
-8b139859c2edc5
-S3 hiding_nonce: 0d3945bc1553676a5dd910cb4f14437d99ed421516b2617357b9
-84820fdca520
-S3 binding_nonce: 635e0fd90caaf40b5e986d0ee0f58778e4d88731bc6ac70350e
-f702ffe20a21b
-S3 hiding_nonce_commitment: 03c457ef827be177a640910b9ef08de6b5c9e177b
-37a4589b2e6e171481fb74e42
-S3 binding_nonce_commitment: 03298c7bd009d14c9a89a083101fb6d72d8d1211
-7a48b3e042272d17ccbdfa4eed
-S3 binding_factor_input: 438e28eeb12763bfa03ed970fe8ec3a7d98e6c4e6455
-e112f7fdd586153c400c49ca042ae424b39243de9b8e85f77a9f3cae250342aa758e3
-c3ed0595291b9300003
-S3 binding_factor: 24901763ab07e0d288c212bace7a1f9f33496a8556800e8a86
-aa0e3569cfcc79
+S1 hiding_nonce: 95f352cf568508bce96ef3cb816bf9229eb521ca9c2aff6a4fe8
+b86bf49ae16f
+S1 binding_nonce: c675aea50ff2510ae6b0fcb55432b97ad0b55a28b959bacb0e8
+b466dbf43dd26
+S1 hiding_nonce_commitment: 028acf8c9e345673e2544248006f4ba7ead5e94e1
+70062b86eb532a74c26f79f98
+S1 binding_nonce_commitment: 0314c33f75948224dd39cdffc68fa0faeeb42f7e
+f94f1552c920196d53fbda04ce
+S1 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
+49237106acab251dd9543f613ca4fea19d29cc54b4aa618e93289eff0da1a87fcebd1
+d690283016126580001
+S1 binding_factor: 6c7933abb7bc86bcc5c549ba984b9526dca099f9d9b787cedd
+e20c70d36f5fc1
+S3 hiding_nonce: b5089ebf363630d3477711005173c1419f4f40514f7287b4ca6f
+f110967a2d70
+S3 binding_nonce: 5e50ce9975cfc6164e85752f52094b11091fdbca846a9c245fd
+bfa4bab1ae28c
+S3 hiding_nonce_commitment: 039121f05be205b6a52ffdfdcd5f9cdc3b074a7f0
+f031dac294e747b7ca83567d5
+S3 binding_nonce_commitment: 0265c40f57bdcdcd0dfa43a8d353301e1474517b
+70da29ddb1cb4461cd09eee1ce
+S3 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
+49237106acab251dd9543f613ca4fea19d29cc54b4aa618e93289eff0da1a87fcebd1
+d690283016126580003
+S3 binding_factor: 1b18e710a470fe513e4387c613321aa41151990f65a8577343
+b45d6883ab877d
 
 // Round two parameters
 participants: 1,3
 
 // Signer round two outputs
-S1 sig_share: 18b71e284c5d008896ed8847b234ec829eda376d6208838ee7faf2c
-e21b154c1
-S3 sig_share: a452a49c8116124d0a283f3589a96b704894b43246e47e59d376353
-bcc638311
+S1 sig_share: 280c44c6c37cd64c7f5a552ae8416a57d21c115cab524dbff5fbceb
+bf5c0019d
+S3 sig_share: e372bca35133a80ca140dcac2125c966b763a934678f40e09fb8b0a
+e9d4aee1b
 
-sig: 03dafb28ee7ad033fd15ed470d07156617260d74a9d76a15d371d7b613d2b111
-e7bd09c2c4cd7312d5a115c77d3bde57f2e76eeb9fa8ed01e8bb712809ee14d7d2
+sig: 0364b02292a4b0e61f849f4d6fac0e67c2f698a21e1cba9e4a5b8fa535f2f931
+0d0b7f016a14b07e59209b31d7096733bfced0ddaa6398ee64d5e220ddc2d4ae77

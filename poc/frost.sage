@@ -145,8 +145,8 @@ def encode_group_commitment_list(G, commitment_list):
     return B_e
 
 def compute_binding_factors(G, H, commitment_list, msg):
-    msg_hash = H.H3(msg)
-    encoded_commitment_hash = H.H3(encode_group_commitment_list(G, commitment_list))
+    msg_hash = H.H4(msg)
+    encoded_commitment_hash = H.H5(encode_group_commitment_list(G, commitment_list))
     rho_input_prefix = msg_hash + encoded_commitment_hash
 
     binding_factors = {}
@@ -205,7 +205,7 @@ def nonce_generate(H, secret):
     k_enc = random_bytes(32)
     secret_enc = G.serialize_scalar(secret)
     hash_input = k_enc + secret_enc
-    return H.H4(hash_input)
+    return H.H3(hash_input)
 
 def participants_from_commitment_list(commitment_list):
     return [i for (i, _, _) in commitment_list]
