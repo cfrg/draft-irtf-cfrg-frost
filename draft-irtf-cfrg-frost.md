@@ -623,19 +623,19 @@ This complete interaction is shown in {{fig-frost}}.
             |    signer commitment   |                 |
             |<-----------------------+                 |
             |          ...                             |
-            |    signer commitment                     |
-            |<-----------------------------------------+
-
-      == Round 2 (Signature Share Generation) ==
-            |
-            |     signer input       |                 |
-            +------------------------>                 |
-            |     signature share    |                 |
-            |<-----------------------+                 |
-            |          ...                             |
-            |     signer input                         |
-            +------------------------------------------>
-            |     signature share                      |
+            |    signer commitment              (commit state) ==\
+            |<-----------------------------------------+         |
+                                                                 |
+      == Round 2 (Signature Share Generation) ==                 |
+            |                                                    |
+            |     signer input       |                 |         |
+            +------------------------>                 |         |
+            |     signature share    |                 |         |
+            |<-----------------------+                 |         |
+            |          ...                             |         |
+            |     signer input                         |         |
+            +------------------------------------------>         /
+            |     signature share                      |<=======/
             <------------------------------------------+
             |
       == Aggregation ==
@@ -646,8 +646,9 @@ This complete interaction is shown in {{fig-frost}}.
 {: #fig-frost title="FROST signature overview" }
 
 Details for round one are described in {{frost-round-one}}, and details for round two
-are described in {{frost-round-two}}. The final Aggregation step is described in
-{{frost-aggregation}}.
+are described in {{frost-round-two}}. Note that each signer persists some state between
+both rounds, and this state is deleted as described in {{frost-round-two}}. The final
+Aggregation step is described in {{frost-aggregation}}.
 
 FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
@@ -755,8 +756,8 @@ procedure to produce its own signature share.
 
 The output of this procedure is a signature share. Each signer then sends
 these shares back to the Coordinator. Each signer MUST delete the nonce and
-corresponding commitment after this round completes, and MUST use the nonce to generate at most one
-signature share.
+corresponding commitment after this round completes, and MUST use the nonce
+to generate at most one signature share.
 
 Note that the `lambda_i` value derived during this procedure does not change
 across FROST signing operations for the same signing group. As such, signers
