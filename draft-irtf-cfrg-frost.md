@@ -1051,8 +1051,8 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
 - Group: secp256k1 {{SEC2}}
   - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity: As defined in {{SEC2}}.
-  - RandomScalar: Implemented by repeatedly generating a random 32-byte string
-    and invoking DeserializeScalar on the result until success.
+  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
+    \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SEC1}}.
   - DeserializeElement: Implemented by attempting to deserialize a public key using
