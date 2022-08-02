@@ -9,8 +9,8 @@ from hash_to_field import I2OSP
 from ed25519_rfc8032 import verify_ed25519_rfc8032, point_compress, secret_to_public_raw
 
 try:
-    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupEd448, GroupP256
-    from sagelib.hash import HashEd25519, HashEd448, HashRistretto255, HashP256
+    from sagelib.groups import GroupRistretto255, GroupEd25519, GroupEd448, GroupP256, GroupSecp256k1
+    from sagelib.hash import HashEd25519, HashEd448, HashRistretto255, HashP256, HashSecp256k1
 except ImportError as e:
     sys.exit("Error loading preprocessed sage files. Try running `make setup && make clean pyfiles`. Full error: " + e)
 
@@ -273,6 +273,7 @@ ciphersuites = [
     ("frost-ed448-shake256", "FROST(Ed448, SHAKE256)", GroupEd448(), HashEd448()),
     ("frost-ristretto255-sha512", "FROST(ristretto255, SHA-512)", GroupRistretto255(), HashRistretto255()),
     ("frost-p256-sha256", "FROST(P-256, SHA-256)", GroupP256(), HashP256()),
+    ("frost-secp256k1-sha256", "FROST(secp256k1, SHA-256)", GroupSecp256k1(), HashSecp256k1()),
 ]
 for (fname, name, G, H) in ciphersuites:
     assert(MIN_SIGNERS > 1)
