@@ -842,8 +842,9 @@ and publishes the resulting signature.
   Inputs:
   - group_commitment, the group commitment returned by compute_group_commitment,
     an Element in G.
-  - sig_shares, a set of signature shares z_i, Scalar values, for each signer,
-    of length NUM_SIGNERS, where MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
+  - sig_shares, a set of signature shares z_i, Scalar values, for each signer
+    that participated in Rounds 1 and 2, of length NUM_SIGNERS, where
+    MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
 
   Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
