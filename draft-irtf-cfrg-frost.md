@@ -894,19 +894,19 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
 
 - Group: edwards25519 {{!RFC8032}}
-  - Order: 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
-  - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
+  - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
+  - Identity(): As defined in {{RFC7748}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
-  - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.1.2}}.
-  - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.1.3}}.
+  - SerializeElement(A): Implemented as specified in {{!RFC8032, Section 5.1.2}}.
+  - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element and is in the prime-order subgroup. The latter check can
     be implemented by multiplying the resulting point by the order of the group and
     checking that the result is the identity element.
-  - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
+  - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 32-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
 
@@ -937,15 +937,15 @@ This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash functi
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
-  - Order: 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
-  - Identity: As defined in {{RISTRETTO}}.
-  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
+  - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
+  - Identity(): As defined in {{RISTRETTO}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
-  - SerializeElement: Implemented using the 'Encode' function from {{!RISTRETTO}}.
-  - DeserializeElement: Implemented using the 'Decode' function from {{!RISTRETTO}}.
-  - SerializeScalar: Implemented by outputting the little-endian 32-byte encoding of
+  - SerializeElement(A): Implemented using the 'Encode' function from {{!RISTRETTO}}.
+  - DeserializeElement(buf): Implemented using the 'Decode' function from {{!RISTRETTO}}.
+  - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 32-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
 
@@ -968,17 +968,17 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
 
 - Group: edwards448 {{!RFC8032}}
-  - Order: 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
-  - Identity: As defined in {{RFC7748}}.
-  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
+  - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
+  - Identity(): As defined in {{RFC7748}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
-  - SerializeElement: Implemented as specified in {{!RFC8032, Section 5.2.2}}.
-  - DeserializeElement: Implemented as specified in {{!RFC8032, Section 5.2.3}}.
+  - SerializeElement(A): Implemented as specified in {{!RFC8032, Section 5.2.2}}.
+  - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
-  - SerializeScalar: Implemented by outputting the little-endian 48-byte encoding of
+  - SerializeScalar(s): Implemented by outputting the little-endian 48-byte encoding of
     the Scalar value.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 48-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
 
@@ -1008,13 +1008,13 @@ This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256-v8".
 
 - Group: P-256 (secp256r1) {{x9.62}}
-  - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
-  - Identity: As defined in {{x9.62}}.
-  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
+  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+  - Identity(): As defined in {{x9.62}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
-  - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+  - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SEC1}}.
-  - DeserializeElement: Implemented by attempting to deserialize a public key using
+  - DeserializeElement(buf): Implemented by attempting to deserialize a public key using
     the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
     {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
@@ -1022,9 +1022,9 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
     the curve, and that the point is not the point at infinity. Additionally, this function
     validates that the resulting element is not the group identity element.
     If these checks fail, deserialization returns an error.
-  - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
+  - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
     according to {{SEC1}}.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
@@ -1049,13 +1049,13 @@ This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function 
 The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
 
 - Group: secp256k1 {{SEC2}}
-  - Order: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
-  - Identity: As defined in {{SEC2}}.
-  - RandomScalar: Implemented by returning a uniformly random Scalar in the range
+  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+  - Identity(): As defined in {{SEC2}}.
+  - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
-  - SerializeElement: Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+  - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
     method according to {{SEC1}}.
-  - DeserializeElement: Implemented by attempting to deserialize a public key using
+  - DeserializeElement(buf): Implemented by attempting to deserialize a public key using
     the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs partial public-key validation as defined in section 3.2.2.1 of
     {{SEC1}}. This includes checking that the coordinates of the resulting point are
@@ -1063,9 +1063,9 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
     the point at infinity. Additionally, this function validates that the resulting
     element is not the group identity element. If these checks fail, deserialization
     returns an error.
-  - SerializeScalar: Implemented using the Field-Element-to-Octet-String conversion
+  - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
     according to {{SEC1}}.
-  - DeserializeScalar: Implemented by attempting to deserialize a Scalar from a 32-byte
+  - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
