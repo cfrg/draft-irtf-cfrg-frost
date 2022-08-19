@@ -246,10 +246,12 @@ for `G` is addition `+` with identity element `I`. For any elements `A` and `B` 
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. For convenience, we use `-` to denote
 subtraction, e.g., `A - B = A + (-B)`. Scalar multiplication is equivalent to the repeated
-application of the group operation on an element A with itself `r-1` times, this is denoted
-as `r*A = A + ... + A`. For any element `A`, `p * A = I`. We denote `B` as a fixed generator
-of the group. Scalar base multiplication is equivalent to the repeated application of the group
-operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
+application of the group operation on an element `A` with itself `r-1` times, denoted as
+`ScalarBaseMult(A, r)`. We denote the sum, difference, and product of two scalars using the `+`, `-`,
+and `*` operators, respectively. (Note that this means `+` may refer to group element addition or
+scalar addition, depending on types of the operands.) For any element `A`, `ScalarBaseMult(A, p) = I`.
+We denote `B` as a fixed generator of the group. Scalar base multiplication is equivalent to the repeated application
+of the group operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
 scalars corresponds to `GF(p)`, which we refer to as the scalar field. This document uses types
 `Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
 We denote Scalar(x) as the conversion of integer input `x` to the corresponding Scalar value with
@@ -261,6 +263,8 @@ We now detail a number of member functions that can be invoked on `G`.
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity `Element` of the group (i.e. `I`).
 - RandomScalar(): Outputs a random `Scalar` element in GF(p).
+- ScalarMult(A, k): Output the scalar multiplication between Element `A` and Scalar `k`.
+- ScalarBaseMult(A): Output the scalar multiplication between Element `A` and the group generator `B`.
 - SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not a valid byte representation of an element of
@@ -540,7 +544,7 @@ from a commitment list.
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       binding_factor = binding_factor_for_participant(binding_factors, identifier)
       group_commitment = group_commitment +
-        (hiding_nonce_commitment + (binding_factor * binding_nonce_commitment))
+        hiding_nonce_commitment + G.ScalarMult(binding_nonce_commitment, binding_factor)
     return group_commitment
 ~~~
 
@@ -581,14 +585,16 @@ signers, are all chosen external to the protocol. Note that it is possible to
 deploy the protocol without a distinguished Coordinator; see {{no-coordinator}}
 for more information.
 
-Because key generation is not specified, all signers are assumed to have the (public) group state that we refer to as "group info"
-below, and their corresponding signing key shares.
+Because key generation is not specified, all signers are assumed to have the
+(public) group state that we refer to as "group info" below, and their corresponding
+signing key shares.
 
 In particular, it is assumed that the Coordinator and each signer participant `P_i` knows the following
 group info:
 
 - Group public key, an `Element` in `G`, denoted `PK`, corresponding
-  to the group secret key `s`, which is a `Scalar`. `PK` is an output from the group's key generation protocol, such as `trusted_dealer_keygen` or a DKG.
+  to the group secret key `s`, which is a `Scalar`. `PK` is an output from the
+  group's key generation protocol, such as `trusted_dealer_keygen` or a DKG.
 - Public keys for each signer, denoted `PK_i`, which are similarly outputs
   from the group's key generation protocol, `Element` values in `G`.
 
@@ -814,7 +820,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute the commitment share
     (hiding_nonce_commitment, binding_nonce_commitment) = comm_i
-    comm_share = hiding_nonce_commitment + (binding_nonce_commitment * binding_factor)
+    comm_share = hiding_nonce_commitment + G.ScalarMult(binding_nonce_commitment, binding_factor)
 
     # Compute the challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -825,7 +831,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
-    r = comm_share + ((challenge * lambda_i) * PK_i)
+    r = comm_share + G.ScalarMult(PK_i, challenge * lambda_i)
 
     return l == r
 ~~~
@@ -1178,8 +1184,9 @@ do not operate as signing oracles for arbitrary messages.
 # Contributors
 
 * Isis Lovecruft
-* T. Wilson-Brown
 * Alden Torres
+* T. Wilson-Brown
+* Conrado Gouvea
 
 --- back
 
@@ -1210,7 +1217,7 @@ prime-order group.
     c = H2(challenge_input)
 
     l = G.ScalarBaseMult(z)
-    r = R + (c * PK)
+    r = R + G.ScalarMult(PK, c)
     return l == r
 ~~~
 
@@ -1383,7 +1390,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     S_i = ScalarBaseMult(sk_i)
     S_i' = G.Identity()
     for j in range(0, MIN_SIGNERS):
-      S_i' += pow(i, j) * vss_commitment[j]
+      S_i' += G.ScalarMult(vss_commitment[j], pow(i, j))
     if S_i == S_i':
       return 1
     return 0
@@ -1412,7 +1419,7 @@ which is an input into the FROST signing protocol.
       for i in range(1, MAX_SIGNERS+1):
         PK_i = G.Identity()
         for j in range(0, MIN_SIGNERS):
-          PK_i += pow(i, j) * vss_commitment[j]
+          PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
         signer_public_keys.append(PK_i)
       return PK, signer_public_keys
 ~~~
