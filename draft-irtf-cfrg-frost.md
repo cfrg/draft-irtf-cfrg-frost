@@ -130,6 +130,13 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
 
+draft-08
+
+- Add notation for Scalar multiplication (#237)
+- Add secp2561k1 ciphersuite (#223)
+- Remove RandomScalar implementation details (#231)
+- Add domain separation for message and commitment digests (#228)
+
 draft-07
 
 - Fix bug in per-rho signer computation (#222)
