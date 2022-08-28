@@ -72,7 +72,7 @@ class HashEd448(Hash):
 
     def H2(self, m):
         context_string = _as_bytes("FROST-ED448-SHAKE256-" + VERSION + "chal")
-        hash_input =_as_bytes("SigEd448") + bytes([0, len(context_string)]) + context_string
+        hash_input =_as_bytes("SigEd448") + bytes([0, len(context_string)]) + context_string + m
         return int.from_bytes(shake_256(hash_input).digest(int(114)), "little") % self.G.order()
 
     def H3(self, m):
