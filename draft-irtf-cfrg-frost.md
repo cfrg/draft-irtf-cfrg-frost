@@ -996,14 +996,14 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
     represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHAKE256, and Nh = 114.
-  - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the lower
-    57 bytes as a little-endian integer, and reducing the resulting integer modulo
+  - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the
+    114-byte digest as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
-  - H2(m): Implemented by computing H(m), interpreting the lower 57 bytes
+  - H2(m): Implemented by computing H(m), interpreting the 114-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
-  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the lower
-    57 bytes as a little-endian integer, and reducing the resulting integer modulo
+  - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the
+    114-byte digest as a little-endian integer, and reducing the resulting integer modulo
     L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
