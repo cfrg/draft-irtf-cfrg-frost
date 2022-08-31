@@ -920,7 +920,7 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 32-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to  a 32-byte, 
+  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 32-byte, 
     little-endian byte string, with the 2 least significant bytes set by the 2 little-endian 
     bytes of the uint16, and the remaining bytes set to zero (0), and parsing the 32-byte 
     buffer with DeserializeScalar()
