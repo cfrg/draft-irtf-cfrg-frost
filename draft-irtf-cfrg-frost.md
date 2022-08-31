@@ -921,9 +921,9 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
     little-endian 32-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
   - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to  a 32-byte, 
-  little-endian byte string, with the 2 least significant bytes set by the 2 little-endian 
-  bytes of the uint16, and the remaining bytes set to zero (0), and parsing the 32-byte 
-  buffer with DeserializeScalar()
+    little-endian byte string, with the 2 least significant bytes set by the 2 little-endian 
+    bytes of the uint16, and the remaining bytes set to zero (0), and parsing the 32-byte 
+    buffer with DeserializeScalar()
 
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the 64-byte digest
