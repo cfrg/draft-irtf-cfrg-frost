@@ -1000,8 +1000,10 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 48-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 2-byte,
-  little-endian byte string and parsed with DeserializeScalar()
+  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 48-byte, 
+    little-endian byte string, with the 2 least significant bytes set by the 2 little-endian 
+    bytes of the uint16, and the remaining bytes set to zero (0), and parsing the 48-byte 
+    buffer with DeserializeScalar()
 
 - Hash (`H`): SHAKE256, and Nh = 114.
   - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the lower
