@@ -1050,8 +1050,10 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 2-byte,
-  big-endian byte string and parsed with DeserializeScalar()
+  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 
+    32-byte, big-endian byte string, with the 2 least significant bytes set by the 2
+    big-endian bytes of the uint16, and the remaining bytes set to zero (0), and 
+    parsing the 32-byte buffer with DeserializeScalar()
 
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
