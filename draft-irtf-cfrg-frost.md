@@ -278,8 +278,9 @@ We now detail a number of member functions that can be invoked on `G`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
   This function can raise a DeserializeError if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
-- Scalar(x): Converts a two byte unsigned integer (uint16) `x` to the corresponding Scalar value with
-the same numeric value. For example, Scalar(1) yields a Scalar representing the value 1.
+- Scalar(x): Converts a two byte unsigned integer (uint16) `x` to the corresponding 
+  Scalar value with the same numeric value. For example, Scalar(1) yields a Scalar 
+  representing the value 1.
 
 ## Cryptographic Hash Function {#dep-hash}
 
