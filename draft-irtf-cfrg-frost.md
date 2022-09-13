@@ -1254,7 +1254,7 @@ and 3) keep secret values confidential.
 
 ~~~
   Inputs:
-  - secret_key, a group secret, Scalar, that MUST be derived from at least Ns bytes of entropy
+  - secret_key, a group secret, a Scalar, that MUST be derived from at least Ns bytes of entropy
   - MAX_SIGNERS, the number of shares to generate, an integer
   - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
 
