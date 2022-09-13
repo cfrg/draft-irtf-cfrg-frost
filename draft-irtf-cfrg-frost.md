@@ -103,7 +103,7 @@ well.
 
 Unlike signatures in a single-party setting, threshold signatures
 require cooperation among a threshold number of signers each holding a share
-of a common private key. The security of threshold schemes in general assume
+of a common private key. The security of threshold schemes in general assumes
 that an adversary can corrupt strictly fewer than a threshold number of participants.
 
 This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST)
@@ -221,15 +221,16 @@ The following terminology is used throughout this document.
 
 Additionally, the following notation is used throughout the document.
 
-* `encode_uint16(x)`: Convert two byte unsigned integer (uint16) `x` to a 2-byte,
+* `encode_uint16(x)`: Convert the 16-bit unsigned integer (uint16) `x` to a 2-byte,
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG).
 * `len(l)`: Outputs the length of input list `l`, e.g., `len([1,2,3]) = 3)`.
 * `reverse(l)`: Outputs the list `l` in reverse order, e.g., `reverse([1,2,3]) = [3,2,1]`.
 * `range(a, b)`: Outputs a list of integers from `a` to `b-1` in ascending order, e.g., `range(1, 4) = [1,2,3]`.
-* `pow(a, b)`: Output the integer result of `a` to the power of `b`, e.g., `pow(2, 3) = 8`.
-* \|\| denotes concatenation, i.e., x \|\| y = xy.
+* `pow(a, b)`: Outputs the integer result of `a` to the power of `b`, e.g., `pow(2, 3) = 8`.
+* \|\| denotes concatenation of byte strings, i.e., `x || y` denotes the byte string `x`, immediately followed by
+  the byte string `y`, with no extra separator, yielding `xy`.
 * nil denotes an empty byte string.
 
 Unless otherwise stated, we assume that secrets are sampled uniformly at random
@@ -252,11 +253,13 @@ group as the object `G` that additionally defines helper functions described bel
 for `G` is addition `+` with identity element `I`. For any elements `A` and `B` of the group `G`,
 `A + B = B + A` is also a member of `G`. Also, for any `A` in `G`, there exists an element
 `-A` such that `A + (-A) = (-A) + A = I`. For convenience, we use `-` to denote
-subtraction, e.g., `A - B = A + (-B)`. Scalar multiplication is equivalent to the repeated
+subtraction, e.g., `A - B = A + (-B)`. Integers, taken modulo the group order `p`, are called
+scalars; arithmetic operations on scalars are implicitly performed modulo `p`. Since `p` is prime,
+scalars form a finite field. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element `A` with itself `r-1` times, denoted as
-`ScalarBaseMult(A, r)`. We denote the sum, difference, and product of two scalars using the `+`, `-`,
+`ScalarMult(A, r)`. We denote the sum, difference, and product of two scalars using the `+`, `-`,
 and `*` operators, respectively. (Note that this means `+` may refer to group element addition or
-scalar addition, depending on types of the operands.) For any element `A`, `ScalarBaseMult(A, p) = I`.
+scalar addition, depending on types of the operands.) For any element `A`, `ScalarMult(A, p) = I`.
 We denote `B` as a fixed generator of the group. Scalar base multiplication is equivalent to the repeated application
 of the group operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
 scalars corresponds to `GF(p)`, which we refer to as the scalar field. This document uses types
@@ -269,9 +272,9 @@ We now detail a number of member functions that can be invoked on `G`.
 
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity `Element` of the group (i.e. `I`).
-- RandomScalar(): Outputs a random `Scalar` element in GF(p).
+- RandomScalar(): Outputs a random `Scalar` element in GF(p), i.e., a random scalar in \[0, p - 1\].
 - ScalarMult(A, k): Output the scalar multiplication between Element `A` and Scalar `k`.
-- ScalarBaseMult(A): Output the scalar multiplication between Element `A` and the group generator `B`.
+- ScalarBaseMult(k): Output the scalar multiplication between Scalar `k` and the group generator `B`.
 - SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not a valid byte representation of an element of
@@ -297,24 +300,28 @@ H1, H2, H3, H4, and H5:
 The details of H1, H2, H3, H4, and H5 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
-# Helper functions {#helpers}
+# Helper Functions {#helpers}
 
 Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
 
-- Nonce generation, {{dep-nonces}}
+- Nonce generation, {{dep-nonces}};
 - Polynomial operations, {{dep-polynomial}};
 - Encoding operations, {{dep-encoding}};
-- Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}
+- Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}.
 
 These sections describes these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
-To hedge against a bad RNG that outputs predictable values, we generate
-nonces by sourcing fresh randomness and combine with the secret key,
-to create a domain-separated hash function from the ciphersuite hash
-function `H`, `H3`:
+To hedge against a bad RNG that outputs predictable values, nonces are
+generated with the `nonce_generate` function by combining fresh randomness
+and with the secret key as input to a domain-separated hash function built
+from the ciphersuite hash function `H`. This domain-separated hash function
+is denoted `H3`. This function always samples 32 bytes of fresh randomness
+to ensure that the probability of nonce reuse is at most 2<sup>-128</sup>
+as long as no more than 2<sup>64</sup> signatures are computed by a given
+signer.
 
 ~~~
   nonce_generate(secret):
@@ -333,7 +340,7 @@ function `H`, `H3`:
 ## Polynomial Operations {#dep-polynomial}
 
 This section describes operations on and associated with polynomials over Scalars
-that are used in the main signing protocol. A polynomial of maximum degree t
+that are used in the main signing protocol. A polynomial of maximum degree t+1
 is represented as a list of t coefficients, where the constant term of the polynomial
 is in the first position and the highest-degree coefficient is in the last position.
 A point on the polynomial is a tuple (x, y), where `y = f(x)`. For notational
@@ -472,7 +479,7 @@ list.
 def participants_from_commitment_list(commitment_list):
   identifiers = []
   for (identifier, _, _) in commitment_list:
-    identifiers.append(identifier)
+    identifiers.append(Scalar(identifier))
   return identifiers
 ~~~
 
@@ -491,8 +498,7 @@ The following function is used to extract a binding factor from a list of bindin
   Errors: "invalid participant", when the designated participant is not known
 
 def binding_factor_for_participant(binding_factor_list, identifier):
-  binding_factors = []
-  for (i, binding_factor) in commitment_list:
+  for (i, binding_factor) in binding_factor_list:
     if identifier == i:
       return binding_factor
   raise "invalid participant"
@@ -587,10 +593,9 @@ protocol. The Coordinator is an entity with the following responsibilities:
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-FROST assumes the selection of all participants, including Coordinator and set of
-signers, are all chosen external to the protocol. Note that it is possible to
-deploy the protocol without a distinguished Coordinator; see {{no-coordinator}}
-for more information.
+FROST assumes that all participants, including the Coordinator and the set of signers,
+are chosen externally to the protocol. Note that it is possible to deploy the protocol
+without a distinguished Coordinator; see {{no-coordinator}} for more information.
 
 Because key generation is not specified, all signers are assumed to have the
 (public) group state that we refer to as "group info" below, and their corresponding
@@ -601,13 +606,14 @@ group info:
 
 - Group public key, an `Element` in `G`, denoted `PK`, corresponding
   to the group secret key `s`, which is a `Scalar`. `PK` is an output from the
-  group's key generation protocol, such as `trusted_dealer_keygen` or a DKG.
+  group's key generation protocol, such as `trusted_dealer_keygen` or a Distributed Key Generation (DKG);
+  see {{dep-dealer}} for more information about `trusted_dealer_keygen`.
 - Public keys for each signer, denoted `PK_i`, which are similarly outputs
   from the group's key generation protocol, `Element` values in `G`.
 
 And that each participant with identifier `i` additionally knows the following:
 
-- Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar`.
+- Participant P_i's signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar`.
 
 By construction, `PK = G.ScalarBaseMult(s)` and `PK_i = G.ScalarMultBase(sk_i)` for each participant `i`.
 
@@ -684,10 +690,11 @@ the network channel is additionally authenticated; confidentiality is not requir
 ## Round One - Commitment {#frost-round-one}
 
 Round one involves each signer generating nonces and their corresponding public commitments.
-A nonce is a pair of Scalar values, and a commitment is a pair of Element values.
-
-Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce)` and commitment
-`comm = (hiding_nonce_commitment, binding_nonce_commitment)`.
+A nonce is a pair of Scalar values, and a commitment is a pair of Element values. Each signer's
+behavior in this round is described by the `commit` function below. Note that this function
+invokes `nonce_generate` twice, once for each type of nonce produced. The output of this function is
+a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding public commitments
+`(hiding_nonce_commitment, binding_nonce_commitment)`.
 
 ~~~
   Inputs: sk_i, the secret key share, a Scalar
@@ -706,10 +713,11 @@ Each signer in round one generates a nonce `nonce = (hiding_nonce, binding_nonce
     return (nonce, comm)
 ~~~
 
-The private output `nonce` from Participant `P_i` is stored locally and kept private
-for use in the second round. This nonce MUST NOT be reused in more than one invocation
-of FROST, and it MUST be generated from a source of secure randomness. The public output
-`comm` from Participant `P_i` is sent to the Coordinator.
+The outputs `nonce` and `comm` from Participant `P_i` should both be stored locally and
+kept for use in the second round. The `nonce` value is secret and MUST NOT be shared, whereas
+the public output `comm` is sent to the Coordinator. The nonce values produced by this
+function MUST NOT be reused in more than one invocation of FROST, and it MUST be generated
+from a source of secure randomness.
 
 <!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
 
@@ -725,7 +733,8 @@ set of signing commitments for all signers in the participant list. Each signer
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Moreover, each signer MUST ensure that their identifier as well as their commitment as from the first round appears in commitment_list.
+MUST abort the protocol. Moreover, each signer MUST ensure that their identifier as
+well as their commitment as from the first round appears in commitment_list.
 Applications which require that signers not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
@@ -885,6 +894,8 @@ Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
 A FROST ciphersuite must specify the underlying prime-order group details
 and cryptographic hash function. Each ciphersuite is denoted as (Group, Hash),
 e.g., (ristretto255, SHA-512). This section contains some ciphersuites.
+Each ciphersuite also includes a context string, denoted `contextString`,
+which is an ASCII string literal (with no NULL terminating character).
 
 The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
 The (Ed25519, SHA-512) ciphersuite is included for backwards compatibility
@@ -1135,7 +1146,7 @@ The rest of this section documents issues particular to implementations or deplo
 the first round of singing. The randomness produced in this procedure MUST be sampled
 uniformly at random. The resulting nonces produced via `nonce_generate` are indistinguishable
 from values sampled uniformly at random. This requirement is necessary to avoid
-replay attacks initiated by other signers, which allows for a complete key-recovery attack.
+replay attacks initiated by other signers, which allow for a complete key-recovery attack.
 The Coordinator MAY further hedge against nonce reuse attacks by tracking signer nonce
 commitments used for a given group key, at the cost of additional state.
 
@@ -1158,7 +1169,7 @@ Every participant begins by performing `commit()` as is done in the setting
 where a Coordinator is used. However, instead of sending the commitment
 to the Coordinator, every participant instead will publish
 this commitment to every other participant. Then, in the second round, signers will already have
-sufficient information to perform signing. They will directly perform `sign`.
+sufficient information to perform signing. They will directly perform `sign()`.
 All participants will then publish their signature shares to one another. After having
 received all signature shares from all other signers, each signer will then perform
 `verify_signature_share` and then `aggregate` directly.
@@ -1190,16 +1201,18 @@ do not operate as signing oracles for arbitrary messages.
 
 # Contributors
 
-* Isis Lovecruft
-* Alden Torres
-* T. Wilson-Brown
-* Conrado Gouvea
 
 --- back
 
 # Acknowledgments
 
 This document was improved based on input and contributions by the Zcash Foundation engineering team.
+In addition, the authors of this document would like to thank
+Isis Lovecruft,
+Alden Torres,
+T. Wilson-Brown, 
+and Conrado Gouvea
+for their inputs and contributions.
 
 # Schnorr Signature Verification for Prime-Order Groups {#prime-order-verify}
 
@@ -1241,7 +1254,7 @@ and 3) keep secret values confidential.
 
 ~~~
   Inputs:
-  - s, a group secret, Scalar, that MUST be derived from at least Ns bytes of entropy
+  - secret_key, a group secret, a Scalar, that MUST be derived from at least Ns bytes of entropy
   - MAX_SIGNERS, the number of shares to generate, an integer
   - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
 
@@ -1252,7 +1265,7 @@ and 3) keep secret values confidential.
     in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
 
-  def trusted_dealer_keygen(s, MAX_SIGNERS, MIN_SIGNERS):
+  def trusted_dealer_keygen(secret_key, MAX_SIGNERS, MIN_SIGNERS):
     signer_private_keys, coefficients = secret_share_shard(secret_key, MAX_SIGNERS, MIN_SIGNERS)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
@@ -1285,14 +1298,13 @@ The procedure for splitting a secret into shares is as follows.
 
   Inputs:
   - s, secret value to be shared, a Scalar
-  - MAX_SIGNERS, the number of shares to generate, an integer
-  - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
+  - MAX_SIGNERS, the number of shares to generate, an integer less than 2^16
+  - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer greater than 0
 
   Outputs:
   - secret_key_shares, A list of MAX_SIGNERS number of secret shares, each a tuple
     consisting of the participant identifier and the key share (a Scalar)
-  - coefficients, a vector of the t coefficients which uniquely determine
-    a polynomial f.
+  - coefficients, a vector of MIN_SIGNERS coefficients which uniquely determine a polynomial f.
 
   Errors:
   - "invalid parameters", if MIN_SIGNERS > MAX_SIGNERS or if MIN_SIGNERS is less than 2
@@ -1304,7 +1316,7 @@ The procedure for splitting a secret into shares is as follows.
       raise "invalid parameters"
 
     # Generate random coefficients for the polynomial, yielding
-    # a polynomial of degree (MIN_SIGNERS - 1)
+    # a polynomial of degree at most (MIN_SIGNERS - 1)
     coefficients = [s]
     for i in range(1, MIN_SIGNERS):
       coefficients.append(G.RandomScalar())
@@ -1337,7 +1349,7 @@ secret `s` is as follows.
   Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
   Errors:
-  - "invalid parameters", if less than MIN_SIGNERS input shares are provided
+  - "invalid parameters", if fewer than MIN_SIGNERS input shares are provided
 
   def secret_share_combine(shares):
     if len(shares) < MIN_SIGNERS:
@@ -1352,11 +1364,11 @@ secret `s` is as follows.
 Feldman's Verifiable Secret Sharing (VSS) builds upon Shamir secret sharing,
 adding a verification step to demonstrate the consistency of a participant's
 share with a public commitment to the polynomial `f` for which the secret `s`
-is the constant term. This check ensure that all participants have a point
+is the constant term. This check ensures that all participants have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
 the correct secret.
 
-The procedure for committing to a polynomial `f` of degree `MIN_SIGNERS-1` is as follows.
+The procedure for committing to a polynomial `f` of degree at most `MIN_SIGNERS-1` is as follows.
 
 ~~~
   vss_commit(coeffs):
@@ -1366,7 +1378,7 @@ The procedure for committing to a polynomial `f` of degree `MIN_SIGNERS-1` is as
   a polynomial f.
 
   Outputs: a commitment vss_commitment, which is a vector commitment to each of the
-  coefficients in coeffs, where each element of the vector commitment is an `Element` in `G`.
+  coefficients in coeffs, where each element of the vector commitment is an Element in G.
 
   def vss_commit(coeffs):
     vss_commitment = []
