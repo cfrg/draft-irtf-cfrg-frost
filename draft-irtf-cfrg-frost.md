@@ -1210,8 +1210,8 @@ This document was improved based on input and contributions by the Zcash Foundat
 In addition, the authors of this document would like to thank
 Isis Lovecruft,
 Alden Torres,
-T. Wilson-Brown,
-, and Conrado Gouvea
+T. Wilson-Brown, 
+and Conrado Gouvea
 for their inputs and contributions.
 
 # Schnorr Signature Verification for Prime-Order Groups {#prime-order-verify}
