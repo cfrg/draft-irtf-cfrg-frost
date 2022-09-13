@@ -844,9 +844,13 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
 
 If any signature share fails to verify, i.e., if verify_signature_share returns False for
-any signer share, the Coordinator MUST abort the protocol for correctness reasons.
+any signer share, the Coordinator MUST abort the protocol for correctness reasons
+(this is true regardless of the size or makeup of the signing set selected by
+the Coordinator).
 Excluding one signer means that their nonce will not be included in the joint response `z`
-and consequently the output signature will not verify.
+and consequently the output signature will not verify. This is because the
+joint commitment `R` will be with respect to a different signing set than the
+the joint response `z`.
 
 Otherwise, if all shares from signers that participated in Rounds 1 and 2 are valid, the Coordinator
 performs the `aggregate` operation and publishes the resulting signature.
