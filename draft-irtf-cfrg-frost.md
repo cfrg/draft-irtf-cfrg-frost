@@ -34,12 +34,12 @@ author:
 normative:
   x9.62:
     title: "Public Key Cryptography for the Financial Services Industry: the Elliptic Curve Digital Signature Algorithm (ECDSA)"
-    date: Sep, 1998
+    date: Nov, 2005
     seriesinfo:
-      "ANSI": X9.62-1998
+      "ANS": X9.62-2005
     author:
       -
-        org: ANSI
+        org: ANS
   SEC1:
     title: "Elliptic Curve Cryptography, Standards for Efficient Cryptography Group, ver. 2"
     target: https://secg.org/sec1-v2.pdf
