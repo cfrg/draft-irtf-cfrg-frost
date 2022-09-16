@@ -201,10 +201,9 @@ def verify_signature_share(G, H, identifier, public_key_share, sig_share, commit
 
     return l == r
 
-def nonce_generate(H, secret):
-    k_enc = random_bytes(32)
+def nonce_generate(H, secret, random_bytes):
     secret_enc = G.serialize_scalar(secret)
-    hash_input = k_enc + secret_enc
+    hash_input = random_bytes + secret_enc
     return H.H3(hash_input)
 
 def participants_from_commitment_list(commitment_list):
@@ -219,9 +218,9 @@ class Signer(object):
         self.pk = pk
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-one
-    def commit(self):
-        hiding_nonce = nonce_generate(self.H, self.sk)
-        binding_nonce = nonce_generate(self.H, self.sk)
+    def commit(self, hiding_nonce_randomness, binding_nonce_randomness):
+        hiding_nonce = nonce_generate(self.H, self.sk, hiding_nonce_randomness)
+        binding_nonce = nonce_generate(self.H, self.sk, binding_nonce_randomness)
         hiding_nonce_commitment = hiding_nonce * self.G.generator()
         binding_nonce_commitment = binding_nonce * self.G.generator()
         nonce = (hiding_nonce, binding_nonce)
@@ -321,14 +320,17 @@ for (fname, name, G, H) in ciphersuites:
         inputs["signers"][str(identifier)]["signer_share"] = to_hex(G.serialize_scalar(signers[identifier].sk))
 
     # Round one: commitment
-    # XXX(caw): wrap up nonces and commitments in a data structure
     nonces = {}
     comms = {}
-    commitment_list = [] # XXX(caw): need a better name for this structure
+    nonce_randomness = {}
+    commitment_list = []
     for identifier in PARTICIPANT_LIST:
-        nonce_i, comm_i = signers[identifier].commit()
+        hiding_nonce_randomness = random_bytes(32)
+        binding_nonce_randomness = random_bytes(32)
+        nonce_i, comm_i = signers[identifier].commit(hiding_nonce_randomness, binding_nonce_randomness)
         nonces[identifier] = nonce_i
         comms[identifier] = comm_i
+        nonce_randomness[identifier] = (hiding_nonce_randomness, binding_nonce_randomness)
         commitment_list.append((identifier, comm_i[0], comm_i[1]))
 
     binding_factors, rho_inputs = compute_binding_factors(G, H, commitment_list, message)
@@ -340,6 +342,8 @@ for (fname, name, G, H) in ciphersuites:
     }
     for identifier in PARTICIPANT_LIST:
         round_one_outputs["signers"][str(identifier)] = {}
+        round_one_outputs["signers"][str(identifier)]["hiding_nonce_randomness"] = to_hex(nonce_randomness[identifier][0])
+        round_one_outputs["signers"][str(identifier)]["binding_nonce_randomness"] = to_hex(nonce_randomness[identifier][1])
         round_one_outputs["signers"][str(identifier)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][0]))
         round_one_outputs["signers"][str(identifier)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][1]))
         round_one_outputs["signers"][str(identifier)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[identifier][0]))
@@ -402,8 +406,8 @@ for (fname, name, G, H) in ciphersuites:
         sk = os.urandom(32)
         pk_raw = secret_to_public_raw(sk)
         pk_enc = point_compress(pk_raw)
-        pkk = G.serialize(G.deserialize(pk_enc))
-        assert(pkk == pk_enc)
+        pk_enc_dup = G.serialize(G.deserialize(pk_enc))
+        assert(pk_enc_dup == pk_enc)
 
         rfc8032_sig = sig.encode()
         pk_enc = G.serialize(group_public_key)
