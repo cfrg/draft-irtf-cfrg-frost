@@ -1455,8 +1455,10 @@ the range \[0, G.Order() -1\] are as follows:
 ## Rejection Sampling
 
 Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
-by calling `DeserializeScalar`. If it succeeds, return the result. If it fails,
-try again with another random byte array, until the procedure succeeds.
+by calling `DeserializeScalar` in constant time. If it succeeds, return the
+result. If it fails, try again with another random byte array, until the
+procedure succeeds. Failure to implement this in constant time can leak information
+about the underlying corresponding Scalar.
 
 Note the that the Scalar size might be some bits smaller than the array size,
 which can result in the loop iterating more times than required. In that case
