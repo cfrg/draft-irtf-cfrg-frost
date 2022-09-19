@@ -858,8 +858,8 @@ any signer share, the Coordinator MUST abort the protocol for correctness reason
 the Coordinator).
 Excluding one signer means that their nonce will not be included in the joint response `z`
 and consequently the output signature will not verify. This is because the
-joint commitment `R` will be with respect to a different signing set than the
-the joint response `z`.
+group commitment will be with respect to a different signing set than the
+the aggregated response.
 
 Otherwise, if all shares from signers that participated in Rounds 1 and 2 are valid, the Coordinator
 performs the `aggregate` operation and publishes the resulting signature.
