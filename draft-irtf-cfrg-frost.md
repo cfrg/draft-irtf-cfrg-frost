@@ -971,6 +971,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the 'Encode' function from {{!RISTRETTO}}.
   - DeserializeElement(buf): Implemented using the 'Decode' function from {{!RISTRETTO}}.
+    Additionally, this function validates that the resulting element is not the group
+    identity element.
   - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
