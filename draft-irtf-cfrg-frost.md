@@ -1250,11 +1250,12 @@ prime-order group.
 One possible key generation mechanism is to depend on a trusted dealer, wherein the
 dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
 Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
-shares of `s` to be sent to all other participants. We highlight at a high level how this
-operation can be performed.
+shares of s, denoted `s_i` for `i = 0, ..., MAX_SIGNERS`, to be sent to all `MAX_SIGNERS` participants.
+This operation is specified in the `trusted_dealer_keygen` algorithm. The mathematical relation
+between the secret key `s` and the `MAX_SIGNER` secret shares is formalized in the `secret_share_combine(shares)`
+algorithm, defined in {{dep-shamir}}.
 
-The dealer is trusted to 1) generate good randomness, and 2) delete secret values after distributing shares to each participant,
-and 3) keep secret values confidential.
+The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good randomness, and 2) delete secret values after distributing shares to each participant, and 3) keep secret values confidential.
 
 ~~~
   Inputs:
