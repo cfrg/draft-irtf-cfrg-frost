@@ -444,7 +444,7 @@ list.
 def signers_from_commitment_list(commitment_list):
   identifiers = []
   for (identifier, _, _) in commitment_list:
-    identifiers.append(Scalar(identifier))
+    identifiers.append(identifier)
   return identifiers
 ~~~
 
@@ -737,7 +737,7 @@ procedure to produce its own signature share.
 
     # Compute Lagrange coefficient
     signer_list = signers_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(Scalar(identifier), signer_list)
+    lambda_i = derive_lagrange_coefficient(identifier, signer_list)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -810,7 +810,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute Lagrange coefficient
     signer_list = signers_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(Scalar(identifier), signer_list)
+    lambda_i = derive_lagrange_coefficient(identifier, signer_list)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
