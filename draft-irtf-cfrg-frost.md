@@ -225,6 +225,7 @@ Additionally, the following notation is used throughout the document.
   big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG).
+* `count(i, L)`: Outputs the number of times the element `i` is represented in the list `L`.
 * `len(l)`: Outputs the length of input list `l`, e.g., `len([1,2,3]) = 3)`.
 * `reverse(l)`: Outputs the list `l` in reverse order, e.g., `reverse([1,2,3]) = [3,2,1]`.
 * `range(a, b)`: Outputs a list of integers from `a` to `b-1` in ascending order, e.g., `range(1, 4) = [1,2,3]`.
@@ -387,8 +388,8 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
   Outputs: L_i, the i-th Lagrange coefficient
 
   Errors:
-  - "invalid parameters", if any x-coordinate is equal to 0 or if x_i
-    is not in L
+  - "invalid parameters", if 1) any x-coordinate is equal to 0, 2) if x_i
+    is not in L, or if 3) any x-coordinate is represented more than once in L.
 
   def derive_lagrange_coefficient(x_i, L):
     if x_i == 0:
@@ -398,6 +399,9 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
         raise "invalid parameters"
     if x_i not in L:
       raise "invalid parameters"
+    for x_j in L:
+      if count(x_i, L) > 1:
+        raise "invalid parameters"
 
     numerator = Scalar(1)
     denominator = Scalar(1)
@@ -408,33 +412,6 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
 
     L_i = numerator / denominator
     return L_i
-~~~
-
-### Deriving the constant term of a polynomial
-
-Secret sharing requires "splitting" a secret, which is represented as
-a constant term of some polynomial `f` of degree `t-1`. Recovering the
-constant term occurs with a set of `t` points using polynomial
-interpolation, defined as follows.
-
-~~~
-  Inputs:
-  - points, a set of t points on a polynomial f, each a tuple of two
-    Scalar values representing the x and y coordinates
-
-  Outputs: The constant term of f, i.e., f(0)
-
-  def polynomial_interpolation(points):
-    L = []
-    for point in points:
-      L.append(point.x)
-
-    f_zero = Scalar(0)
-    for point in points:
-      delta = point.y * derive_lagrange_coefficient(point.x, L)
-      f_zero = f_zero + delta
-
-    return f_zero
 ~~~
 
 ## List Operations {#dep-encoding}
@@ -1344,7 +1321,7 @@ and the list of these shares as `shares`.
 `i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
 The procedure for combining a `shares` list of length `MIN_SIGNERS` to recover the
-secret `s` is as follows.
+secret `s` is as follows; the algorithm `polynomial_interpolation is defined in {{dep-polynomial-interpolate}}`.
 
 ~~~
   secret_share_combine(shares):
@@ -1364,6 +1341,33 @@ secret `s` is as follows.
     scalar_shares = [(Scalar(x), y) for x, y in shares]
     s = polynomial_interpolation(scalar_shares)
     return s
+~~~
+
+### Deriving the constant term of a polynomial  {#dep-polynomial-interpolate}
+
+Secret sharing requires "splitting" a secret, which is represented as
+a constant term of some polynomial `f` of degree `t-1`. Recovering the
+constant term occurs with a set of `t` points using polynomial
+interpolation, defined as follows.
+
+~~~
+  Inputs:
+  - points, a set of t distinct points on a polynomial f, each a tuple of two
+    Scalar values representing the x and y coordinates
+
+  Outputs: The constant term of f, i.e., f(0)
+
+  def polynomial_interpolation(points):
+    L = []
+    for point in points:
+      L.append(point.x)
+
+    f_zero = Scalar(0)
+    for point in points:
+      delta = point.y * derive_lagrange_coefficient(point.x, L)
+      f_zero = f_zero + delta
+
+    return f_zero
 ~~~
 
 ## Verifiable Secret Sharing {#dep-vss}
