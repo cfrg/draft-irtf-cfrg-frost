@@ -88,7 +88,7 @@ of entities cooperate to issue a signature, allowing for improved distribution o
 redundancy with respect to a secret key. Further, this draft specifies signatures that are
 compatible with {{!RFC8032}}. However, unlike {{!RFC8032}}, the protocol for producing
 signatures in this draft is not deterministic, so as to ensure protection against a
-key-recovery attack that is possible when even only one participant is malicious.
+key-recovery attack that is possible when even only one signer participant is malicious.
 
 --- middle
 
@@ -104,7 +104,7 @@ well.
 Unlike signatures in a single-party setting, threshold signatures
 require cooperation among a threshold number of signers each holding a share
 of a common private key. The security of threshold schemes in general assumes
-that an adversary can corrupt strictly fewer than a threshold number of participants.
+that an adversary can corrupt strictly fewer than a threshold number of signer participants.
 
 This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST)
 signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during
@@ -209,20 +209,8 @@ draft-00
 
 {::boilerplate bcp14}
 
-The following terminology is used throughout this document.
+The following notation is used throughout the document.
 
-* A participant is an entity that is trusted to hold and use a signing key share.
-* `MAX_SIGNERS` denotes the number of participants, and the number of shares that `s` is split into. This value MUST NOT exceed 2^16-1.
-* `MIN_SIGNERS` denotes the threshold number of participants required to issue a signature, where MIN_SIGNERS <= MAX_SIGNERS.
-* `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
-  MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
-* An identifier is an integer value associated with a participant, or signer,
-  and is a value in the range [1, MAX_SIGNERS].
-
-Additionally, the following notation is used throughout the document.
-
-* `encode_uint16(x)`: Convert the 16-bit unsigned integer (uint16) `x` to a 2-byte,
-  big-endian byte string. For example, `encode_uint16(310) = [0x01, 0x36]`.
 * `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG).
 * `count(i, L)`: Outputs the number of times the element `i` is represented in the list `L`.
@@ -433,14 +421,14 @@ commitments into a bytestring for use in the FROST protocol.
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      encoded_commitment = encode_uint16(identifier) ||
+      encoded_commitment = G.SerializeScalar(identifier) ||
                            G.SerializeElement(hiding_nonce_commitment) ||
                            G.SerializeElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
     return encoded_group_commitment
 ~~~
 
-The following function is used to extract participant identifiers from a commitment
+The following function is used to extract signer identifiers from a commitment
 list.
 
 ~~~
@@ -453,7 +441,7 @@ list.
 
   Outputs: A list of signer participant identifiers
 
-def participants_from_commitment_list(commitment_list):
+def signers_from_commitment_list(commitment_list):
   identifiers = []
   for (identifier, _, _) in commitment_list:
     identifiers.append(Scalar(identifier))
@@ -472,13 +460,13 @@ The following function is used to extract a binding factor from a list of bindin
 
   Outputs: A Scalar value.
 
-  Errors: "invalid participant", when the designated participant is not known
+  Errors: "invalid signer", when the designated signer is not known
 
-def binding_factor_for_participant(binding_factor_list, identifier):
+def binding_factor_for_signer(binding_factor_list, identifier):
   for (i, binding_factor) in binding_factor_list:
     if identifier == i:
       return binding_factor
-  raise "invalid participant"
+  raise "invalid signer"
 ~~~
 
 ## Binding Factors Computation {#dep-binding-factor}
@@ -504,7 +492,7 @@ on the signer commitment list and message to be signed.
 
     binding_factor_list = []
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      rho_input = rho_input_prefix || encode_uint16(identifier)
+      rho_input = rho_input_prefix || G.SerializeScalar(identifier)
       binding_factor = H1(rho_input)
       binding_factor_list.append((identifier, binding_factor))
     return binding_factor_list
@@ -532,7 +520,7 @@ from a commitment list.
   def compute_group_commitment(commitment_list, binding_factor_list):
     group_commitment = G.Identity()
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      binding_factor = binding_factor_for_participant(binding_factors, identifier)
+      binding_factor = binding_factor_for_signer(binding_factors, identifier)
       group_commitment = group_commitment +
         hiding_nonce_commitment + G.ScalarMult(binding_nonce_commitment, binding_factor)
     return group_commitment
@@ -561,50 +549,51 @@ This section describes the subroutine for creating the per-message challenge.
 
 # Two-Round FROST Signing Protocol {#frost-spec}
 
-We now present the two-round variant of the FROST threshold signature protocol for producing Schnorr signatures.
-It involves signer participants and a Coordinator. Signer participants are
-entities with signing key shares that participate in the threshold signing
-protocol. The Coordinator is an entity with the following responsibilities:
+This section describes the two-round variant of the FROST threshold signature
+protocol for producing Schnorr signatures. The protocol is configured to
+run with a selection of `NUM_SIGNERS` signer participants and a Coordinator.
+`NUM_SIGNERS` is a positive integer at least `MIN_SIGNERS` but no larger than
+`MAX_SIGNERS`, where `MIN_SIGNERS > 0` and `MAX_SIGNERS < 2<sup>16</sup>-1`.
+A signer participant, or signer, is an entity that is trusted to hold and
+use a signing key share. The Coordinator is an entity with the following responsibilities:
 
 1. Determining which signers will participate (at least MIN_SIGNERS in number);
-2. Coordinating rounds (receiving and forwarding inputs among participants); and
-3. Aggregating signature shares output by each participant, and publishing the resulting signature.
+2. Coordinating rounds (receiving and forwarding inputs among signers); and
+3. Aggregating signature shares output by each signer, and publishing the resulting signature.
 
 FROST assumes that all participants, including the Coordinator and the set of signers,
 are chosen externally to the protocol. Note that it is possible to deploy the protocol
 without a distinguished Coordinator; see {{no-coordinator}} for more information.
 
-Because key generation is not specified, all signers are assumed to have the
-(public) group state that we refer to as "group info" below, and their corresponding
-signing key shares.
+FROST produces signatures that are indistinguishable from those produced with a single
+signer using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
+value and `PK = G.ScalarMultBase(s)`. As a threshold signing protocol, the group signing
+key `s` is secret-shared amongst each signer and used to produce signatures. In particular,
+FROST assumes each signer is configured with the following information:
 
-In particular, it is assumed that the Coordinator and each signer participant `P_i` knows the following
-group info:
+- An identifier, which is a Scalar value denoted `i` in the range `[1, MAX_SIGNERS]`
+  and MUST be distinct from the identifier of every other signer.
+- A signing key share `sk_i`, which is a Scalar value representing the i-th secret share
+  of the group signing key `s`. The public key corresponding to this signing key share
+  is `PK_i = G.ScalarMultBase(sk_i)`.
 
-- Group public key, an `Element` in `G`, denoted `PK`, corresponding
-  to the group secret key `s`, which is a `Scalar`. `PK` is an output from the
-  group's key generation protocol, such as `trusted_dealer_keygen` or a Distributed Key Generation (DKG);
-  see {{dep-dealer}} for more information about `trusted_dealer_keygen`.
-- Public keys for each signer, denoted `PK_i`, which are similarly outputs
-  from the group's key generation protocol, `Element` values in `G`.
+Each signer participant, including the Coordinator, is additionally configured
+with common group information, denoted "group info," which consists of the following
+information:
 
-And that each participant with identifier `i` additionally knows the following:
+- Group public key, which is an `Element` in `G` denoted `PK`.
+- Public keys `PK_i` for each signer, which are `Element` values in `G` denoted `PK_i`
+  for each `i` in `[1, MAX_SIGNERS]`.
 
-- Participant P_i's signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar`.
+This document does not specify how this information, including the signing key shares,
+are configured and distributed to signers. In general, two possible configuration
+mechanisms are possible: one that requires a single, trusted dealer, and the other
+which requires performing a distributed key generation protocol. We highlight
+key generation mechanism by a trusted dealer in {{dep-dealer}} for reference.
 
-By construction, `PK = G.ScalarBaseMult(s)` and `PK_i = G.ScalarMultBase(sk_i)` for each participant `i`.
-
-The exact key generation mechanism is out of scope for this specification. In general,
-key generation is a protocol that outputs (1) a shared, group public key PK owned
-by each Signer, and (2) individual shares of the signing key owned by each Signer.
-In general, two possible key generation mechanisms are possible, one that requires
-a single, trusted dealer, and the other which requires performing a distributed
-key generation protocol. We highlight key generation mechanism by a trusted dealer
-in {{dep-dealer}}, for reference.
-
-This signing variant of FROST requires signers to perform two network rounds:
+The signing variant of FROST in this document requires signers to perform two network rounds:
 1) generating and publishing commitments, and 2) signature share generation and
-publication. The first round serves for each participant to issue a commitment to
+publication. The first round serves for each signer to issue a commitment to
 a nonce. The second round receives commitments for all signers as well as the message,
 and issues a signature share with respect to that message. The Coordinator performs
 the coordination of each of these rounds. At the end of the second round, the
@@ -657,10 +646,10 @@ over the network, are validated before use. In particular, this means that any v
 of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
 respectively, as these functions perform the necessary input validation steps.
 
-FROST assumes reliable message delivery between the Coordinator and signer participants in
-order for the protocol to complete. An attacker masquerading as another participant
+FROST assumes reliable message delivery between the Coordinator and signers in
+order for the protocol to complete. An attacker masquerading as another signer
 will result only in an invalid signature; see {{sec-considerations}}. However, in order
-to identify any participant which has misbehaved (resulting in the protocol aborting)
+to identify any signer which has misbehaved (resulting in the protocol aborting)
 to take actions such as excluding them from future signing operations, we assume that
 the network channel is additionally authenticated; confidentiality is not required.
 
@@ -690,7 +679,7 @@ a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding 
     return (nonce, comm)
 ~~~
 
-The outputs `nonce` and `comm` from Participant `P_i` should both be stored locally and
+The outputs `nonce` and `comm` from signer `P_i` should both be stored locally and
 kept for use in the second round. The `nonce` value is secret and MUST NOT be shared, whereas
 the public output `comm` is sent to the Coordinator. The nonce values produced by this
 function MUST NOT be reused in more than one invocation of FROST, and it MUST be generated
@@ -740,14 +729,14 @@ procedure to produce its own signature share.
   def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
     # Compute the binding factor(s)
     binding_factor_list = compute_binding_factors(commitment_list, msg)
-    binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
+    binding_factor = binding_factor_for_signer(binding_factor_list, identifier)
 
     # Compute the group commitment
     group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
 
     # Compute Lagrange coefficient
-    participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(Scalar(identifier), participant_list)
+    signer_list = signers_from_commitment_list(commitment_list)
+    lambda_i = derive_lagrange_coefficient(Scalar(identifier), signer_list)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -806,7 +795,7 @@ parameters, to check that the signature share is valid using the following proce
                              group_public_key, msg):
     # Compute the binding factors
     binding_factor_list = compute_binding_factors(commitment_list, msg)
-    binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
+    binding_factor = binding_factor_for_signer(binding_factor_list, identifier)
 
     # Compute the group commitment
     group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
@@ -819,8 +808,8 @@ parameters, to check that the signature share is valid using the following proce
     challenge = compute_challenge(group_commitment, group_public_key, msg)
 
     # Compute Lagrange coefficient
-    participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(Scalar(identifier), participant_list)
+    signer_list = signers_from_commitment_list(commitment_list)
+    lambda_i = derive_lagrange_coefficient(Scalar(identifier), signer_list)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
@@ -1097,18 +1086,18 @@ A security analysis of FROST exists in {{FROST20}} and {{Schnorr21}}. The protoc
 in this document assumes the following threat model.
 
 * Trusted dealer. The dealer that performs key generation is trusted to follow
-the protocol, although participants still are able to verify the consistency of their
+the protocol, although signers still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
 * Unforgeability assuming at most `(MIN_SIGNERS-1)` corrupted signers. So long as an adversary
-corrupts fewer than `MIN_SIGNERS` participants, the scheme remains secure against Existential
+corrupts fewer than `MIN_SIGNERS` signers, the scheme remains secure against Existential
 Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
 Definition 13.2.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
 denial of service attack. A denial of service would include any action which either
 prevents the protocol from completing or causing the resulting signature to be invalid.
-Such actions for the latter include sending inconsistent values to signer participants,
+Such actions for the latter include sending inconsistent values to signers,
 such as messages or the set of individual commitments. Note that the Coordinator
 is *not* trusted with any private information and communication at the time of signing
 can be performed over a public but reliable channel.
@@ -1117,7 +1106,7 @@ The protocol as specified in this document does not target the following goals:
 
 * Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
-* Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
+* Downgrade prevention. All signers in the protocol are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
 
@@ -1143,22 +1132,22 @@ if the underlying transport failed to deliver the required messages.
 
 In some settings, it may be desirable to omit the role of the Coordinator entirely.
 Doing so does not change the security implications of FROST, but instead simply
-requires each participant to communicate with all other participants. We loosely
+requires each signer to communicate with all other signers. We loosely
 describe how to perform FROST signing among signers without this coordinator role.
-We assume that every participant receives as input from an external source the
+We assume that every signer receives as input from an external source the
 message to be signed prior to performing the protocol.
 
-Every participant begins by performing `commit()` as is done in the setting
+Every signer begins by performing `commit()` as is done in the setting
 where a Coordinator is used. However, instead of sending the commitment
-to the Coordinator, every participant instead will publish
-this commitment to every other participant. Then, in the second round, signers will already have
+to the Coordinator, every signer instead will publish
+this commitment to every other signer. Then, in the second round, signers will already have
 sufficient information to perform signing. They will directly perform `sign()`.
-All participants will then publish their signature shares to one another. After having
+All signers will then publish their signature shares to one another. After having
 received all signature shares from all other signers, each signer will then perform
 `verify_signature_share` and then `aggregate` directly.
 
 The requirements for the underlying network channel remain the same in the setting
-where all participants play the role of the Coordinator, in that all messages that
+where all signers play the role of the Coordinator, in that all messages that
 are exchanged are public and so the channel simply must be reliable. However, in
 the setting that a player attempts to split the view of all other players by
 sending disjoint values to a subset of players, the signing operation will output
@@ -1193,7 +1182,7 @@ This document was improved based on input and contributions by the Zcash Foundat
 In addition, the authors of this document would like to thank
 Isis Lovecruft,
 Alden Torres,
-T. Wilson-Brown, 
+T. Wilson-Brown,
 and Conrado Gouvea
 for their inputs and contributions.
 
@@ -1229,7 +1218,7 @@ prime-order group.
 One possible key generation mechanism is to depend on a trusted dealer, wherein the
 dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
 Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
-shares of s, denoted `s_i` for `i = 0, ..., MAX_SIGNERS`, to be sent to all `MAX_SIGNERS` participants.
+shares of s, denoted `s_i` for `i = 0, ..., MAX_SIGNERS`, to be sent to all `MAX_SIGNERS` signers.
 This operation is specified in the `trusted_dealer_keygen` algorithm. The mathematical relation
 between the secret key `s` and the `MAX_SIGNER` secret shares is formalized in the `secret_share_combine(shares)`
 algorithm, defined in {{dep-shamir}}.
@@ -1244,7 +1233,7 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
 
   Outputs:
   - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a tuple
-    consisting of the participant identifier and the key share (a Scalar).
+    consisting of the signer identifier and the key share (a Scalar).
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
     in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
@@ -1256,19 +1245,19 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
     return signer_private_keys, vss_commitment
 ~~~
 
-It is assumed the dealer then sends one secret key share to each of the NUM_SIGNERS participants, along with `vss_commitment`.
-After receiving their secret key share and `vss_commitment`, participants MUST abort if they do not have the same view of `vss_commitment`.
-Otherwise, each participant MUST perform `vss_verify(secret_key_share_i, vss_commitment)`, and abort if the check fails.
+It is assumed the dealer then sends one secret key share to each of the `NUM_SIGNERS` signers, along with `vss_commitment`.
+After receiving their secret key share and `vss_commitment`, signers MUST abort if they do not have the same view of `vss_commitment`.
+Otherwise, each signer MUST perform `vss_verify(secret_key_share_i, vss_commitment)`, and abort if the check fails.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
-between the dealer and participants to send secret key shares, wherein the channel provides confidentiality
+between the dealer and signers to send secret key shares, wherein the channel provides confidentiality
 and integrity. Mutually authenticated TLS is one possible deployment option.
 
 ## Shamir Secret Sharing {#dep-shamir}
 
-In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` participants
-in such a way that any cooperating subset of `MIN_SIGNERS` participants can recover the
+In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` signers
+in such a way that any cooperating subset of `MIN_SIGNERS` signers can recover the
 secret. There are two basic steps in this scheme: (1) splitting a secret into
 multiple shares, and (2) combining shares to reveal the resulting secret.
 
@@ -1287,7 +1276,7 @@ The procedure for splitting a secret into shares is as follows.
 
   Outputs:
   - secret_key_shares, A list of MAX_SIGNERS number of secret shares, each a tuple
-    consisting of the participant identifier and the key share (a Scalar)
+    consisting of the signer identifier and the key share (a Scalar)
   - coefficients, a vector of MIN_SIGNERS coefficients which uniquely determine a polynomial f.
 
   Errors:
@@ -1315,7 +1304,7 @@ The procedure for splitting a secret into shares is as follows.
 ~~~
 
 Let `points` be the output of this function. The i-th element in `points` is
-the share for the i-th participant, which is the randomly generated polynomial
+the share for the i-th signer, which is the randomly generated polynomial
 evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i])`,
 and the list of these shares as `shares`.
 `i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
@@ -1373,9 +1362,9 @@ interpolation, defined as follows.
 ## Verifiable Secret Sharing {#dep-vss}
 
 Feldman's Verifiable Secret Sharing (VSS) builds upon Shamir secret sharing,
-adding a verification step to demonstrate the consistency of a participant's
+adding a verification step to demonstrate the consistency of a signer's
 share with a public commitment to the polynomial `f` for which the secret `s`
-is the constant term. This check ensures that all participants have a point
+is the constant term. This check ensures that all signers have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
 the correct secret.
 
@@ -1399,15 +1388,15 @@ The procedure for committing to a polynomial `f` of degree at most `MIN_SIGNERS-
     return vss_commitment
 ~~~
 
-The procedure for verification of a participant's share is as follows.
-If `vss_verify` fails, the participant MUST abort the protocol, and failure should be investigated out of band.
+The procedure for verification of a signer's share is as follows.
+If `vss_verify` fails, the signer MUST abort the protocol, and failure should be investigated out of band.
 
 ~~~
   vss_verify(share_i, vss_commitment):
 
   Inputs:
-  - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier, and sk_i the participant's secret key, a secret share of the
+  - share_i: A tuple of the form (i, sk_i), where i indicates the signer
+    identifier, and sk_i the signer's secret key, a secret share of the
     constant term of f, where sk_i is a Scalar.
   - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment
     to each of the coefficients in coeffs, where each element of the vector commitment
@@ -1426,7 +1415,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     return 0
 ~~~
 
-We now define how the Coordinator and signer participants can derive group info,
+We now define how the Coordinator and signers can derive group info,
 which is an input into the FROST signing protocol.
 
 ~~~
@@ -1441,7 +1430,7 @@ which is an input into the FROST signing protocol.
     Outputs:
     - PK, the public key representing the group, an Element.
     - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS,
-      where each PK_i is the public key, an Element, for participant i.
+      where each PK_i is the public key, an Element, for signer i.
 
     derive_group_info(MAX_SIGNERS, MIN_SIGNERS, vss_commitment)
       PK = vss_commitment[0]
@@ -1498,12 +1487,12 @@ Each test vector consists of the following information.
   input message to be signed. All values are encoded as hexadecimal strings.
 - Signer input parameters: This lists the signing key share for each of the
   NUM_SIGNERS signers.
-- Round one parameters and outputs: This lists the NUM_SIGNERS participants engaged
+- Round one parameters and outputs: This lists the NUM_SIGNERS signers engaged
   in the protocol, identified by their integer identifier, the hiding and binding commitment
   values produced in {{frost-round-one}}, as well as the resulting group binding factor input,
   computed in part from the group commitment list encoded as described in {{dep-encoding}},
   and group binding factor as computed in {{frost-round-two}}).
-- Round two parameters and outputs: This lists the NUM_SIGNERS participants engaged
+- Round two parameters and outputs: This lists the NUM_SIGNERS signers engaged
   in the protocol, identified by their integer identifier, along with their corresponding
   output signature share as produced in {{frost-round-two}}.
 - Final output: This lists the aggregate signature as produced in {{frost-aggregation}}.
