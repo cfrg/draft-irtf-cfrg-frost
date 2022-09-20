@@ -553,7 +553,8 @@ This section describes the two-round variant of the FROST threshold signature
 protocol for producing Schnorr signatures. The protocol is configured to
 run with a selection of `NUM_SIGNERS` signer participants and a Coordinator.
 `NUM_SIGNERS` is a positive integer at least `MIN_SIGNERS` but no larger than
-`MAX_SIGNERS`, where `MIN_SIGNERS > 0` and `MAX_SIGNERS < 2<sup>16</sup>-1`.
+`MAX_SIGNERS`, where `MIN_SIGNERS < MAX_SIGNERS`, `MIN_SIGNERS` is a positive
+integer and `MAX_SIGNERS` is a positive integer less than the group order.
 A signer participant, or signer, is an entity that is trusted to hold and
 use a signing key share. The Coordinator is an entity with the following responsibilities:
 
