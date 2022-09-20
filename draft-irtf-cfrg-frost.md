@@ -216,8 +216,7 @@ The following terminology is used throughout this document.
 * `MIN_SIGNERS` denotes the threshold number of participants required to issue a signature, where MIN_SIGNERS <= MAX_SIGNERS.
 * `NUM_SIGNERS` denotes the number of signers that participate in an invocation of FROST signing, where
   MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
-* An identifier is a Scalar value associated with a participant, or signer,
-  and is a value in the range [1, MAX_SIGNERS].
+* The `Identifier` type is a `Scalar` restricted to the values [1, MAX_SIGNERS] associated with a participant, or signer.
 
 Additionally, the following notation is used throughout the document.
 
@@ -278,9 +277,9 @@ We now detail a number of member functions that can be invoked on `G`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
   This function can raise a DeserializeError if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
-- Scalar(x): Converts a two byte unsigned integer (uint16) `x` to the corresponding 
-  Scalar value with the same numeric value. For example, Scalar(1) yields a Scalar 
-  representing the value 1.
+- ConvertIntToScalar(x): Converts an unsigned integer `x` to the corresponding
+  Scalar value with the same numeric value. For example, ConvertIntToScalar(1) yields
+  a Scalar representing the value 1.
 
 ## Cryptographic Hash Function {#dep-hash}
 
@@ -391,8 +390,8 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
     if x_i not in L:
       raise "invalid parameters"
 
-    numerator = G.Scalar(1)
-    denominator = G.Scalar(1)
+    numerator = G.ConvertIntToScalar(1)
+    denominator = G.ConvertIntToScalar(1)
     for x_j in L:
       if x_j == x_i: continue
       numerator *= x_j
@@ -421,7 +420,7 @@ interpolation, defined as follows.
     for point in points:
       L.append(point.x)
 
-    f_zero = G.Scalar(0)
+    f_zero = G.ConvertIntToScalar(0)
     for point in points:
       delta = point.y * derive_lagrange_coefficient(point.x, L)
       f_zero = f_zero + delta
@@ -439,9 +438,9 @@ commitments into a bytestring for use in the FROST protocol.
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
     a list of commitments issued by each signer, where each element in the list
-    indicates the signer identifier Scalar i and their two commitment Element values
+    indicates the signer Identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by signer identifier.
+    in ascending order by signer Identifier.
 
   Outputs: A byte string containing the serialized representation of commitment_list
 
@@ -462,11 +461,11 @@ list.
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
     a list of commitments issued by each signer, where each element in the list
-    indicates the signer identifier Scalar i and their two commitment Element values
+    indicates the signer Identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by signer identifier.
+    in ascending order by signer Identifier.
 
-  Outputs: A list of signer participant identifiers
+  Outputs: A list of signer participant Identifiers
 
 def participants_from_commitment_list(commitment_list):
   identifiers = []
@@ -483,7 +482,7 @@ The following function is used to extract a binding factor from a list of bindin
     a list of binding factors for each signer, where each element in the list
     indicates the signer identifier Scalar i and their binding factor. This list MUST be sorted
     in ascending order by signer identifier.
-  - identifier, Identifier i of the signer, a Scalar.
+  - identifier, an Identifier, of the signer.
 
   Outputs: A Scalar value.
 
@@ -506,9 +505,9 @@ on the signer commitment list and message to be signed.
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
     a list of commitments issued by each signer, where each element in the list
-    indicates the signer identifier Scalar i and their two commitment Element values
+    indicates the signer Identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by signer identifier.
+    in ascending order by signer Identifier.
   - msg, the message to be signed.
 
   Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
@@ -536,12 +535,12 @@ from a commitment list.
   - commitment_list =
      [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list
     of commitments issued by each signer, where each element in the list
-    indicates the signer identifier Scalar i and their two commitment Element values
+    indicates the signer Identifier and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be
-    sorted in ascending order by signer identifier.
+    sorted in ascending order by signer Identifier.
   - binding_factor_list = [(i, binding_factor), ...],
-    a list of (identifier, Scalar) tuples representing the binding factor Scalar
-    for the given identifier. This list MUST be sorted in ascending order by identifier.
+    a list of (Identifier, Scalar) tuples representing the binding factor Scalar
+    for the given Identifier. This list MUST be sorted in ascending order by Identifier.
 
   Outputs: An Element in G representing the group commitment
 
@@ -604,7 +603,7 @@ group info:
 - Public keys for each signer, denoted `PK_i`, which are similarly outputs
   from the group's key generation protocol, `Element` values in `G`.
 
-And that each participant with identifier `i` additionally knows the following:
+And that each participant with `Identifier` `i` additionally knows the following:
 
 - Participant `i`s signing key share `sk_i`, which is the i-th secret share of `s`, a `Scalar`.
 
@@ -724,7 +723,7 @@ set of signing commitments for all signers in the participant list. Each signer
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Moreover, each signer MUST ensure that their identifier as well as their commitment as from the first round appears in commitment_list.
+MUST abort the protocol. Moreover, each signer MUST ensure that their Identifier as well as their commitment as from the first round appears in commitment_list.
 Applications which require that signers not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
@@ -734,7 +733,7 @@ procedure to produce its own signature share.
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the signer, a Scalar. Note: identifier will never equal 0.
+  - identifier, an Identifier, of the signer. Note: the Identifier type MUST never equal 0.
   - sk_i, Signer secret key share, a Scalar.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
@@ -744,9 +743,9 @@ procedure to produce its own signature share.
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each signer and sent by the Coordinator.
-    Each element in the list indicates the signer identifier j and their two commitment
+    Each element in the list indicates the signer Identifier j and their two commitment
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by signer identifier.
+    This list MUST be sorted in ascending order by signer Identifier.
 
   Outputs: a Scalar value representing the signature share
 
@@ -796,7 +795,7 @@ parameters, to check that the signature share is valid using the following proce
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the signer, a Scalar. Note: identifier MUST never equal 0.
+  - identifier, an Identifier, of the signer. Note: the Identifier type MUST never equal 0.
   - PK_i, the public key for the ith signer, where PK_i = G.ScalarBaseMult(sk_i),
     an Element in G
   - comm_i, pair of Element values in G (hiding_nonce_commitment, binding_nonce_commitment)
@@ -806,9 +805,9 @@ parameters, to check that the signature share is valid using the following proce
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each signer, where each element
-    in the list indicates the signer identifier j and their two commitment
+    in the list indicates the signer Identifier j and their two commitment
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by signer identifier.
+    This list MUST be sorted in ascending order by signer Identifier.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
   - msg, the message to be signed.
@@ -921,9 +920,9 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 32-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 32-byte, 
-    little-endian byte string, with the 2 least significant bytes set by the 2 little-endian 
-    bytes of the uint16, and the remaining bytes set to zero (0), and parsing the 32-byte 
+  - ConvertIntToScalar(i): Implemented by converting unsigned integer `i` to a 32-byte,
+    little-endian byte string, with the least significant bytes set by the 32 little-endian
+    bytes of the unsigned integer, and the remaining bytes set to zero (0), and parsing the 32-byte
     buffer with DeserializeScalar()
 
 - Hash (`H`): SHA-512, and Nh = 64.
@@ -964,9 +963,9 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 32-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 32-byte, 
-    little-endian byte string, with the 2 least significant bytes set by the 2 little-endian 
-    bytes of the uint16, and the remaining bytes set to zero (0), and parsing the 32-byte 
+  - ConvertIntToScalar(i): Implemented by converting unsigned integer `i` to a 32-byte,
+    little-endian byte string, with the least significant bytes set by the 32 little-endian
+    bytes of the unsigned integer, and the remaining bytes set to zero (0), and parsing the 32-byte
     buffer with DeserializeScalar()
 
 - Hash (`H`): SHA-512, and Nh = 64.
@@ -1001,9 +1000,9 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 48-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 48-byte, 
-    little-endian byte string, with the 2 least significant bytes set by the 2 little-endian 
-    bytes of the uint16, and the remaining bytes set to zero (0), and parsing the 48-byte 
+  - ConvertIntToScalar(i): Implemented by converting unsigned integer `i` to a 48-byte,
+    little-endian byte string, with the least significant bytes set by the 48 little-endian
+    bytes of the unsigned integer, and the remaining bytes set to zero (0), and parsing the 48-byte
     buffer with DeserializeScalar()
 
 - Hash (`H`): SHAKE256, and Nh = 114.
@@ -1051,10 +1050,10 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 
-    32-byte, big-endian byte string, with the 2 least significant bytes set by the 2
-    big-endian bytes of the uint16, and the remaining bytes set to zero (0), and 
-    parsing the 32-byte buffer with DeserializeScalar()
+  - ConvertIntToScalar(i): Implemented by converting unsigned integer `i` to a 32-byte,
+    big-endian byte string, with the most significant bytes set by the 32 big-endian
+    bytes of the unsigned integer, and the remaining bytes set to zero (0), and parsing the 32-byte
+    buffer with DeserializeScalar()
 
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
@@ -1096,10 +1095,10 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
-  - Scalar(i): Implemented by converting two byte unsigned integer (uint16) `i` to a 
-    32-byte, big-endian byte string, with the 2 least significant bytes set by the 2
-    big-endian bytes of the uint16, and the remaining bytes set to zero (0), and 
-    parsing the 32-byte buffer with DeserializeScalar()
+  - ConvertIntToScalar(i): Implemented by converting unsigned integer `i` to a 32-byte,
+    big-endian byte string, with the most significant bytes set by the 32 big-endian
+    bytes of the unsigned integer, and the remaining bytes set to zero (0), and parsing the 32-byte
+    buffer with DeserializeScalar()
 
 - Hash (`H`): SHA-256, and Nh = 32.
   - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
@@ -1266,7 +1265,7 @@ and 3) keep secret values confidential.
 
   Outputs:
   - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a tuple
-    consisting of the participant identifier and the key share (a Scalar).
+    consisting of the participant Identifier and the key share (a Scalar).
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
     in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
@@ -1309,7 +1308,7 @@ The procedure for splitting a secret into shares is as follows.
 
   Outputs:
   - secret_key_shares, A list of MAX_SIGNERS number of secret shares, each a tuple
-    consisting of the participant identifier and the key share (a Scalar)
+    consisting of the participant Identifier and the key share (a Scalar)
   - coefficients, a vector of the t coefficients which uniquely determine
     a polynomial f.
 
@@ -1331,7 +1330,7 @@ The procedure for splitting a secret into shares is as follows.
     # Evaluate the polynomial for each point x=1,...,n
     secret_key_shares = []
     for x_i in range(1, MAX_SIGNERS + 1):
-      y_i = polynomial_evaluate(Scalar(x_i), coefficients)
+      y_i = polynomial_evaluate(G.ConvertIntToScalar(x_i), coefficients)
       secret_key_share_i = (x_i, y_i)
       secret_key_share.append(secret_key_share_i)
     return secret_key_shares, coefficients
@@ -1339,9 +1338,10 @@ The procedure for splitting a secret into shares is as follows.
 
 Let `points` be the output of this function. The i-th element in `points` is
 the share for the i-th participant, which is the randomly generated polynomial
-evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i])`,
-and the list of these shares as `shares`.
-`i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
+evaluated at coordinate `i`, an Identifier. We denote a secret share as the
+tuple `(i, points[i])`, and the list of these shares as `shares`.
+`i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial
+defined in a Shamir secret sharing operation.
 
 The procedure for combining a `shares` list of length `MIN_SIGNERS` to recover the
 secret `s` is as follows.
@@ -1351,7 +1351,7 @@ secret `s` is as follows.
 
   Inputs:
   - shares, a list of at minimum MIN_SIGNERS secret shares, each a tuple (i, f(i))
-    where i is an identifier and f(i) is a Scalar
+    where i is an Identifier and f(i) is a Scalar
 
   Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
@@ -1361,7 +1361,7 @@ secret `s` is as follows.
   def secret_share_combine(shares):
     if len(shares) < MIN_SIGNERS:
       raise "invalid parameters"
-    scalar_shares = [(Scalar(x), y) for x, y in shares]
+    scalar_shares = [(x, y) for x, y in shares]
     s = polynomial_interpolation(scalar_shares)
     return s
 ~~~
@@ -1403,7 +1403,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
   Inputs:
   - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier, and sk_i the participant's secret key, a secret share of the
+    Identifier, and sk_i the participant's secret key, a secret share of the
     constant term of f, where sk_i is a Scalar.
   - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment
     to each of the coefficients in coeffs, where each element of the vector commitment
