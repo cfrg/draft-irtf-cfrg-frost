@@ -113,7 +113,10 @@ class GroupNISTCurve(Group):
         parity = 0 if pve else 1
         if sgn0(y) != parity:
             y = -y
-        return self.curve(self.F(x), self.F(y))
+        point = self.curve(self.F(x), self.F(y))
+        if point == self.identity():
+            raise Exception("Identity element not permitted")
+        return point
 
     def serialize_scalar(self, scalar):
         return I2OSP(scalar % self.order(), self.scalar_byte_length())
@@ -239,7 +242,10 @@ class GroupEd25519(Group):
             return None
         else:
             (u, v) = GroupEd25519.to_weierstrass(self.a, self.F(self.d), x, y)
-            return self.curve(u, v)
+            point = self.curve(u, v)
+            if point == self.identity():
+                raise Exception("Identity element not permitted")
+            return point
 
     def serialize_scalar(self, scalar):
         return int.to_bytes(int(scalar) % int(self.group_order), 32, "little")
@@ -326,7 +332,10 @@ class GroupEd448(Group):
             return None
         else:
             (u, v) = GroupEd448.to_weierstrass(self.a, self.F(self.d), x, y)
-            return self.curve(u, v)
+            point = self.curve(u, v)
+            if point == self.identity():
+                raise Exception("Identity element not permitted")
+            return point
 
     def serialize_scalar(self, scalar):
         return int.to_bytes(int(scalar) % int(self.group_order), 57, "little")
@@ -361,7 +370,10 @@ class GroupRistretto255(Group):
         return element.encode()
 
     def deserialize(self, encoded):
-        return Ed25519Point().decode(encoded)
+        element = Ed25519Point().decode(encoded)
+        if element == self.identity():
+            raise Exception("Identity element not permitted")
+        return element
 
     def serialize_scalar(self, scalar):
         return I2OSP(scalar % self.order(), self.scalar_byte_length())[::-1]
@@ -375,36 +387,3 @@ class GroupRistretto255(Group):
     def hash_to_scalar(self, msg, dst=""):
         return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
 
-class GroupDecaf448(Group):
-    def __init__(self):
-        Group.__init__(self, "decaf448")
-        self.k = 224
-        self.L = 84
-        self.field_bytes_length = 56
-
-    def generator(self):
-        return Ed448GoldilocksPoint().base()
-
-    def order(self):
-        return Ed448GoldilocksPoint().order
-
-    def identity(self):
-        return Ed448GoldilocksPoint().identity()
-
-    def serialize(self, element):
-        return element.encode()
-
-    def deserialize(self, encoded):
-        return Ed448GoldilocksPoint().decode(encoded)
-
-    def serialize_scalar(self, scalar):
-        return I2OSP(scalar % self.order(), self.scalar_byte_length())[::-1]
-
-    def element_byte_length(self):
-        return self.field_bytes_length
-
-    def scalar_byte_length(self):
-        return self.field_bytes_length
-
-    def hash_to_scalar(self, msg, dst=""):
-        return hash_to_field(msg, 1, dst, self.order(), 1, self.L, expand_message_xmd, hashlib.sha512, self.k)[0][0]
