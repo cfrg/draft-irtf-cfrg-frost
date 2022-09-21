@@ -5,7 +5,6 @@ import os
 import sys
 import json
 
-from hash_to_field import I2OSP
 from ed25519_rfc8032 import verify_ed25519_rfc8032, point_compress, secret_to_public_raw
 
 try:
@@ -82,7 +81,7 @@ def secret_share_shard(G, s, n, t):
     for i in range(t - 1):
         coefficients.append(G.random_scalar())
 
-    # Evaluate the polynomial for each participant, identified by their identifier i > 0
+    # Evaluate the polynomial for each signer, identified by their identifier i > 0
     secret_shares = []
     for x_i in range(1, n+1):
         y_i = polynomial_evaluate(G, x_i, coefficients)
@@ -137,7 +136,7 @@ class Signature(object):
         return self.G.serialize(self.R) + self.G.serialize_scalar(self.z)
 
 def encode_group_commitment_list(G, commitment_list):
-    B_es = [I2OSP(i, 2) + G.serialize(D) + G.serialize(E) for (i, D, E) in commitment_list]
+    B_es = [G.serialize_scalar(i) + G.serialize(D) + G.serialize(E) for (i, D, E) in commitment_list]
     B_e = B_es[0]
     for i, v in enumerate(B_es):
         if i > 0:
@@ -152,7 +151,7 @@ def compute_binding_factors(G, H, commitment_list, msg):
     binding_factors = {}
     rho_inputs = {}
     for _, (i, D, E) in enumerate(commitment_list):
-        rho_input = rho_input_prefix + I2OSP(i, 2)
+        rho_input = rho_input_prefix + G.serialize_scalar(i)
         binding_factor = H.H1(rho_input)
         rho_inputs[i] = rho_input
         binding_factors[i] = binding_factor
@@ -192,8 +191,8 @@ def verify_signature_share(G, H, identifier, public_key_share, sig_share, commit
     challenge = compute_challenge(H, group_commitment, group_public_key, msg)
 
     # Compute Lagrange coefficient
-    participants = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(G, identifier, participants)
+    signers = signers_from_commitment_list(commitment_list)
+    lambda_i = derive_lagrange_coefficient(G, identifier, signers)
 
     # Compute relation values
     l = sig_share * G.generator()
@@ -207,7 +206,7 @@ def nonce_generate(H, secret):
     hash_input = k_enc + secret_enc
     return H.H3(hash_input)
 
-def participants_from_commitment_list(commitment_list):
+def signers_from_commitment_list(commitment_list):
     return [i for (i, _, _) in commitment_list]
 
 class Signer(object):
@@ -238,8 +237,8 @@ class Signer(object):
         group_comm = compute_group_commitment(self.G, commitment_list, binding_factors)
 
         # Compute Lagrange coefficient
-        participants = participants_from_commitment_list(commitment_list)
-        lambda_i = derive_lagrange_coefficient(self.G, self.identifier, participants)
+        signer_list = signers_from_commitment_list(commitment_list)
+        lambda_i = derive_lagrange_coefficient(self.G, self.identifier, signer_list)
 
         # Compute the per-message challenge
         challenge = compute_challenge(self.H, group_comm, self.pk, msg)
@@ -251,8 +250,8 @@ class Signer(object):
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-aggregate
     def aggregate(self, group_comm, sig_shares, public_key_shares, commitment_list, msg):
-        participants = participants_from_commitment_list(commitment_list)
-        for identifier in participants:
+        signer_list = signers_from_commitment_list(commitment_list)
+        for identifier in signer_list:
             assert(verify_signature_share(self.G, self.H, identifier, public_key_shares[identifier], sig_shares[identifier], commitment_list, self.pk, msg))
 
         z = 0
@@ -265,7 +264,7 @@ class Signer(object):
 MAX_SIGNERS = 3
 MIN_SIGNERS = 2
 NUM_SIGNERS = MIN_SIGNERS
-PARTICIPANT_LIST = [1, 3]
+SIGNER_LIST = [1, 3]
 message = _as_bytes("test")
 
 ciphersuites = [
@@ -325,7 +324,7 @@ for (fname, name, G, H) in ciphersuites:
     nonces = {}
     comms = {}
     commitment_list = [] # XXX(caw): need a better name for this structure
-    for identifier in PARTICIPANT_LIST:
+    for identifier in SIGNER_LIST:
         nonce_i, comm_i = signers[identifier].commit()
         nonces[identifier] = nonce_i
         comms[identifier] = comm_i
@@ -335,10 +334,10 @@ for (fname, name, G, H) in ciphersuites:
     group_commitment = compute_group_commitment(G, commitment_list, binding_factors)
 
     round_one_outputs = {
-        "participants": ",".join([str(i) for i in PARTICIPANT_LIST]),
+        "signer_list": ",".join([str(i) for i in SIGNER_LIST]),
         "signers": {}
     }
-    for identifier in PARTICIPANT_LIST:
+    for identifier in SIGNER_LIST:
         round_one_outputs["signers"][str(identifier)] = {}
         round_one_outputs["signers"][str(identifier)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][0]))
         round_one_outputs["signers"][str(identifier)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][1]))
@@ -349,15 +348,15 @@ for (fname, name, G, H) in ciphersuites:
 
     # Round two: sign
     sig_shares = {}
-    for identifier in PARTICIPANT_LIST:
+    for identifier in SIGNER_LIST:
         sig_share = signers[identifier].sign(nonces[identifier], message, commitment_list)
         sig_shares[identifier] = sig_share
 
     round_two_outputs = {
-        "participants": ",".join([str(i) for i in PARTICIPANT_LIST]),
+        "signer_list": ",".join([str(i) for i in SIGNER_LIST]),
         "signers": {}
     }
-    for identifier in PARTICIPANT_LIST:
+    for identifier in SIGNER_LIST:
         round_two_outputs["signers"][str(identifier)] = {}
         round_two_outputs["signers"][str(identifier)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[identifier]))
 
