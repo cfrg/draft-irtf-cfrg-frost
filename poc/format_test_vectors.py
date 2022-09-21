@@ -1,7 +1,5 @@
 import sys
 import json
-import textwrap
-
 
 config_keys = [
     "MAX_SIGNERS",
@@ -24,6 +22,8 @@ round_one_keys = [
 ]
 
 round_one_outputs_keys = [
+    "hiding_nonce_randomness",
+    "binding_nonce_randomness",
     "hiding_nonce",
     "binding_nonce",
     "hiding_nonce_commitment",
