@@ -119,7 +119,7 @@ deterministic, since deriving nonces deterministically allows for a complete key
 attack in multi-party discrete logarithm-based signatures, such as FROST.
 
 While an optimization to FROST was shown in {{Schnorr21}} that reduces scalar multiplications
-from linear in the number of signer participants to constant, this draft does not specify that optimization
+from linear in the number of signing participants to constant, this draft does not specify that optimization
 due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
 Specifically, this optimization removes the guarantee that the set of signer participants that started
 round one of the protocol is the same set of signer participants that produced the signature output by
