@@ -102,7 +102,7 @@ at https://github.com/cfrg/draft-irtf-cfrg-frost. Instructions are on that page 
 well.
 
 Unlike signatures in a single-party setting, threshold signatures
-require cooperation among a threshold number of signers each holding a share
+require cooperation among a threshold number of signing participants each holding a share
 of a common private key. The security of threshold schemes in general assumes
 that an adversary can corrupt strictly fewer than a threshold number of signer participants.
 
@@ -119,10 +119,10 @@ deterministic, since deriving nonces deterministically allows for a complete key
 attack in multi-party discrete logarithm-based signatures, such as FROST.
 
 While an optimization to FROST was shown in {{Schnorr21}} that reduces scalar multiplications
-from linear in the number of signers to constant, this draft does not specify that optimization
+from linear in the number of signing participants to constant, this draft does not specify that optimization
 due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
-Specifically, this optimization removes the guarantee that the set of signers that started
-round one of the protocol is the same set of signers that produced the signature output by
+Specifically, this optimization removes the guarantee that the set of signer participants that started
+round one of the protocol is the same set of signing participants that produced the signature output by
 round two.
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
@@ -152,14 +152,14 @@ draft-06
 draft-05
 
 - Update test vectors to include version string (#202, #203)
-- Rename THRESHOLD_LIMIT to MIN_SIGNERS (#192)
+- Rename THRESHOLD_LIMIT to MIN_PARTICIPANTS (#192)
 - Use non-contiguous signers for the test vectors (#187)
 - Add more reasoning why the coordinator MUST abort (#183)
 - Add a function to generate nonces (#182)
 - Add MUST that all participants have the same view of VSS commitment (#174)
-- Use THRESHOLD_LIMIT instead of t and MAX_SIGNERS instead of n (#171)
+- Use THRESHOLD_LIMIT instead of t and MAX_PARTICIPANTS instead of n (#171)
 - Specify what the dealer is trusted to do (#166)
-- Clarify types of NUM_SIGNERS and THRESHOLD_LIMIT (#165)
+- Clarify types of NUM_PARTICIPANTS and THRESHOLD_LIMIT (#165)
 - Assert that the network channel used for signing should be authenticated (#163)
 - Remove wire format section (#156)
 - Update group commitment derivation to have a single scalarmul (#150)
@@ -310,7 +310,7 @@ from the ciphersuite hash function `H`. This domain-separated hash function
 is denoted `H3`. This function always samples 32 bytes of fresh randomness
 to ensure that the probability of nonce reuse is at most 2<sup>-128</sup>
 as long as no more than 2<sup>64</sup> signatures are computed by a given
-signer.
+signing participant.
 
 ~~~
   nonce_generate(secret):
@@ -405,16 +405,16 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
 ## List Operations {#dep-encoding}
 
 This section describes helper functions that work on lists of values produced
-during the FROST protocol. The following function encodes a list of signer
+during the FROST protocol. The following function encodes a list of participant
 commitments into a bytestring for use in the FROST protocol.
 
 ~~~
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
-    a list of commitments issued by each signer, where each element in the list
-    indicates the signer identifier i and their two commitment Element values
+    a list of commitments issued by each participant, where each element in the list
+    indicates the participant identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by signer identifier.
+    in ascending order by participant identifier.
 
   Outputs: A byte string containing the serialized representation of commitment_list
 
@@ -428,20 +428,20 @@ commitments into a bytestring for use in the FROST protocol.
     return encoded_group_commitment
 ~~~
 
-The following function is used to extract signer identifiers from a commitment
+The following function is used to extract participant identifiers from a commitment
 list.
 
 ~~~
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
-    a list of commitments issued by each signer, where each element in the list
-    indicates the signer identifier i and their two commitment Element values
+    a list of commitments issued by each participant, where each element in the list
+    indicates the participant identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by signer identifier.
+    in ascending order by participant identifier.
 
-  Outputs: A list of signer participant identifiers
+  Outputs: A list of participant identifiers
 
-def signers_from_commitment_list(commitment_list):
+def participants_from_commitment_list(commitment_list):
   identifiers = []
   for (identifier, _, _) in commitment_list:
     identifiers.append(identifier)
@@ -453,34 +453,34 @@ The following function is used to extract a binding factor from a list of bindin
 ~~~
   Inputs:
   - binding_factor_list = [(i, binding_factor), ...],
-    a list of binding factors for each signer, where each element in the list
-    indicates the signer identifier i and their binding factor. This list MUST be sorted
-    in ascending order by signer identifier.
-  - identifier, signer identifier, a Scalar.
+    a list of binding factors for each participant, where each element in the list
+    indicates the participant identifier i and their binding factor. This list MUST be sorted
+    in ascending order by participant identifier.
+  - identifier, participant identifier, a Scalar.
 
   Outputs: A Scalar value.
 
-  Errors: "invalid signer", when the designated signer is not known
+  Errors: "invalid participant", when the designated participant is not known
 
-def binding_factor_for_signer(binding_factor_list, identifier):
+def binding_factor_for_participant(binding_factor_list, identifier):
   for (i, binding_factor) in binding_factor_list:
     if identifier == i:
       return binding_factor
-  raise "invalid signer"
+  raise "invalid participant"
 ~~~
 
 ## Binding Factors Computation {#dep-binding-factor}
 
 This section describes the subroutine for computing binding factors based
-on the signer commitment list and message to be signed.
+on the participant commitment list and message to be signed.
 
 ~~~
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
-    a list of commitments issued by each signer, where each element in the list
-    indicates the signer identifier i and their two commitment Element values
+    a list of commitments issued by each participant, where each element in the list
+    indicates the participant identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by signer identifier.
+    in ascending order by participant identifier.
   - msg, the message to be signed.
 
   Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
@@ -507,10 +507,10 @@ from a commitment list.
   Inputs:
   - commitment_list =
      [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list
-    of commitments issued by each signer, where each element in the list
-    indicates the signer identifier i and their two commitment Element values
+    of commitments issued by each participant, where each element in the list
+    indicates the participant identifier i and their two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be
-    sorted in ascending order by signer identifier.
+    sorted in ascending order by participant identifier.
   - binding_factor_list = [(i, binding_factor), ...],
     a list of (identifier, Scalar) tuples representing the binding factor Scalar
     for the given identifier. This list MUST be sorted in ascending order by identifier.
@@ -520,7 +520,7 @@ from a commitment list.
   def compute_group_commitment(commitment_list, binding_factor_list):
     group_commitment = G.Identity()
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      binding_factor = binding_factor_for_signer(binding_factors, identifier)
+      binding_factor = binding_factor_for_participant(binding_factors, identifier)
       group_commitment = group_commitment +
         hiding_nonce_commitment + G.ScalarMult(binding_nonce_commitment, binding_factor)
     return group_commitment
@@ -551,51 +551,51 @@ This section describes the subroutine for creating the per-message challenge.
 
 This section describes the two-round variant of the FROST threshold signature
 protocol for producing Schnorr signatures. The protocol is configured to
-run with a selection of `NUM_SIGNERS` signer participants and a Coordinator.
-`NUM_SIGNERS` is a positive integer at least `MIN_SIGNERS` but no larger than
-`MAX_SIGNERS`, where `MIN_SIGNERS < MAX_SIGNERS`, `MIN_SIGNERS` is a positive
-integer and `MAX_SIGNERS` is a positive integer less than the group order.
-A signer participant, or signer, is an entity that is trusted to hold and
+run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
+`NUM_PARTICIPANTS` is a positive integer at least `MIN_PARTICIPANTS` but no larger than
+`MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS < MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
+integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
+A signer participant, or simply participant, is an entity that is trusted to hold and
 use a signing key share. The Coordinator is an entity with the following responsibilities:
 
-1. Determining which signers will participate (at least MIN_SIGNERS in number);
-2. Coordinating rounds (receiving and forwarding inputs among signers); and
-3. Aggregating signature shares output by each signer, and publishing the resulting signature.
+1. Determining which participants will participate (at least MIN_PARTICIPANTS in number);
+2. Coordinating rounds (receiving and forwarding inputs among participants); and
+3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-FROST assumes that all participants, including the Coordinator and the set of signers,
+FROST assumes that all participants, including the Coordinator and the set of participants,
 are chosen externally to the protocol. Note that it is possible to deploy the protocol
 without a distinguished Coordinator; see {{no-coordinator}} for more information.
 
 FROST produces signatures that are indistinguishable from those produced with a single
-signer using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
+participant using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
 value and `PK = G.ScalarMultBase(s)`. As a threshold signing protocol, the group signing
-key `s` is secret-shared amongst each signer and used to produce signatures. In particular,
-FROST assumes each signer is configured with the following information:
+key `s` is secret-shared amongst each participant and used to produce signatures. In particular,
+FROST assumes each participant is configured with the following information:
 
-- An identifier, which is a Scalar value denoted `i` in the range `[1, MAX_SIGNERS]`
-  and MUST be distinct from the identifier of every other signer.
+- An identifier, which is a Scalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
+  and MUST be distinct from the identifier of every other participant.
 - A signing key share `sk_i`, which is a Scalar value representing the i-th secret share
   of the group signing key `s`. The public key corresponding to this signing key share
   is `PK_i = G.ScalarMultBase(sk_i)`.
 
-Each signer participant, including the Coordinator, is additionally configured
+Each participant, including the Coordinator, is additionally configured
 with common group information, denoted "group info," which consists of the following
 information:
 
 - Group public key, which is an `Element` in `G` denoted `PK`.
 - Public keys `PK_i` for each signer, which are `Element` values in `G` denoted `PK_i`
-  for each `i` in `[1, MAX_SIGNERS]`.
+  for each `i` in `[1, MAX_PARTICIPANTS]`.
 
 This document does not specify how this information, including the signing key shares,
-are configured and distributed to signers. In general, two possible configuration
+are configured and distributed to participants. In general, two possible configuration
 mechanisms are possible: one that requires a single, trusted dealer, and the other
 which requires performing a distributed key generation protocol. We highlight
 key generation mechanism by a trusted dealer in {{dep-dealer}} for reference.
 
-The signing variant of FROST in this document requires signers to perform two network rounds:
+The signing variant of FROST in this document requires participants to perform two network rounds:
 1) generating and publishing commitments, and 2) signature share generation and
-publication. The first round serves for each signer to issue a commitment to
-a nonce. The second round receives commitments for all signers as well as the message,
+publication. The first round serves for each participant to issue a commitment to
+a nonce. The second round receives commitments for all participants as well as the message,
 and issues a signature share with respect to that message. The Coordinator performs
 the coordination of each of these rounds. At the end of the second round, the
 Coordinator then performs an aggregation step and outputs the final signature.
@@ -612,20 +612,20 @@ This complete interaction is shown in {{fig-frost}}.
 ------------>
             |
       == Round 1 (Commitment) ==
-            |    signer commitment   |                 |
+            | participant commitment |                 |
             |<-----------------------+                 |
             |          ...                             |
-            |    signer commitment              (commit state) ==\
+            | participant commitment            (commit state) ==\
             |<-----------------------------------------+         |
                                                                  |
       == Round 2 (Signature Share Generation) ==                 |
             |                                                    |
-            |     signer input       |                 |         |
+            |   participant input    |                 |         |
             +------------------------>                 |         |
             |     signature share    |                 |         |
             |<-----------------------+                 |         |
             |          ...                             |         |
-            |     signer input                         |         |
+            |    participant input                     |         |
             +------------------------------------------>         /
             |     signature share                      |<=======/
             <------------------------------------------+
@@ -638,7 +638,7 @@ This complete interaction is shown in {{fig-frost}}.
 {: #fig-frost title="FROST signature overview" }
 
 Details for round one are described in {{frost-round-one}}, and details for round two
-are described in {{frost-round-two}}. Note that each signer persists some state between
+are described in {{frost-round-two}}. Note that each participant persists some state between
 both rounds, and this state is deleted as described in {{frost-round-two}}. The final
 Aggregation step is described in {{frost-aggregation}}.
 
@@ -647,17 +647,17 @@ over the network, are validated before use. In particular, this means that any v
 of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
 respectively, as these functions perform the necessary input validation steps.
 
-FROST assumes reliable message delivery between the Coordinator and signers in
-order for the protocol to complete. An attacker masquerading as another signer
+FROST assumes reliable message delivery between the Coordinator and participants in
+order for the protocol to complete. An attacker masquerading as another participant
 will result only in an invalid signature; see {{sec-considerations}}. However, in order
-to identify any signer which has misbehaved (resulting in the protocol aborting)
+to identify any participant which has misbehaved (resulting in the protocol aborting)
 to take actions such as excluding them from future signing operations, we assume that
 the network channel is additionally authenticated; confidentiality is not required.
 
 ## Round One - Commitment {#frost-round-one}
 
-Round one involves each signer generating nonces and their corresponding public commitments.
-A nonce is a pair of Scalar values, and a commitment is a pair of Element values. Each signer's
+Round one involves each participant generating nonces and their corresponding public commitments.
+A nonce is a pair of Scalar values, and a commitment is a pair of Element values. Each participant's
 behavior in this round is described by the `commit` function below. Note that this function
 invokes `nonce_generate` twice, once for each type of nonce produced. The output of this function is
 a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding public commitments
@@ -680,7 +680,7 @@ a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding 
     return (nonce, comm)
 ~~~
 
-The outputs `nonce` and `comm` from signer `P_i` should both be stored locally and
+The outputs `nonce` and `comm` from participant `P_i` should both be stored locally and
 kept for use in the second round. The `nonce` value is secret and MUST NOT be shared, whereas
 the public output `comm` is sent to the Coordinator. The nonce values produced by this
 function MUST NOT be reused in more than one invocation of FROST, and it MUST be generated
@@ -691,18 +691,18 @@ from a source of secure randomness.
 ## Round Two - Signature Share Generation {#frost-round-two}
 
 In round two, the Coordinator is responsible for sending the message to be signed, and
-for choosing which signers will participate (of number at least MIN_SIGNERS). Signers
+for choosing which participants will participate (of number at least MIN_PARTICIPANTS). Signers
 additionally require locally held data; specifically, their private key and the
 nonces corresponding to their commitment issued in round one.
 
-The Coordinator begins by sending each signer the message to be signed along with the
-set of signing commitments for all signers in the participant list. Each signer
+The Coordinator begins by sending each participant the message to be signed along with the
+set of signing commitments for all participants in the participant list. Each participant
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Moreover, each signer MUST ensure that their identifier as
+MUST abort the protocol. Moreover, each participant MUST ensure that their identifier as
 well as their commitment as from the first round appears in commitment_list.
-Applications which require that signers not process arbitrary
+Applications which require that participants not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
 
@@ -711,7 +711,7 @@ procedure to produce its own signature share.
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the signer. Note identifier will never equal 0.
+  - identifier, Identifier i of the participant. Note identifier will never equal 0.
   - sk_i, Signer secret key share, a Scalar.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
@@ -720,24 +720,24 @@ procedure to produce its own signature share.
   - msg, the message to be signed (sent by the Coordinator).
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
-    list of commitments issued in Round 1 by each signer and sent by the Coordinator.
-    Each element in the list indicates the signer identifier j and their two commitment
+    list of commitments issued in Round 1 by each participant and sent by the Coordinator.
+    Each element in the list indicates the participant identifier j and their two commitment
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by signer identifier.
+    This list MUST be sorted in ascending order by participant identifier.
 
   Outputs: a Scalar value representing the signature share
 
   def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
     # Compute the binding factor(s)
     binding_factor_list = compute_binding_factors(commitment_list, msg)
-    binding_factor = binding_factor_for_signer(binding_factor_list, identifier)
+    binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
 
     # Compute the group commitment
     group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
 
     # Compute Lagrange coefficient
-    signer_list = signers_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, signer_list)
+    participant_list = participants_from_commitment_list(commitment_list)
+    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -749,13 +749,13 @@ procedure to produce its own signature share.
     return sig_share
 ~~~
 
-The output of this procedure is a signature share. Each signer then sends
-these shares back to the Coordinator. Each signer MUST delete the nonce and
+The output of this procedure is a signature share. Each participant then sends
+these shares back to the Coordinator. Each participant MUST delete the nonce and
 corresponding commitment after this round completes, and MUST use the nonce
 to generate at most one signature share.
 
 Note that the `lambda_i` value derived during this procedure does not change
-across FROST signing operations for the same signing group. As such, signers
+across FROST signing operations for the same signing group. As such, participants
 can compute it once and store it for reuse across signing sessions.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
@@ -765,27 +765,27 @@ signature shares using the following procedure.
 
 ## Signature Share Verification and Aggregation {#frost-aggregation}
 
-After signers perform round two and send their signature shares to the Coordinator,
+After participants perform round two and send their signature shares to the Coordinator,
 the Coordinator verifies each signature share for correctness. In particular,
-for each signer, the Coordinator uses commitment pairs generated during round
+for each participant, the Coordinator uses commitment pairs generated during round
 one and the signature share generated during round two, along with other group
 parameters, to check that the signature share is valid using the following procedure.
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the signer. Note: identifier MUST never equal 0.
-  - PK_i, the public key for the ith signer, where PK_i = G.ScalarBaseMult(sk_i),
+  - identifier, Identifier i of the participant. Note: identifier MUST never equal 0.
+  - PK_i, the public key for the ith participant, where PK_i = G.ScalarBaseMult(sk_i),
     an Element in G
   - comm_i, pair of Element values in G (hiding_nonce_commitment, binding_nonce_commitment)
-    generated in round one from the ith signer.
+    generated in round one from the ith participant.
   - sig_share_i, a Scalar value indicating the signature share as produced in
-    round two from the ith signer.
+    round two from the ith participant.
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
-    list of commitments issued in Round 1 by each signer, where each element
-    in the list indicates the signer identifier j and their two commitment
+    list of commitments issued in Round 1 by each participant, where each element
+    in the list indicates the participant identifier j and their two commitment
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by signer identifier.
+    This list MUST be sorted in ascending order by participant identifier.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
   - msg, the message to be signed.
@@ -796,7 +796,7 @@ parameters, to check that the signature share is valid using the following proce
                              group_public_key, msg):
     # Compute the binding factors
     binding_factor_list = compute_binding_factors(commitment_list, msg)
-    binding_factor = binding_factor_for_signer(binding_factor_list, identifier)
+    binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
 
     # Compute the group commitment
     group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
@@ -809,8 +809,8 @@ parameters, to check that the signature share is valid using the following proce
     challenge = compute_challenge(group_commitment, group_public_key, msg)
 
     # Compute Lagrange coefficient
-    signer_list = signers_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, signer_list)
+    participant_list = participants_from_commitment_list(commitment_list)
+    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
@@ -820,23 +820,23 @@ parameters, to check that the signature share is valid using the following proce
 ~~~
 
 If any signature share fails to verify, i.e., if verify_signature_share returns False for
-any signer share, the Coordinator MUST abort the protocol for correctness reasons
+any participant share, the Coordinator MUST abort the protocol for correctness reasons
 (this is true regardless of the size or makeup of the signing set selected by
 the Coordinator).
-Excluding one signer means that their nonce will not be included in the joint response `z`
+Excluding one participant means that their nonce will not be included in the joint response `z`
 and consequently the output signature will not verify. This is because the
 group commitment will be with respect to a different signing set than the
 the aggregated response.
 
-Otherwise, if all shares from signers that participated in Rounds 1 and 2 are valid, the Coordinator
+Otherwise, if all shares from participants that participated in Rounds 1 and 2 are valid, the Coordinator
 performs the `aggregate` operation and publishes the resulting signature.
 
 ~~~
   Inputs:
   - group_commitment, the group commitment returned by compute_group_commitment,
     an Element in G.
-  - sig_shares, a set of signature shares z_i, Scalar values, for each signer,
-    of length NUM_SIGNERS, where MIN_SIGNERS <= NUM_SIGNERS <= MAX_SIGNERS.
+  - sig_shares, a set of signature shares z_i, Scalar values, for each participant,
+    of length NUM_PARTICIPANTS, where MIN_PARTICIPANTS <= NUM_PARTICIPANTS <= MAX_PARTICIPANTS.
 
   Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
@@ -880,7 +880,7 @@ describe how input validation is done for DeserializeElement and DeserializeScal
 
 Each ciphersuite includes explicit instructions for verifying signatures produced
 by FROST. Note that these instructions are equivalent to those produced by a single
-signer.
+participant.
 
 ## FROST(Ed25519, SHA-512)
 
@@ -1087,18 +1087,18 @@ A security analysis of FROST exists in {{FROST20}} and {{Schnorr21}}. The protoc
 in this document assumes the following threat model.
 
 * Trusted dealer. The dealer that performs key generation is trusted to follow
-the protocol, although signers still are able to verify the consistency of their
+the protocol, although participants still are able to verify the consistency of their
 shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
 
-* Unforgeability assuming at most `(MIN_SIGNERS-1)` corrupted signers. So long as an adversary
-corrupts fewer than `MIN_SIGNERS` signers, the scheme remains secure against Existential
+* Unforgeability assuming at most `(MIN_PARTICIPANTS-1)` corrupted participants. So long as an adversary
+corrupts fewer than `MIN_PARTICIPANTS` participants, the scheme remains secure against Existential
 Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
 Definition 13.2.
 
 * Coordinator. We assume the Coordinator at the time of signing does not perform a
 denial of service attack. A denial of service would include any action which either
 prevents the protocol from completing or causing the resulting signature to be invalid.
-Such actions for the latter include sending inconsistent values to signers,
+Such actions for the latter include sending inconsistent values to participants,
 such as messages or the set of individual commitments. Note that the Coordinator
 is *not* trusted with any private information and communication at the time of signing
 can be performed over a public but reliable channel.
@@ -1107,7 +1107,7 @@ The protocol as specified in this document does not target the following goals:
 
 * Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
-* Downgrade prevention. All signers in the protocol are assumed to agree on what algorithms to use.
+* Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
 
@@ -1115,12 +1115,12 @@ The rest of this section documents issues particular to implementations or deplo
 
 ## Nonce Reuse Attacks
 
-{{dep-nonces}} describes the procedure that signers use to produce nonces during
+{{dep-nonces}} describes the procedure that participants use to produce nonces during
 the first round of singing. The randomness produced in this procedure MUST be sampled
 uniformly at random. The resulting nonces produced via `nonce_generate` are indistinguishable
 from values sampled uniformly at random. This requirement is necessary to avoid
-replay attacks initiated by other signers, which allow for a complete key-recovery attack.
-The Coordinator MAY further hedge against nonce reuse attacks by tracking signer nonce
+replay attacks initiated by other participants, which allow for a complete key-recovery attack.
+The Coordinator MAY further hedge against nonce reuse attacks by tracking participant nonce
 commitments used for a given group key, at the cost of additional state.
 
 ## Protocol Failures
@@ -1133,22 +1133,22 @@ if the underlying transport failed to deliver the required messages.
 
 In some settings, it may be desirable to omit the role of the Coordinator entirely.
 Doing so does not change the security implications of FROST, but instead simply
-requires each signer to communicate with all other signers. We loosely
-describe how to perform FROST signing among signers without this coordinator role.
-We assume that every signer receives as input from an external source the
+requires each participant to communicate with all other participants. We loosely
+describe how to perform FROST signing among participants without this coordinator role.
+We assume that every participant receives as input from an external source the
 message to be signed prior to performing the protocol.
 
-Every signer begins by performing `commit()` as is done in the setting
+Every participant begins by performing `commit()` as is done in the setting
 where a Coordinator is used. However, instead of sending the commitment
-to the Coordinator, every signer instead will publish
-this commitment to every other signer. Then, in the second round, signers will already have
+to the Coordinator, every participant instead will publish
+this commitment to every other participant. Then, in the second round, participants will already have
 sufficient information to perform signing. They will directly perform `sign()`.
-All signers will then publish their signature shares to one another. After having
-received all signature shares from all other signers, each signer will then perform
+All participants will then publish their signature shares to one another. After having
+received all signature shares from all other participants, each participant will then perform
 `verify_signature_share` and then `aggregate` directly.
 
 The requirements for the underlying network channel remain the same in the setting
-where all signers play the role of the Coordinator, in that all messages that
+where all participants play the role of the Coordinator, in that all messages that
 are exchanged are public and so the channel simply must be reliable. However, in
 the setting that a player attempts to split the view of all other players by
 sending disjoint values to a subset of players, the signing operation will output
@@ -1158,18 +1158,18 @@ can be identified and excluded.
 
 ## Input Message Validation {#message-validation}
 
-Some applications may require that signers only process messages of a certain
+Some applications may require that participants only process messages of a certain
 structure. For example, in digital currency applications wherein multiple
-signers may collectively sign a transaction, it is reasonable to require that
-each signer check the input message to be a syntactically valid transaction.
+participants may collectively sign a transaction, it is reasonable to require that
+each participant check the input message to be a syntactically valid transaction.
 As another example, use of threshold signatures in TLS {{?TLS=RFC8446}} to produce
-signatures of transcript hashes might require that signers check that the input
+signatures of transcript hashes might require that participants check that the input
 message is a valid TLS transcript from which the corresponding transcript hash
 can be derived.
 
 In general, input message validation is an application-specific consideration
 that varies based on the use case and threat model. However, it is RECOMMENDED
-that applications take additional precautions and validate inputs so that signers
+that applications take additional precautions and validate inputs so that participants
 do not operate as signing oracles for arbitrary messages.
 
 # Contributors
@@ -1219,7 +1219,7 @@ prime-order group.
 One possible key generation mechanism is to depend on a trusted dealer, wherein the
 dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
 Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
-shares of s, denoted `s_i` for `i = 0, ..., MAX_SIGNERS`, to be sent to all `MAX_SIGNERS` signers.
+shares of s, denoted `s_i` for `i = 0, ..., MAX_PARTICIPANTS`, to be sent to all `MAX_PARTICIPANTS` participants.
 This operation is specified in the `trusted_dealer_keygen` algorithm. The mathematical relation
 between the secret key `s` and the `MAX_SIGNER` secret shares is formalized in the `secret_share_combine(shares)`
 algorithm, defined in {{dep-shamir}}.
@@ -1229,36 +1229,36 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
 ~~~
   Inputs:
   - secret_key, a group secret, a Scalar, that MUST be derived from at least Ns bytes of entropy
-  - MAX_SIGNERS, the number of shares to generate, an integer
-  - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
+  - MAX_PARTICIPANTS, the number of shares to generate, an integer
+  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer
 
   Outputs:
-  - signer_private_keys, MAX_SIGNERS shares of the secret key s, each a tuple
-    consisting of the signer identifier and the key share (a Scalar).
+  - participant_private_keys, MAX_PARTICIPANTS shares of the secret key s, each a tuple
+    consisting of the participant identifier and the key share (a Scalar).
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
     in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
 
-  def trusted_dealer_keygen(secret_key, MAX_SIGNERS, MIN_SIGNERS):
-    signer_private_keys, coefficients = secret_share_shard(secret_key, MAX_SIGNERS, MIN_SIGNERS)
+  def trusted_dealer_keygen(secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
+    participant_private_keys, coefficients = secret_share_shard(secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
     vss_commitment = vss_commit(coefficients):
     PK = G.ScalarBaseMult(secret_key)
-    return signer_private_keys, vss_commitment
+    return participant_private_keys, vss_commitment
 ~~~
 
-It is assumed the dealer then sends one secret key share to each of the `NUM_SIGNERS` signers, along with `vss_commitment`.
-After receiving their secret key share and `vss_commitment`, signers MUST abort if they do not have the same view of `vss_commitment`.
-Otherwise, each signer MUST perform `vss_verify(secret_key_share_i, vss_commitment)`, and abort if the check fails.
+It is assumed the dealer then sends one secret key share to each of the `NUM_PARTICIPANTS` participants, along with `vss_commitment`.
+After receiving their secret key share and `vss_commitment`, participants MUST abort if they do not have the same view of `vss_commitment`.
+Otherwise, each participant MUST perform `vss_verify(secret_key_share_i, vss_commitment)`, and abort if the check fails.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
-between the dealer and signers to send secret key shares, wherein the channel provides confidentiality
+between the dealer and participants to send secret key shares, wherein the channel provides confidentiality
 and integrity. Mutually authenticated TLS is one possible deployment option.
 
 ## Shamir Secret Sharing {#dep-shamir}
 
-In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` signers
-in such a way that any cooperating subset of `MIN_SIGNERS` signers can recover the
+In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` participants
+in such a way that any cooperating subset of `MIN_PARTICIPANTS` participants can recover the
 secret. There are two basic steps in this scheme: (1) splitting a secret into
 multiple shares, and (2) combining shares to reveal the resulting secret.
 
@@ -1268,36 +1268,36 @@ the scalar field of the prime-order group `G`.
 The procedure for splitting a secret into shares is as follows.
 
 ~~~
-  secret_share_shard(s, MAX_SIGNERS, MIN_SIGNERS):
+  secret_share_shard(s, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
 
   Inputs:
   - s, secret value to be shared, a Scalar
-  - MAX_SIGNERS, the number of shares to generate, an integer less than 2^16
-  - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer greater than 0
+  - MAX_PARTICIPANTS, the number of shares to generate, an integer less than 2^16
+  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer greater than 0
 
   Outputs:
-  - secret_key_shares, A list of MAX_SIGNERS number of secret shares, each a tuple
-    consisting of the signer identifier and the key share (a Scalar)
-  - coefficients, a vector of MIN_SIGNERS coefficients which uniquely determine a polynomial f.
+  - secret_key_shares, A list of MAX_PARTICIPANTS number of secret shares, each a tuple
+    consisting of the participant identifier and the key share (a Scalar)
+  - coefficients, a vector of MIN_PARTICIPANTS coefficients which uniquely determine a polynomial f.
 
   Errors:
-  - "invalid parameters", if MIN_SIGNERS > MAX_SIGNERS or if MIN_SIGNERS is less than 2
+  - "invalid parameters", if MIN_PARTICIPANTS > MAX_PARTICIPANTS or if MIN_PARTICIPANTS is less than 2
 
-  def secret_share_shard(s, MAX_SIGNERS, MIN_SIGNERS):
-    if MIN_SIGNERS > MAX_SIGNERS:
+  def secret_share_shard(s, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
+    if MIN_PARTICIPANTS > MAX_PARTICIPANTS:
       raise "invalid parameters"
-    if MIN_SIGNERS < 2:
+    if MIN_PARTICIPANTS < 2:
       raise "invalid parameters"
 
     # Generate random coefficients for the polynomial, yielding
-    # a polynomial of degree at most (MIN_SIGNERS - 1)
+    # a polynomial of degree at most (MIN_PARTICIPANTS - 1)
     coefficients = [s]
-    for i in range(1, MIN_SIGNERS):
+    for i in range(1, MIN_PARTICIPANTS):
       coefficients.append(G.RandomScalar())
 
     # Evaluate the polynomial for each point x=1,...,n
     secret_key_shares = []
-    for x_i in range(1, MAX_SIGNERS + 1):
+    for x_i in range(1, MAX_PARTICIPANTS + 1):
       y_i = polynomial_evaluate(Scalar(x_i), coefficients)
       secret_key_share_i = (x_i, y_i)
       secret_key_share.append(secret_key_share_i)
@@ -1305,28 +1305,28 @@ The procedure for splitting a secret into shares is as follows.
 ~~~
 
 Let `points` be the output of this function. The i-th element in `points` is
-the share for the i-th signer, which is the randomly generated polynomial
+the share for the i-th participant, which is the randomly generated polynomial
 evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i])`,
 and the list of these shares as `shares`.
 `i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
-The procedure for combining a `shares` list of length `MIN_SIGNERS` to recover the
+The procedure for combining a `shares` list of length `MIN_PARTICIPANTS` to recover the
 secret `s` is as follows; the algorithm `polynomial_interpolation is defined in {{dep-polynomial-interpolate}}`.
 
 ~~~
   secret_share_combine(shares):
 
   Inputs:
-  - shares, a list of at minimum MIN_SIGNERS secret shares, each a tuple (i, f(i))
+  - shares, a list of at minimum MIN_PARTICIPANTS secret shares, each a tuple (i, f(i))
     where i and f(i) are Scalars
 
   Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
   Errors:
-  - "invalid parameters", if fewer than MIN_SIGNERS input shares are provided
+  - "invalid parameters", if fewer than MIN_PARTICIPANTS input shares are provided
 
   def secret_share_combine(shares):
-    if len(shares) < MIN_SIGNERS:
+    if len(shares) < MIN_PARTICIPANTS:
       raise "invalid parameters"
     s = polynomial_interpolation(shares)
     return s
@@ -1362,19 +1362,19 @@ interpolation, defined as follows.
 ## Verifiable Secret Sharing {#dep-vss}
 
 Feldman's Verifiable Secret Sharing (VSS) builds upon Shamir secret sharing,
-adding a verification step to demonstrate the consistency of a signer's
+adding a verification step to demonstrate the consistency of a participant's
 share with a public commitment to the polynomial `f` for which the secret `s`
-is the constant term. This check ensures that all signers have a point
+is the constant term. This check ensures that all participants have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
 the correct secret.
 
-The procedure for committing to a polynomial `f` of degree at most `MIN_SIGNERS-1` is as follows.
+The procedure for committing to a polynomial `f` of degree at most `MIN_PARTICIPANTS-1` is as follows.
 
 ~~~
   vss_commit(coeffs):
 
   Inputs:
-  - coeffs, a vector of the MIN_SIGNERS coefficients which uniquely determine
+  - coeffs, a vector of the MIN_PARTICIPANTS coefficients which uniquely determine
   a polynomial f.
 
   Outputs: a commitment vss_commitment, which is a vector commitment to each of the
@@ -1388,15 +1388,15 @@ The procedure for committing to a polynomial `f` of degree at most `MIN_SIGNERS-
     return vss_commitment
 ~~~
 
-The procedure for verification of a signer's share is as follows.
-If `vss_verify` fails, the signer MUST abort the protocol, and failure should be investigated out of band.
+The procedure for verification of a participant's share is as follows.
+If `vss_verify` fails, the participant MUST abort the protocol, and failure should be investigated out of band.
 
 ~~~
   vss_verify(share_i, vss_commitment):
 
   Inputs:
-  - share_i: A tuple of the form (i, sk_i), where i indicates the signer
-    identifier, and sk_i the signer's secret key, a secret share of the
+  - share_i: A tuple of the form (i, sk_i), where i indicates the participant
+    identifier, and sk_i the participant's secret key, a secret share of the
     constant term of f, where sk_i is a Scalar.
   - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment
     to each of the coefficients in coeffs, where each element of the vector commitment
@@ -1408,39 +1408,39 @@ If `vss_verify` fails, the signer MUST abort the protocol, and failure should be
     (i, sk_i) = share_i
     S_i = ScalarBaseMult(sk_i)
     S_i' = G.Identity()
-    for j in range(0, MIN_SIGNERS):
+    for j in range(0, MIN_PARTICIPANTS):
       S_i' += G.ScalarMult(vss_commitment[j], pow(i, j))
     if S_i == S_i':
       return 1
     return 0
 ~~~
 
-We now define how the Coordinator and signers can derive group info,
+We now define how the Coordinator and participants can derive group info,
 which is an input into the FROST signing protocol.
 
 ~~~
-    derive_group_info(MAX_SIGNERS, MIN_SIGNERS, vss_commitment):
+    derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment):
 
     Inputs:
-    - MAX_SIGNERS, the number of shares to generate, an integer
-    - MIN_SIGNERS, the threshold of the secret sharing scheme, an integer
+    - MAX_PARTICIPANTS, the number of shares to generate, an integer
+    - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer
     - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
     coefficients in coeffs, where each element of the vector commitment is an Element in G.
 
     Outputs:
     - PK, the public key representing the group, an Element.
-    - signer_public_keys, a list of MAX_SIGNERS public keys PK_i for i=1,...,MAX_SIGNERS,
-      where each PK_i is the public key, an Element, for signer i.
+    - participant_public_keys, a list of MAX_PARTICIPANTS public keys PK_i for i=1,...,MAX_PARTICIPANTS,
+      where each PK_i is the public key, an Element, for participant i.
 
-    derive_group_info(MAX_SIGNERS, MIN_SIGNERS, vss_commitment)
+    derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
       PK = vss_commitment[0]
-      signer_public_keys = []
-      for i in range(1, MAX_SIGNERS+1):
+      participant_public_keys = []
+      for i in range(1, MAX_PARTICIPANTS+1):
         PK_i = G.Identity()
-        for j in range(0, MIN_SIGNERS):
+        for j in range(0, MIN_PARTICIPANTS):
           PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
-        signer_public_keys.append(PK_i)
-      return PK, signer_public_keys
+        participant_public_keys.append(PK_i)
+      return PK, participant_public_keys
 ~~~
 
 # Random Scalar Generation {#random-scalar}
@@ -1481,19 +1481,19 @@ string.
 Each test vector consists of the following information.
 
 - Configuration. This lists the fixed parameters for the particular instantiation
-  of FROST, including MAX_SIGNERS, MIN_SIGNERS, and NUM_SIGNERS.
+  of FROST, including MAX_PARTICIPANTS, MIN_PARTICIPANTS, and NUM_PARTICIPANTS.
 - Group input parameters. This lists the group secret key and shared public key,
   generated by a trusted dealer as described in {{dep-dealer}}, as well as the
   input message to be signed. All values are encoded as hexadecimal strings.
 - Signer input parameters. This lists the signing key share for each of the
-  NUM_SIGNERS signers.
-- Round one parameters and outputs. This lists the NUM_SIGNERS participants engaged
+  NUM_PARTICIPANTS participants.
+- Round one parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
   in the protocol, identified by their integer identifier, and for each participant:
   the hiding and binding commitment values produced in {{frost-round-one}}; the randomness
   values used to derive the commitment nonces in `nonce_generate`; the resulting group
   binding factor input computed in part from the group commitment list encoded as
   described in {{dep-encoding}}; and group binding factor as computed in {{frost-round-two}}).
-- Round two parameters and outputs. This lists the NUM_SIGNERS participants engaged
+- Round two parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
   in the protocol, identified by their integer identifier, along with their corresponding
   output signature share as produced in {{frost-round-two}}.
 - Final output. This lists the aggregate signature as produced in {{frost-aggregation}}.
@@ -1502,9 +1502,9 @@ Each test vector consists of the following information.
 
 ~~~
 // Configuration information
-MAX_SIGNERS: 3
-MIN_SIGNERS: 2
-NUM_SIGNERS: 2
+MAX_PARTICIPANTS: 3
+MIN_PARTICIPANTS: 2
+NUM_PARTICIPANTS: 2
 
 // Group input parameters
 group_secret_key: 7b1c33d3f5291d85de664833beb1ad469f7fb6025a0ec78b3a7
@@ -1514,76 +1514,76 @@ d380fb9738673
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 929dcc590407aae7d388761cddb0c0db6f5627aea8e217f4a033
-f2ec83d93509
-S2 signer_share: a91e66e012e4364ac9aaa405fcafd370402d9859f7b6685c07ee
-d76bf409e80d
-S3 signer_share: d3cb090a075eb154e82fdb4b3cb507f110040905468bb9c46da8
-bdea643a9a02
+P1 participant_share: 929dcc590407aae7d388761cddb0c0db6f5627aea8e217f
+4a033f2ec83d93509
+P2 participant_share: a91e66e012e4364ac9aaa405fcafd370402d9859f7b6685
+c07eed76bf409e80d
+P3 participant_share: d3cb090a075eb154e82fdb4b3cb507f110040905468bb9c
+46da8bdea643a9a02
 
 // Round one parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce_randomness: d69890885638925b251724b48c40b8a500f838fe8
-b1b0851a2da094969c1ea3a
-S1 binding_nonce_randomness: 7dd4f7213c8c1f02889cce1300212851f4fd33c9
-e860ffb757018ad620702744
-S1 hiding_nonce: 22da11c1bff06d2bdffc76f39287e5eff97e517033c938a0ca9a
-dcbbda830a04
-S1 binding_nonce: bd34fb04c78b38b6a4cca2477d25310a5d98a41383c5ac5dafb
-a7c4cf86ac001
-S1 hiding_nonce_commitment: 0c1c0c64794d7964453bf711a08db8a912de6fefb
-b12956b087a5049da631a4b
-S1 binding_nonce_commitment: 3fe43acbaed63891f6c3d07684a77228bc7c7909
-2fab912290b2f37f8a7a6423
-S1 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
+P1 hiding_nonce_randomness: 9c172a7f9c5960be47a7db4fa883a0ae746de37f6
+e6204deca1e339473bdce3b
+P1 binding_nonce_randomness: 4650fc0e0ac2055557e2c9c2249485f07627d732
+2b2c4e8f3a5983aaa8922bd8
+P1 hiding_nonce: 94882c508fdf78e22c52cd7e58c0bb367233cfee7dc4408b9227
+571524e72008
+P1 binding_nonce: 6cfa5b36787948724e969d031e44f531efdba31419a3ab936bc
+95435f6d9e507
+P1 hiding_nonce_commitment: fc15750c643c386be777231f0178f0a886bf54626
+21b644bda1a63d64087b2b6
+P1 binding_nonce_commitment: 95344ee5968e13cd756732fa5815dfd25d761961
+bf035f70168a90fc512298d6
+P1 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
 d84dd46d0dcbf3a21d21a23a776628859678a968acc8c8564c4641a1fd4b29a12d536
-7ca12ab10b6b497ae5c25ded33580a5d6006bec9c4ae92099f9b1f1839fd697ee2301
-4e77c3e82bb034dc39d267c77d61792c8df7c747a7f57e8260dd9066c68edec3b4648
-a65570001
-S1 binding_factor: 8d626a94915455d59acf42fdb6f9d65b05037885e542de4175
-c9f4b7f9429b0d
-S3 hiding_nonce_randomness: 5d9f143b518509a5bd45c2c71b8dee7d9bb452710
-d52bb6713dbf0068eade977
-S3 binding_nonce_randomness: 091e5807702361c0359ae27d37b669dd2fa65ec8
-67d2cc7f72ae14454b3423a9
-S3 hiding_nonce: bcffd47c9e926493c227dadb3f0eca959346860ae6fb4a438030
-22aea31e6306
-S3 binding_nonce: 6f605d6efcb3452d222ac8a451fea6fc49c4bc785d9a0897114
-53361481ab007
-S3 hiding_nonce_commitment: 29b562d1ee75f969c13980b03277874d9f0de3932
-46560cd001e04ec6b08f773
-S3 binding_nonce_commitment: 1b32c2e7796c38b5fe25c50377cdd161608fe793
-6a5a8af0b0c1af7883350229
-S3 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
+7ca12ab10b6b497f67c3b1f42960bbe79fc9fbcfe37c20107da549072cbeedcde4807
+12b69fff6c47592887e2b4bd8712bd5183c428616fb21e379ba121b71012298a7acf7
+739dc0100000000000000000000000000000000000000000000000000000000000000
+P1 binding_factor: a94188d2776f534baecc57cd17b5cf167e5aa0a01ec3ae543a
+b805b713818e0f
+P3 hiding_nonce_randomness: b95f9fa56c27cc9deacb3d24909e6481364c2b7cd
+ad8b398e54d3cc4d82fcef8
+P3 binding_nonce_randomness: f4cf1b10f0c6d5f05e6dfc7d83e28f1aa098b5c9
+4cc1c456c91b88337cfdb1d1
+P3 hiding_nonce: d0ee6ab5336221594cac78de963a7618827e0feb825e1ffb3e3e
+23f5a1340609
+P3 binding_nonce: 6117beb240bb2a1f54927c27d6057298204ca5817b9662997a8
+785180cf5440f
+P3 hiding_nonce_commitment: 4398d31907fb46687408a470ff64e42932de230fd
+7b818d02c2e8c2c1987b72f
+P3 binding_nonce_commitment: b885b37f1adb1ac2bd987073084f214cc48c59df
+6b95e7bfec454ee071908bac
+P3 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
 d84dd46d0dcbf3a21d21a23a776628859678a968acc8c8564c4641a1fd4b29a12d536
-7ca12ab10b6b497ae5c25ded33580a5d6006bec9c4ae92099f9b1f1839fd697ee2301
-4e77c3e82bb034dc39d267c77d61792c8df7c747a7f57e8260dd9066c68edec3b4648
-a65570003
-S3 binding_factor: 8fc7702fb3f31b2cbf2184344e87c77450a6a66e3eaa4abe05
-a1d983f679320a
+7ca12ab10b6b497f67c3b1f42960bbe79fc9fbcfe37c20107da549072cbeedcde4807
+12b69fff6c47592887e2b4bd8712bd5183c428616fb21e379ba121b71012298a7acf7
+739dc0300000000000000000000000000000000000000000000000000000000000000
+P3 binding_factor: cd2f00678cc8e0500e42408503eb735979301554fb49d5eee2
+1397e6788e5a05
 
 // Round two parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round two outputs
-S1 sig_share: 8d6c5ad9fafdc2b7f54c1c8e3f8b732ff624069f6b01093109790ca
-e917df30d
-S3 sig_share: c3978db4ec26aba506664da6fa005da3582f6781823a0c217c5d203
-22de62404
+P1 sig_share: daa6dac56b1d18299d2ce3e158d9da4bc96e4f51789612e607632c2
+7c096ea0c
+P3 sig_share: 3f39f82a7d04c01186b84ae76606c92810d3360b132792495433d1c
+b02963400
 
-sig: ab4fcc20920987ac7c8f3694b49fcbfe0ce1fb273d5381de89d8a92f2295d74e
-6330f230cdc15b05261672915b92f1bd4e546d20ee3b155285d62ce0be631802
+sig: 7f8ed7419cbb6d22001cef598a3b5124a763a0cc24a99b37c46a3ec2c0ec624c
+19e0d2f0e821d83a23e52dc9bfdfa374d941865c8bbda42f5c96fdf2c22c1f0d
 ~~~
 
 ## FROST(Ed448, SHAKE256)
 
 ~~~
 // Configuration information
-MAX_SIGNERS: 3
-MIN_SIGNERS: 2
-NUM_SIGNERS: 2
+MAX_PARTICIPANTS: 3
+MIN_PARTICIPANTS: 2
+NUM_PARTICIPANTS: 2
 
 // Group input parameters
 group_secret_key: 6298e1eef3c379392caaed061ed8a31033c9e9e3420726f23b4
@@ -1593,88 +1593,90 @@ group_public_key: 3832f82fda00ff5365b0376df705675b63d2a93c24c6e81d408
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 4a2b2f5858a932ad3d3b18bd16e76ced3070d72fd79ae4402df2
-01f525e754716a1bc1b87a502297f2a99d89ea054e0018eb55d39562fd0100
-S2 signer_share: 2503d56c4f516444a45b080182b8a2ebbe4d9b2ab509f25308c8
-8c0ea7ccdc44e2ef4fc4f63403a11b116372438a1e287265cadeff1fcb0700
-S3 signer_share: 00db7a8146f995db0a7cf844ed89d8e94c2b5f259378ff66e39d
-172828b264185ac4decf7219e4aa4478285b9c0eef4fccdf3eea69dd980d00
+P1 participant_share: 4a2b2f5858a932ad3d3b18bd16e76ced3070d72fd79ae44
+02df201f525e754716a1bc1b87a502297f2a99d89ea054e0018eb55d39562fd0100
+P2 participant_share: 2503d56c4f516444a45b080182b8a2ebbe4d9b2ab509f25
+308c88c0ea7ccdc44e2ef4fc4f63403a11b116372438a1e287265cadeff1fcb0700
+P3 participant_share: 00db7a8146f995db0a7cf844ed89d8e94c2b5f259378ff6
+6e39d172828b264185ac4decf7219e4aa4478285b9c0eef4fccdf3eea69dd980d00
 
 // Round one parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce_randomness: bbb58399b52897419bd2b044e17145f068f878228
-e0ce0c95e522a2102eeea62
-S1 binding_nonce_randomness: 58a16ba8afe654b72278ac3cbd2d8c135a887153
-9884c6e75aa569e5ec6367d2
-S1 hiding_nonce: 8c8144102050318838f2bac501eced275b9299e6975afb3e88d0
-aa1add0a964cf94d22d525033e55c24948ae0fc3440c270640bb4349552300
-S1 binding_nonce: b6978464ff1d5def44907f0c7749806725e4ea7ba93057329a8
-8efe5ca003f817fa02705bc42eb6658672af41d17870e40b70ce1834d383600
-S1 hiding_nonce_commitment: 9d94192aa8b9ef05ae4da111ab22edd3ad81cba37
-c45b2788807e65d2e139ce6f4808bd11b75282c12cfbf92e2bc71d00a1302f350ff15
-9b00
-S1 binding_nonce_commitment: aff44f339b558999eac4cbd487f4848443897843
-6e828b0e5d9fdd7fc07e6f4c1e2c4ba5d3ae1adb76c4966ead7f24b617bc8a0c9c8d1
-7c800
-S1 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
+P1 hiding_nonce_randomness: ba2b5f607643fd2382060637a95d147105123aba7
+904484bfa9630b08c052b35
+P1 binding_nonce_randomness: 1c082befa54e85088c05256a6c1c4a456cdd2230
+e0f152f1abfd5cbfdaa7f667
+P1 hiding_nonce: 4b1dc2ef6f98c4303420104eb7d31d85c041f36aed22581ba0f6
+379cc8e6071a1b2aa21527f2b86439be783c8cb05dbe201de03d9a78782d00
+P1 binding_nonce: a882bdf0a8c15cc7530bf2447238e2d26fd6437ec9885cba93f
+6f78f9d32b79dc8bbfc0072e7183e39e544de7501baf13ce26d3182b2a32300
+P1 hiding_nonce_commitment: 9a49143f9d2f08251e3e3de9ef4aaac5d4c0ca187
+a8892f489c1c1efa97f5dd564c4f71b902f210833688fab2e205810d6417564321aa9
+ff00
+P1 binding_nonce_commitment: ec90f03f6b71d868614d9453504210ecddacba74
+1d4f172a360a9ac04ca5a192efba1cfd286f06d6ec6407ce96ef27445357b36dd5011
+65d80
+P1 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
 e1a5b8fa8ea5adaf3e7989b2c167a38a42a1693ad69cfd674e089a498672753563d53
 54654ba106d5fdffb134a8917fae91d412164436f734b95572af6208605744400c6ff
-9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef023eed61051586783022cc4cf
-a471ee6fa0872880d19b29dc14fac071f7fe467f4646059038286172bd78821d8a649
-43790554f7851f4ef3311fdadf8b54cb5788cb7f4504305da6be864ae899f5e7d1c5f
-ae9174cb53fb2640d2c0e3e213c4094e411d6155fcf88773d8a1270ae8aa03563c900
-01
-S1 binding_factor: abaf4a2a2eadff424a66133827afdfa3296c220382d7dc0870
-a6dfbe953fe72a92df45207227e1231113bea7f32b7c80b031f8a615bbec3800
-S3 hiding_nonce_randomness: e3f570151303da4e5a1202e5b417b5d30f98c0f82
-ef94e7bfea5b820f22d0995
-S3 binding_nonce_randomness: d1a579ce9c0b06237ac80ec0e0e8284c0492e5fb
-09dfec1c34f4178f74adf916
-S3 hiding_nonce: 3e07736968bdeaf3e6db8b334475c6fafe2928243a437e4ede9f
-b4c9d9be58227d5a684a1160c6ce9260611dfb2103b11add29a91df0900800
-S3 binding_nonce: 7805cd0423a659f4d20fbdd6f8a88b828de527f75b31ddd588d
-2ba683431dcd944ec81892f9cbe039852af8b00d9d2e9a3ba6b0cf9748e1300
-S3 hiding_nonce_commitment: b3c28f9c6d1ec92069d8c27f4661c8b33f3036183
-9a3ba12f8d6f3a953f5853fbf10fd53cc91cf6a2c3cff16c9fb8481d469159212ead5
-a480
-S3 binding_nonce_commitment: 26ab246280655b42a5dedd6aba9680889721ab02
-afd9072f6ae8a18239cc8045331cf3874c171dab87d52fae31b8dc48d063c63c9f77d
-1e380
-S3 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
+9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef02a4743d5ca724ba46be0416f
+c51612bdcf8976f2647429ea882a3eb2218c64d8e5b2b0a9514aae5b755ba8557da5e
+5a0a9bdfa55252cf9dff05c796d5de55c5f5266fcd9147f558e2020deed42963ee9e2
+c5dbe4e8fd0c7b003ed39669aab27e60269f4b30c4f116c8e94288cb38ab253843701
+000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000
+P1 binding_factor: ec733e34be2b0e1fb0bc2303f3752b830e96689ec1e2a1db40
+035e9524804dc29079830803974b8a8f7b81495807fe9dffc3e7f389398d1a00
+P3 hiding_nonce_randomness: 5a22cd6d15664a4750207f6e38aa09191c6dbc106
+319b99f8890438e275c2029
+P3 binding_nonce_randomness: 50de51297b58be5ed06780578495cb6e10584bf8
+e95ea1c02fb83fee37851825
+P3 hiding_nonce: 32e1707ce6a18a8ef315b49092f07cf74f03e49ec8031121227b
+2c91f594f281f2c19cc0d00f919cfbdc8fcef4cbead428c30c380ed8e91d00
+P3 binding_nonce: 467b8edc4f3278d536c20c6acc991e38dd981cce68f791ebd33
+e836d2942f0682b6a73a04db2a9dd471b59e752218f39625561e88a359d3c00
+P3 hiding_nonce_commitment: deed4b96c912aa294d0b75f18f7296abc70e6e2c8
+e1e43a67b96944f51b4b9635d5d9c83511b330870bb816dd2a708aef526ffd04489aa
+2f80
+P3 binding_nonce_commitment: 74b5a0d56bb0fd7e558f0113bdc8973b41a67b54
+a3c6e7131676552ac5e6b3fc49adc1c82e7c2350ee520b38ce6d5f17c254d1e72e383
+25f00
+P3 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
 e1a5b8fa8ea5adaf3e7989b2c167a38a42a1693ad69cfd674e089a498672753563d53
 54654ba106d5fdffb134a8917fae91d412164436f734b95572af6208605744400c6ff
-9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef023eed61051586783022cc4cf
-a471ee6fa0872880d19b29dc14fac071f7fe467f4646059038286172bd78821d8a649
-43790554f7851f4ef3311fdadf8b54cb5788cb7f4504305da6be864ae899f5e7d1c5f
-ae9174cb53fb2640d2c0e3e213c4094e411d6155fcf88773d8a1270ae8aa03563c900
-03
-S3 binding_factor: e426c609db3e5c5174b7165b5b6584dbf38fe9ccdd84e91aab
-ef28047f667661894368c2351cba15db2c3245d8d061a731b1ccea796e7e0900
+9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef02a4743d5ca724ba46be0416f
+c51612bdcf8976f2647429ea882a3eb2218c64d8e5b2b0a9514aae5b755ba8557da5e
+5a0a9bdfa55252cf9dff05c796d5de55c5f5266fcd9147f558e2020deed42963ee9e2
+c5dbe4e8fd0c7b003ed39669aab27e60269f4b30c4f116c8e94288cb38ab253843703
+000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000
+P3 binding_factor: a1418cc09fb9380b65853263a25fa5d75c2247a45db30b204b
+0e8d429d9723ebdd4a6ac3fbb5d3a79e18ee79e22cddf8bc6ad4dd22884a0700
 
 // Round two parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round two outputs
-S1 sig_share: 26875caf430aa6ea61e97f477412579deff9dc895cd385812df5968
-9c5a3ccf0a728b4d72f8db62d69556ded456522eed3d93c586390d22a00
-S3 sig_share: e7053a6571e53e0729d4e53a76ba3c1d069b8e4e5079d28333a86ce
-496c6f5cd0afd55b0068dd947e232abb8f9418776dc94e5857fcb1e0600
+P1 sig_share: 78f4925b82ad324cbca12eb560e9ae877e8964fea281bc42b7fcf6c
+44e68588144e56ab3b786d57fe55d4e79b321134c538c66cf52558c0000
+P3 sig_share: 040bc58c5fec391eced4c70052b6706194d29711f576b33d4b269cb
+0bb8041e7947ac3fe8b5b4111a4dd977dd376a58137e5901f348cc60400
 
-sig: 38e91000329fca9f1b2f74fc642947bbc7b787cbbd9183f98e70e3eef3bd384b
-f1c4cb50e063fd4e73aaf3321549126a39a4f86405831afa000d8d9614b5efe4f18ab
-d6582eacc93baf5946bd8ac4c5805619d036e5c6ac2beb2250a88361a90754b8818a6
-3fa7a964b06e22dee25bf13000
+sig: d037ae06b56ece370ee58ebd92f6e83b263eed8759fdf18bc912fce1e0c99cb7
+7bb1bd97c7f27120d10a9a3e0ca82acd9172f247df1f79e9807cff57e8e1996c6a8a7
+6f6b5b29f1fe9125cfc0f98f86f80022393750ae99968d95f2eb243e21691893be6f6
+8698b8cd8a71f7ee86e1520500
 ~~~
 
 ## FROST(ristretto255, SHA-512)
 
 ~~~
 // Configuration information
-MAX_SIGNERS: 3
-MIN_SIGNERS: 2
-NUM_SIGNERS: 2
+MAX_PARTICIPANTS: 3
+MIN_PARTICIPANTS: 2
+NUM_PARTICIPANTS: 2
 
 // Group input parameters
 group_secret_key: 1b25a55e463cfd15cf14a5d3acc3d15053f08da49c8afcf3ab2
@@ -1684,76 +1686,76 @@ group_public_key: e2a62f39eede11269e3bd5a7d97554f5ca384f9f6d3dd9c3c0d
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 5c3430d391552f6e60ecdc093ff9f6f4488756aa6cebdbad75a7
-68010b8f830e
-S2 signer_share: b06fc5eac20b4f6e1b271d9df2343d843e1e1fb03c4cbb673f28
-72d459ce6f01
-S3 signer_share: f17e505f0e2581c6acfe54d3846a622834b5e7b50cad9a2109a9
-7ba7a80d5c04
+P1 participant_share: 5c3430d391552f6e60ecdc093ff9f6f4488756aa6cebdba
+d75a768010b8f830e
+P2 participant_share: b06fc5eac20b4f6e1b271d9df2343d843e1e1fb03c4cbb6
+73f2872d459ce6f01
+P3 participant_share: f17e505f0e2581c6acfe54d3846a622834b5e7b50cad9a2
+109a97ba7a80d5c04
 
 // Round one parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce_randomness: 0926ddfc444fe15f994867178bad8535b7d4e1316
-5004cf205eb3f2176643fb3
-S1 binding_nonce_randomness: 22b0cb53ade9f7f75a8da147de631855bae11992
-91e9d571d6aa4b2bf2069569
-S1 hiding_nonce: 85e80dae5ec5be434f294c4398931ad9b309913f5c314f2f527b
-18c155c1740b
-S1 binding_nonce: 9f95313c636709d60d1a12f3588b9492cf84e31aafe0ac73a6d
-e3776fd4d0906
-S1 hiding_nonce_commitment: e8c5b08e5bd2070d892d710aee98a1a2fccb06818
-4415374469a682621a59601
-S1 binding_nonce_commitment: b68b6e082c64f0c6f5c7d8fe065326a52c20125e
-8911ebb865ad6301be430655
-S1 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
+P1 hiding_nonce_randomness: 800362a8d813cd6804e3edf8ac783ad9579879dc0
+c7a90830bebe785a9735c53
+P1 binding_nonce_randomness: c23edc46710bb39b090397c73efb5d5c716e939e
+e4f9da256e203d8efd193e42
+P1 hiding_nonce: d0d5217de458a63f0c481965685d0b7951d4f246d7d6f58c2af1
+cb867ad10f0a
+P1 binding_nonce: 1605994a67a59947dbfbad91c6c26b11c8a063f7bd182802403
+3592191438404
+P1 hiding_nonce_commitment: e2d821b10ca8cd58c213b61beae7076f70dc8fc03
+d6f55ed0ac47b755fa4c221
+P1 binding_nonce_commitment: b60016fa8bdaff7e1f01140ec6689aa6895206fe
+c7d81893caad04ea7279db58
+P1 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
 016254dc7c9d4869cbae0f6e4d94b23e5781b91bc74a25e0c773446b2640290d07c83
-f0b067ff870a801c9fca21a57fee3b3f0e9bf6d097c71217f827465d33024527220b3
-70d5fa8c3487a66d246ffbcd1079b9f2b832c3386b5eb44ca3110daeadd872af0629e
-9a8860001
-S1 binding_factor: 436c215db8ac1d4cfae65b5cd894e4d9734e5ebbfcf8658e76
-37058d8d31050f
-S3 hiding_nonce_randomness: 0a39da8b5c790efed08f60b244a028f8097a87211
-16a9a26f079726e1828a798
-S3 binding_nonce_randomness: 107de7423a0e42be6c9d37a1600d41996aa542d4
-73f2062e0aa9a3e98d0110bc
-S3 hiding_nonce: 24e46ffd4b22e7f9105555049f2a5122cc45ba430750a5525173
-9b14365f0e01
-S3 binding_nonce: e510a0b178668d39d65ae03f4a4382ac4bd5279fdc88559d2ee
-b906827344606
-S3 hiding_nonce_commitment: 1cfb88d54435248946f93a9e41ab58e6a9b94e290
-c0189e4c54aa24df0eaa257
-S3 binding_nonce_commitment: 661099702939493db834aea5663a8edc986b7765
-55e3acbeb3fb1813145fc850
-S3 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
+f0b067ff870a8012c449dc9378bc61c065d559391013516be07ba8914becca8773de1
+7fdd7086997d6d6bf9d34d181e29f99a30a78da1a83fb4cdfca1c9cc9b3b049a993ea
+6f7eb0100000000000000000000000000000000000000000000000000000000000000
+P1 binding_factor: 0be2ef221dc60cd0d413b7219c53089f297f47c9712d45c86c
+404bf8dd7d5209
+P3 hiding_nonce_randomness: e1694203fef385a28c97a772bfde8fae1b8fae892
+2b415b65a9568587f539688
+P3 binding_nonce_randomness: 3983be10e331d35662b9e7158636a6662637f858
+9e380ff89253fbc1398e44bb
+P3 hiding_nonce: 87366dbdbce5e748ab9651dfa23117425754d302392dbff170eb
+e9f28513440e
+P3 binding_nonce: b8db94e6dcfad262958a1f500aefdc2997542410edd2f09c53a
+de0a8e5ff6506
+P3 hiding_nonce_commitment: 6cb14fcf8be575b10e5fe83f69583ffd2027a9b1f
+18d5ce047c859f9214dfe42
+P3 binding_nonce_commitment: aebb56b5eaf87e79ce2c35a330c233a8ef08a8d1
+63683669834bb08b319fcb45
+P3 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
 016254dc7c9d4869cbae0f6e4d94b23e5781b91bc74a25e0c773446b2640290d07c83
-f0b067ff870a801c9fca21a57fee3b3f0e9bf6d097c71217f827465d33024527220b3
-70d5fa8c3487a66d246ffbcd1079b9f2b832c3386b5eb44ca3110daeadd872af0629e
-9a8860003
-S3 binding_factor: b05695453984f989313ef6e2026fea7220ef46b6417133a6fb
-a81992fb515506
+f0b067ff870a8012c449dc9378bc61c065d559391013516be07ba8914becca8773de1
+7fdd7086997d6d6bf9d34d181e29f99a30a78da1a83fb4cdfca1c9cc9b3b049a993ea
+6f7eb0300000000000000000000000000000000000000000000000000000000000000
+P3 binding_factor: d91da5b2bd01a1131ff7ae595b69132d93a5b1e3721cdfcb51
+9e40f5c0d9040f
 
 // Round two parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round two outputs
-S1 sig_share: 4a54069490efb9d941cead32a5ece0862a6ba1294de29b4d8e8f4df
-18990ae01
-S3 sig_share: 1a5a7a501ee0b792060d96b1c0fe2c40e92fbb2beb5e3665fe4c52d
-4b1e8a003
+P1 sig_share: cae88f5ab022a35a6fb644d6eab258946446fa97a155a789f5c9a57
+b42ba3107
+P3 sig_share: 1d849904139872afa39fe5dbd77a98b7807ef0c76fa1a39e8d23c72
+00d2d720e
 
-sig: 96b4d57119b8451a9c08f1d23203654509987bf8fa577d03a283f0d239ac9540
-64ae80e4aecf716c48db43e465eb0dc7139b5c553841d2b28cdc9fc53b794f05
+sig: 4215ce8759987b6bfa5751943911ac520815febd13e449ca9eadd03be68d3131
+fa983302a95703b23cb9320fe4331237e5c4ea5f11f74a2883ed6c9c4fe7a305
 ~~~
 
 ## FROST(P-256, SHA-256)
 
 ~~~
 // Configuration information
-MAX_SIGNERS: 3
-MIN_SIGNERS: 2
-NUM_SIGNERS: 2
+MAX_PARTICIPANTS: 3
+MIN_PARTICIPANTS: 2
+NUM_PARTICIPANTS: 2
 
 // Group input parameters
 group_secret_key: 8ba9bba2e0fd8c4767154d35a0b7562244a4aaf6f36c8fb8735
@@ -1763,72 +1765,74 @@ dc00585ec45ab70
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 0c9c1a0fe806c184add50bbdcac913dda73e482daf95dcb9f35d
-bb0d8a9f7731
-S2 signer_share: 8d8e787bef0ff6c2f494ca45f4dad198c6bee01212d6c8406715
-9c52e1863ad5
-S3 signer_share: 0e80d6e8f6192c003b5488ce1eec8f5429587d48cf001541e713
-b2d53c09d928
+P1 participant_share: 0c9c1a0fe806c184add50bbdcac913dda73e482daf95dcb
+9f35dbb0d8a9f7731
+P2 participant_share: 8d8e787bef0ff6c2f494ca45f4dad198c6bee01212d6c84
+067159c52e1863ad5
+P3 participant_share: 0e80d6e8f6192c003b5488ce1eec8f5429587d48cf00154
+1e713b2d53c09d928
 
 // Round one parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce_randomness: 8dd17d1ba3dfc7de3b5c5451c291435742c9da8fc
-a5d347a80fdfa699d3bbf02
-S1 binding_nonce_randomness: f235d4e52cbcce7f7ad081bd2cb9afdfb94fc17a
-d2fd82b570e68db74cf84d9f
-S1 hiding_nonce: fb5fa336237c7e365738bc2aaea5ddca53b86e4ae18a6c92fea5
-261c1a0cac44
-S1 binding_nonce: eadc82592a64742e9516202e6cec4fd61dd37148730036fea2a
-28b6c71974c92
-S1 hiding_nonce_commitment: 0356b53a2383c9d4762b4dfe83e76d53bb3e45681
-bcfd445499b2948863ff696cc
-S1 binding_nonce_commitment: 021d53a49180d7544da34dfdfe6118716521358c
-6d57c39fafb33fb07b96a3f0cd
-S1 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
-7c4b72a298d1eaae57663f5d996c134493ffebe414006e5b8eb0c3dce1ed80f0a2b70
-dcbbcc4f58cc44c0001
-S1 binding_factor: 8406e9b5d5fc1ef44e65e83c7795a32e84d6d9fac3fca8bc0b
-cbd8901e4e985a
-S3 hiding_nonce_randomness: 53ff4ae3c3305e420c3219af0225196ebcfc1285d
-1d5882c40f1b99bc363553a
-S3 binding_nonce_randomness: 21e912ac76cd5d9454119d226468f853509f7885
-1cd8867c912f990e4b9ddb9c
-S3 hiding_nonce: 39e7f50f4775d62410bd92a4ff80424ef964b3fbf5d4fb5cab96
-13110dae91cb
-S3 binding_nonce: 4e99ab19a3972340d628a4595b2ad56617fad340ae29cb40a48
-99979fbdece77
-S3 hiding_nonce_commitment: 020ca7c3cdc49e359d9ab49c5eb6c9776a4c41003
-b5ef202e993629b734b3ad0e8
-S3 binding_nonce_commitment: 037c92d4f8ceaf9b0fdcf61e34f8d1d5477cb1aa
-7da6fdff86e452106345ffb2c1
-S3 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
-7c4b72a298d1eaae57663f5d996c134493ffebe414006e5b8eb0c3dce1ed80f0a2b70
-dcbbcc4f58cc44c0003
-S3 binding_factor: 0df2d4b4b6221362066082121f6906e8e07b44cb056fbd157f
-e8ad99f241dc3b
+P1 hiding_nonce_randomness: 3c1ad3f1588e5e787252daee238842c5aaef25498
+8dfedf4c6c106e39960538c
+P1 binding_nonce_randomness: 236fa021499bb714ea589a0d32610b62aad8a0a2
+54542d1e3bebdf0c04a1bb22
+P1 hiding_nonce: fa5c564fc09aa2e3a080f64d3ea6154d111f4653637e5ee7685c
+212ca56d562d
+P1 binding_nonce: 39898a6544b2a1b5a7d96e9787620717a92edeffbfadf309b8f
+c6d11b1c17e66
+P1 hiding_nonce_commitment: 0399f585b393389ba78d6ad677e05931def39cbd8
+3de0f2c88a20370b87091bd7a
+P1 binding_nonce_commitment: 038357840c574ad6b5352e1c856ddd030a542def
+449120e07e23e6cfe01f33c31c
+P1 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
+7c4b72a298d1eaae576687e1e5c12e46666581ff374d499486fd822651c592fae9274
+62d33b6806921a8000000000000000000000000000000000000000000000000000000
+0000000001
+P1 binding_factor: 04138c55dffb136efef40879635a87c265523a462627c8633c
+42aabcc13152cb
+P3 hiding_nonce_randomness: e5734b9568778924dd0f2730235252fb58e8b07c3
+2d5901408085f272be744ea
+P3 binding_nonce_randomness: e64868cdf6c1e4978d24b77efdbf3fd2b63a649e
+f254e48f0200f8bef192e5ac
+P3 hiding_nonce: cea438e715a07c875502b042abda3958978eace1627d13074f9d
+391156b31cca
+P3 binding_nonce: af3e1a1ff865b9d087af44169090b804608903514e4308a5b13
+467a9fffbfecc
+P3 hiding_nonce_commitment: 036468bc9835aadbbe0d1f7f7a86a5d584d8038c9
+6edf3092424f3adb43f947b20
+P3 binding_nonce_commitment: 03ba4047847e7f1981c8a42999b2e06d3d2a6f2d
+b5895f29808a2c1db1867db3b8
+P3 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
+7c4b72a298d1eaae576687e1e5c12e46666581ff374d499486fd822651c592fae9274
+62d33b6806921a8000000000000000000000000000000000000000000000000000000
+0000000003
+P3 binding_factor: d3718e28baf409704b85dc1a7739c91f33ff776436aeb8974f
+6f163d6272edc3
 
 // Round two parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round two outputs
-S1 sig_share: 88e01f9731f24e4fc97e105517df81c0fff2d2f412f9818960d88aa
-bb5fd3e06
-S3 sig_share: 7940e2387e0c5918ba162e5d69742ce291622b1fbcb1db244a3631f
-406b76a24
+P1 sig_share: 7d80f1d6761042eea9be3e7144fd5cbac11ff58d759411a26a7eb32
+3fdf6a236
+P3 sig_share: 146aeea91a483aed8f086336b7f8096dcfed423f7d463b84a447946
+58a62c289
 
-sig: 034513f8b81b9d933364cafacaa0fa49b1769e10af2abbea399c7a050550bd72
-12022101d0affea76783943eb28153aea3d46e03662893be28b754f1dcc05182d9
+sig: 03369bac94d99919184eed76e7ba2b2190c77fae214fb68d897fece8b0705c45
+9291ebe07f90587ddc38c6a1a7fcf56628910d37ccf2da4d270ec64789885964bf
 ~~~
 
 ## FROST(secp256k1, SHA-256)
 
 ~~~
 // Configuration information
-MAX_SIGNERS: 3
-MIN_SIGNERS: 2
-NUM_SIGNERS: 2
+MAX_PARTICIPANTS: 3
+MIN_PARTICIPANTS: 2
+NUM_PARTICIPANTS: 2
 
 // Group input parameters
 group_secret_key: 0d004150d27c3bf2a42f312683d35fac7394b1e9e318249c1bf
@@ -1838,61 +1842,63 @@ group_public_key: 02f37c34b66ced1fb51c34a90bdae006901f10625cc06c4f646
 message: 74657374
 
 // Signer input parameters
-S1 signer_share: 08f89ffe80ac94dcb920c26f3f46140bfc7f95b493f8310f5fc1
-ea2b01f4254c
-S2 signer_share: 04f0feac2edcedc6ce1253b7fab8c86b856a797f44d83d82a385
-554e6e401984
-S3 signer_share: 00e95d59dd0d46b0e303e500b62b7ccb0e555d49f5b849f5e748
-c071da8c0dbc
+P1 participant_share: 08f89ffe80ac94dcb920c26f3f46140bfc7f95b493f8310
+f5fc1ea2b01f4254c
+P2 participant_share: 04f0feac2edcedc6ce1253b7fab8c86b856a797f44d83d8
+2a385554e6e401984
+P3 participant_share: 00e95d59dd0d46b0e303e500b62b7ccb0e555d49f5b849f
+5e748c071da8c0dbc
 
 // Round one parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round one outputs
-S1 hiding_nonce_randomness: 6c2ffe6acdeab388f99dacf4b1d0f54c4347b6704
-7475c7240f8321a6b445632
-S1 binding_nonce_randomness: 1f9cd4f714c7f313b817ed513111b09d009eca42
-9ec31556089ce21282654cbe
-S1 hiding_nonce: 13ccf4cb42a93108118ae3532c2c678d23f01c76b3c314f560e4
-767b9622c8a5
-S1 binding_nonce: 0cd29b90993d04017874f75a3f283f9f079272f2fea869aad20
-406a697ba0494
-S1 hiding_nonce_commitment: 0217faaea690aac421a485c87e60b721334790626
-5bf7cf39cfc3fa8ef59b9996e
-S1 binding_nonce_commitment: 02120026132ac451efb51f6773553aecf02d3479
-0d82b8dcc2e05a71b387f3676f
-S1 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
-49237106acab251dd95484130ad7927513c6fea81f43852f1637c9c7a4b559c74033c
-b215802ca0d4bfd0001
-S1 binding_factor: b092be662b30bac484793b2e5c260382f93568442132d00d83
-5042ba1670fccc
-S3 hiding_nonce_randomness: 2188362baee05233f7edfe953a68a03ed962cdf39
-becf6f243dffff27a2dd67d
-S3 binding_nonce_randomness: 745905d509462c1f6fc64c7c88f508102afaa58a
-ee4c49f2dfb151445284c3c7
-S3 hiding_nonce: c3446606d68e818871c14e94863d625af11c04bb40437c64d286
-9ccf245d88cf
-S3 binding_nonce: ce020ade05afe77ecd65cbae78af54f72a4691cb09fa1c159bd
-5d549800595ab
-S3 hiding_nonce_commitment: 0388bc09eea4059abcfd7dc093ddcc49183e2006f
-a10da1ed63ee095205aa39b21
-S3 binding_nonce_commitment: 02910d9826b8cbf2571a9ff9a9f1476eb945eefc
-66729dc3a7e163133bb4a14db7
-S3 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
-49237106acab251dd95484130ad7927513c6fea81f43852f1637c9c7a4b559c74033c
-b215802ca0d4bfd0003
-S3 binding_factor: f05ba42ccd8bf4ad5a3b74c05b2cb2ae8e4de904ca1e7c3167
-788def077eae24
+P1 hiding_nonce_randomness: 73ada6d5ddfdcc4e1615f6605aa2a4caf45915411
+a1df30f6d251ac0e851cf2b
+P1 binding_nonce_randomness: 0b97c5ca9ab4de67b7c4f9ab3d10fef9aa4bf51b
+3218e435e923a630beba61d9
+P1 hiding_nonce: 7a821c822e1fb86a405556036f45d1baeb7634fd5b41f05ade35
+008fa1c4a6a2
+P1 binding_nonce: 353d8bdd999b9d38f933c1bab445f21a94ee4130651fbf6257e
+6f5c1a50bbc9d
+P1 hiding_nonce_commitment: 02b1461dc843f5ebcc159ac0f5d6b2d2f17335fb3
+19878834c64beb4c0470a22cc
+P1 binding_nonce_commitment: 031dd6d530e3bdee615604d4a24da8f5242980cb
+2269c7295fb34c8b697d865100
+P1 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
+49237106acab251dd9543756d46661d42094810f9553abbf96602fc358eb7a075d38d
+3b00307afc97ec9000000000000000000000000000000000000000000000000000000
+0000000001
+P1 binding_factor: 6daaacedbaa7e7f5133e0926104494029773458add9e8f420f
+211a7c16b1983f
+P3 hiding_nonce_randomness: d5015c1466231a824b15fe0db4ef46b86aa0cba23
+07f3b79cb7cb6bd59d73454
+P3 binding_nonce_randomness: 79cf079f3aba061eb98735297d9837b9a0fcdc05
+317f40e4795bfc3dd0fa11d7
+P3 hiding_nonce: fa81f7f4093b0ec8e9208d4e409034fbf88a1439520b9b4fdb08
+7fcd634a9993
+P3 binding_nonce: 83634d9f9af6d94ffa211023f1f5f8bff062ec7fe0a62b2a8e1
+6bf7765bf2602
+P3 hiding_nonce_commitment: 03aa2d3aefdb4c65dfd78afed2fbab04882eb48f8
+9dcb335651916e06e7839618e
+P3 binding_nonce_commitment: 036b9ea395a2b4ff4c21e316fe46415e5ccfbcec
+25862f9bb02b4b0892e32adc10
+P3 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
+49237106acab251dd9543756d46661d42094810f9553abbf96602fc358eb7a075d38d
+3b00307afc97ec9000000000000000000000000000000000000000000000000000000
+0000000003
+P3 binding_factor: 0542e6125a4bc35419ab34df73849e9790968b9d3ba30b283b
+b0c359fb54b6ab
 
 // Round two parameters
-participants: 1,3
+participant_list: 1,3
 
 // Signer round two outputs
-S1 sig_share: c816611ef8cce4422697ac068bf228215379529b883a196735724fc
-2f0a9c64b
-S3 sig_share: d562cf29bcc9d958104bee38164d39ec4e43cd20cdd1dd36e9d7a45
-72df31a89
+P1 sig_share: c53df0159d4584bb6a4c471ce50ec5e52e2df0c8a3ade5785749c25
+e11897381
+P3 sig_share: 861a2db5fb7f9135753060d8bdfaa961d202aa58ea363956c304e3f
+e0fa8dcbb
 
-sig: 03e3c155366f19446a80720d6ed116dae31cd57d70e4d69850152fd61022cd4b
-d79d793048b596bd9a36e39a3ea23f620ee70e42d5a6c356625f77958d4e669f93
+sig: 0399e4d7aa38a0a9b83560d4b8e53d8b2d846d826273e968f88f0c702ef765aa
+ad4b581dcb98c515f0df7ca7f5a3096f484581be3ade9b7e935a7c47cf50fc0efb
 ~~~

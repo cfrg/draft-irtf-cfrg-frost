@@ -2,9 +2,9 @@ import sys
 import json
 
 config_keys = [
-    "MAX_SIGNERS",
-    "MIN_SIGNERS",
-    "NUM_SIGNERS",
+    "MAX_PARTICIPANTS",
+    "MIN_PARTICIPANTS",
+    "NUM_PARTICIPANTS",
 ]
 
 input_keys = [
@@ -14,11 +14,11 @@ input_keys = [
 ]
 
 input_signer_keys = [
-    "signer_share",
+    "participant_share",
 ]
 
 round_one_keys = [
-    "participants",
+    "participant_list",
 ]
 
 round_one_outputs_keys = [
@@ -33,7 +33,7 @@ round_one_outputs_keys = [
 ]
 
 round_two_keys = [
-    "participants",
+    "participant_list",
 ]
 
 round_two_outputs_keys = [
@@ -67,11 +67,11 @@ def format_vector_inputs(name, vector):
                 wrap_print(key + ":", vector["inputs"][key])
     print("")
     print("// Signer input parameters")
-    for signer in vector["inputs"]["signers"]:
+    for signer in vector["inputs"]["participants"]:
         for signer_key in input_signer_keys:
-            for signer_input_key in vector["inputs"]["signers"][signer]:
+            for signer_input_key in vector["inputs"]["participants"][signer]:
                 if signer_key == signer_input_key:
-                    wrap_print("S" + signer + " " + signer_key + ":", vector["inputs"]["signers"][signer][signer_key])
+                    wrap_print("P" + signer + " " + signer_key + ":", vector["inputs"]["participants"][signer][signer_key])
     print("")
 
 def format_vector_round_one(name, vector):
@@ -82,11 +82,11 @@ def format_vector_round_one(name, vector):
                 wrap_print(key + ":", vector["round_one_outputs"][key])
     print("")
     print("// Signer round one outputs")
-    for signer in vector["round_one_outputs"]["signers"]:
+    for signer in vector["round_one_outputs"]["participants"]:
         for round_one_signer_key in round_one_outputs_keys:
-            for signer_output_key in vector["round_one_outputs"]["signers"][signer]:
+            for signer_output_key in vector["round_one_outputs"]["participants"][signer]:
                 if round_one_signer_key == signer_output_key:
-                    wrap_print("S" + signer + " " + round_one_signer_key + ":", vector["round_one_outputs"]["signers"][signer][round_one_signer_key])
+                    wrap_print("P" + signer + " " + round_one_signer_key + ":", vector["round_one_outputs"]["participants"][signer][round_one_signer_key])
     print("")
 
 def format_vector_round_two(name, vector):
@@ -97,11 +97,11 @@ def format_vector_round_two(name, vector):
                 wrap_print(key + ":", vector["round_two_outputs"][key])
     print("")
     print("// Signer round two outputs")
-    for signer in vector["round_two_outputs"]["signers"]:
+    for signer in vector["round_two_outputs"]["participants"]:
         for round_two_signer_key in round_two_outputs_keys:
-            for signer_output_key in vector["round_two_outputs"]["signers"][signer]:
+            for signer_output_key in vector["round_two_outputs"]["participants"][signer]:
                 if round_two_signer_key == signer_output_key:
-                    wrap_print("S" + signer + " " + round_two_signer_key + ":", vector["round_two_outputs"]["signers"][signer][round_two_signer_key])
+                    wrap_print("P" + signer + " " + round_two_signer_key + ":", vector["round_two_outputs"]["participants"][signer][round_two_signer_key])
     print("")
                         
 def format_vector_final_output(name, vector):
