@@ -456,7 +456,7 @@ The following function is used to extract a binding factor from a list of bindin
     a list of binding factors for each signer, where each element in the list
     indicates the signer identifier i and their binding factor. This list MUST be sorted
     in ascending order by signer identifier.
-  - identifier, Identifier i of the signer.
+  - identifier, signer identifier, a Scalar.
 
   Outputs: A Scalar value.
 
@@ -1318,7 +1318,7 @@ secret `s` is as follows; the algorithm `polynomial_interpolation is defined in 
 
   Inputs:
   - shares, a list of at minimum MIN_SIGNERS secret shares, each a tuple (i, f(i))
-    where i is an identifier and f(i) is a Scalar
+    where i and f(i) are Scalars
 
   Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
@@ -1328,8 +1328,7 @@ secret `s` is as follows; the algorithm `polynomial_interpolation is defined in 
   def secret_share_combine(shares):
     if len(shares) < MIN_SIGNERS:
       raise "invalid parameters"
-    scalar_shares = [(Scalar(x), y) for x, y in shares]
-    s = polynomial_interpolation(scalar_shares)
+    s = polynomial_interpolation(shares)
     return s
 ~~~
 
