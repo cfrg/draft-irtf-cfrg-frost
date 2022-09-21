@@ -102,7 +102,7 @@ at https://github.com/cfrg/draft-irtf-cfrg-frost. Instructions are on that page 
 well.
 
 Unlike signatures in a single-party setting, threshold signatures
-require cooperation among a threshold number of signer participants each holding a share
+require cooperation among a threshold number of signing participants each holding a share
 of a common private key. The security of threshold schemes in general assumes
 that an adversary can corrupt strictly fewer than a threshold number of signer participants.
 
