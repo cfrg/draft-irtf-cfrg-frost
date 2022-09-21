@@ -310,7 +310,7 @@ from the ciphersuite hash function `H`. This domain-separated hash function
 is denoted `H3`. This function always samples 32 bytes of fresh randomness
 to ensure that the probability of nonce reuse is at most 2<sup>-128</sup>
 as long as no more than 2<sup>64</sup> signatures are computed by a given
-signer participant.
+signing participant.
 
 ~~~
   nonce_generate(secret):
