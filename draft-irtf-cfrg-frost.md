@@ -122,7 +122,7 @@ While an optimization to FROST was shown in {{Schnorr21}} that reduces scalar mu
 from linear in the number of signing participants to constant, this draft does not specify that optimization
 due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
 Specifically, this optimization removes the guarantee that the set of signer participants that started
-round one of the protocol is the same set of signer participants that produced the signature output by
+round one of the protocol is the same set of signing participants that produced the signature output by
 round two.
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
