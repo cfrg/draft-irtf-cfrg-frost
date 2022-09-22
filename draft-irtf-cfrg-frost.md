@@ -906,16 +906,16 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
     represent a Scalar in the range \[0, `G.Order()` - 1\]. Note that this means the
     top three bits of the input MUST be zero.
 
-- Hash (`H`): SHA-512, and Nh = 64.
+- Hash (`H`): SHA-512
   - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
-    L = 2^252+27742317777372353535851937790883648493.
+    2^252+27742317777372353535851937790883648493.
   - H2(m): Implemented by computing H(m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
-    L = 2^252+27742317777372353535851937790883648493.
+    2^252+27742317777372353535851937790883648493.
   - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
-    L = 2^252+27742317777372353535851937790883648493.
+    2^252+27742317777372353535851937790883648493.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
@@ -948,7 +948,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
     represent a Scalar in the range \[0, `G.Order()` - 1\]. Note that this means the
     top three bits of the input MUST be zero.
 
-- Hash (`H`): SHA-512, and Nh = 64.
+- Hash (`H`): SHA-512
   - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
@@ -981,16 +981,16 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
     little-endian 48-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
 
-- Hash (`H`): SHAKE256, and Nh = 114.
+- Hash (`H`): SHAKE256
   - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the
     114-byte digest as a little-endian integer, and reducing the resulting integer modulo
-    L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+    2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H2(m): Implemented by computing H("SigEd448" \|\| 0 \|\| 0 \|\| m), interpreting
     the 114-byte digest as a little-endian integer, and reducing the resulting integer
-    modulo L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+    modulo 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the
     114-byte digest as a little-endian integer, and reducing the resulting integer modulo
-    L = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+    2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
@@ -1027,8 +1027,8 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
-- Hash (`H`): SHA-256, and Nh = 32.
-  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.2}}
+- Hash (`H`): SHA-256
+  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
     prime modulus equal to `Order()`.
   - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
@@ -1068,8 +1068,8 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
-- Hash (`H`): SHA-256, and Nh = 32.
-  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.2}}
+- Hash (`H`): SHA-256
+  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
     prime modulus equal to `Order()`.
   - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
@@ -1364,13 +1364,13 @@ interpolation, defined as follows.
   Outputs: The constant term of f, i.e., f(0)
 
   def polynomial_interpolation(points):
-    L = []
+    x_coords = []
     for point in points:
-      L.append(point.x)
+      x_coords.append(point.x)
 
     f_zero = Scalar(0)
     for point in points:
-      delta = point.y * derive_lagrange_coefficient(point.x, L)
+      delta = point.y * derive_lagrange_coefficient(point.x, x_coords)
       f_zero = f_zero + delta
 
     return f_zero
@@ -1482,9 +1482,9 @@ the array has 256; thus the top 3 bits of the last byte can be set to zero.
 
 ## Wide Reduction
 
-Generate a random byte array with `L = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
+Generate a random byte array with `l = ceil(((3 * ceil(log2(G.Order()))) / 2) / 8)`
 bytes, and interpret it as an integer; reduce the integer modulo `G.Order()` and return the
-result. See {{Section 5 of HASH-TO-CURVE}} for the underlying derivation of `L`.
+result. See {{Section 5 of HASH-TO-CURVE}} for the underlying derivation of `l`.
 
 
 # Test Vectors
