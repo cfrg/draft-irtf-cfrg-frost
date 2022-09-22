@@ -1174,10 +1174,10 @@ In particular, a different prefix SHOULD be used to differentiate this pre-hash 
 Some applications may require that participants only process messages of a certain
 structure. For example, in digital currency applications wherein multiple
 participants may collectively sign a transaction, it is reasonable to require that
-each signer check the input message to be a syntactically valid transaction.
+each participant check the input message to be a syntactically valid transaction.
 
 As another example, use of threshold signatures in {{?TLS=RFC8446}} to produce
-signatures of transcript hashes might require the signers receive the source
+signatures of transcript hashes might require the participants receive the source
 handshake messages themselves, and recompute the transcript hash which is used
 as input message to the signature generation process, so that they can verify
 that they are signing a proper TLS transcript hash and not some other data.
