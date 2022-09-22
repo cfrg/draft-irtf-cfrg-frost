@@ -900,10 +900,11 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
     be implemented by multiplying the resulting point by the order of the group and
     checking that the result is the identity element.
   - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
-    the Scalar value.
+    the Scalar value with the top three bits set to zero.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 32-byte string. This function can fail if the input does not
-    represent a Scalar in the range \[0, `G.Order()` - 1\].
+    represent a Scalar in the range \[0, `G.Order()` - 1\]. Note that this means the
+    top three bits of the input MUST be zero.
 
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the 64-byte digest
@@ -941,10 +942,11 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
     Additionally, this function validates that the resulting element is not the group
     identity element.
   - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
-    the Scalar value.
+    the Scalar value with the top three bits set to zero.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
     little-endian 32-byte string. This function can fail if the input does not
-    represent a Scalar in the range \[0, `G.Order()` - 1\].
+    represent a Scalar in the range \[0, `G.Order()` - 1\]. Note that this means the
+    top three bits of the input MUST be zero.
 
 - Hash (`H`): SHA-512, and Nh = 64.
   - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
@@ -1010,9 +1012,9 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SEC1}}.
-  - DeserializeElement(buf): Implemented by attempting to deserialize a public key using
-    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+    method according to {{SEC1}}, yielding a 33 byte output.
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 33 byte input string to
+    a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
     {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
     coordinates of the resulting point are in the correct range, that the point is on
@@ -1026,13 +1028,13 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256, and Nh = 32.
-  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
+  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.2}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
     prime modulus equal to `Order()`.
-  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
     prime modulus equal to `Order()`.
-  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
     prime modulus equal to `Order()`.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
@@ -1067,13 +1069,13 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256, and Nh = 32.
-  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
+  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.2}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
     prime modulus equal to `Order()`.
-  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
     prime modulus equal to `Order()`.
-  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.3}}
+  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
     using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
     prime modulus equal to `Order()`.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
