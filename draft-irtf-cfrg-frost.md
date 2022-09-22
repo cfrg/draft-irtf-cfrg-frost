@@ -1156,16 +1156,31 @@ an invalid signature. To avoid this denial of service, implementations may wish
 to define a mechanism where messages are authenticated, so that cheating players
 can be identified and excluded.
 
+## Input Message Hashing {#pre-hashing}
+
+FROST signatures do not pre-hash message inputs. This means that the entire message
+must be known in advance of invoking the signing protocol. Applications can apply
+pre-hashing in settings where storing the full message is prohibitively expensive.
+In such cases, pre-hashing MUST use a collision-resistant hash function with a security
+level commensurate with the security in inherent to the ciphersuite chosen. It is
+RECOMMENDED that applications which choose to apply pre-hashing use the hash function
+(`H`) associated with the chosen ciphersuite in a manner similar to how `H4` is defined.
+In particular, a different prefix SHOULD be used to differentiate this pre-hash from
+`H4`. One possible example is to construct this pre-hash over message `m` as
+`H(contextString \|\| "pre-hash" \|\| m)`.
+
 ## Input Message Validation {#message-validation}
 
 Some applications may require that participants only process messages of a certain
 structure. For example, in digital currency applications wherein multiple
 participants may collectively sign a transaction, it is reasonable to require that
-each participant check the input message to be a syntactically valid transaction.
-As another example, use of threshold signatures in TLS {{?TLS=RFC8446}} to produce
-signatures of transcript hashes might require that participants check that the input
-message is a valid TLS transcript from which the corresponding transcript hash
-can be derived.
+each signer check the input message to be a syntactically valid transaction.
+
+As another example, use of threshold signatures in {{?TLS=RFC8446}} to produce
+signatures of transcript hashes might require the signers receive the source
+handshake messages themselves, and recompute the transcript hash which is used
+as input message to the signature generation process, so that they can verify
+that they are signing a proper TLS transcript hash and not some other data.
 
 In general, input message validation is an application-specific consideration
 that varies based on the use case and threat model. However, it is RECOMMENDED
