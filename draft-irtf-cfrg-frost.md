@@ -1250,6 +1250,8 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
   Outputs:
   - participant_private_keys, MAX_PARTICIPANTS shares of the secret key s, each a tuple
     consisting of the participant identifier and the key share (a Scalar).
+  - group_public_key, public key corresponding to the group signing key, an
+    Element in G.
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
     in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
@@ -1257,8 +1259,7 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
   def trusted_dealer_keygen(secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
     participant_private_keys, coefficients = secret_share_shard(secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
     vss_commitment = vss_commit(coefficients):
-    PK = G.ScalarBaseMult(secret_key)
-    return participant_private_keys, vss_commitment
+    return participant_private_keys, vss_commitment[0], vss_commitment
 ~~~
 
 It is assumed the dealer then sends one secret key share to each of the `NUM_PARTICIPANTS` participants, along with `vss_commitment`.
@@ -1419,7 +1420,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
   Outputs: 1 if sk_i is valid, and 0 otherwise
 
-  vss_verify(share_i, commitment)
+  vss_verify(share_i, vss_commitment)
     (i, sk_i) = share_i
     S_i = ScalarBaseMult(sk_i)
     S_i' = G.Identity()
