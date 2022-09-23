@@ -1259,7 +1259,11 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
     G.ScalarBaseMult(s).
 
   def trusted_dealer_keygen(secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
-    participant_private_keys, coefficients = secret_share_shard(secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
+    # Generate random coefficients for the polynomial
+    coefficients = []
+    for i in range(0, MIN_PARTICIPANTS - 1):
+      coefficients.append(G.RandomScalar())
+    participant_private_keys, coefficients = secret_share_shard(secret_key, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
     vss_commitment = vss_commit(coefficients):
     return participant_private_keys, vss_commitment[0], vss_commitment
 ~~~
@@ -1290,6 +1294,8 @@ The procedure for splitting a secret into shares is as follows.
 
   Inputs:
   - s, secret value to be shared, a Scalar
+  - coefficients, an array of size MIN_PARTICIPANTS - 1 with randomly generated
+    scalars
   - MAX_PARTICIPANTS, the number of shares to generate, an integer less than 2^16
   - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer greater than 0
 
@@ -1301,17 +1307,14 @@ The procedure for splitting a secret into shares is as follows.
   Errors:
   - "invalid parameters", if MIN_PARTICIPANTS > MAX_PARTICIPANTS or if MIN_PARTICIPANTS is less than 2
 
-  def secret_share_shard(s, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
+  def secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
     if MIN_PARTICIPANTS > MAX_PARTICIPANTS:
       raise "invalid parameters"
     if MIN_PARTICIPANTS < 2:
       raise "invalid parameters"
 
-    # Generate random coefficients for the polynomial, yielding
-    # a polynomial of degree at most (MIN_PARTICIPANTS - 1)
-    coefficients = [s]
-    for i in range(1, MIN_PARTICIPANTS):
-      coefficients.append(G.RandomScalar())
+    # Prepend the secret to the coefficients
+    coefficients = [s] + coefficients
 
     # Evaluate the polynomial for each point x=1,...,n
     secret_key_shares = []
