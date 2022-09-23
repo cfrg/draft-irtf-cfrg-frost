@@ -95,7 +95,7 @@ def trusted_dealer_keygen(G, secret_key, n, t):
     vss_commitment = vss_commit(G, coefficients)
     recovered_key = secret_share_combine(G, t, participant_private_keys)
     assert(secret_key == recovered_key)
-    return participant_private_keys, vss_commitment
+    return participant_private_keys, vss_commitment[0], vss_commitment
 
 def vss_commit(G, coefficients):
     vss_commitment = []
@@ -288,12 +288,12 @@ for (fname, name, G, H) in ciphersuites:
 
     # Create all inputs, including the group key and individual participant key shares
     group_secret_key = G.random_scalar()
-    participant_private_keys, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
+    participant_private_keys, dealer_group_public_key, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
     assert(len(vss_commitment) == MIN_PARTICIPANTS)
 
     group_public_key, participant_public_keys = derive_group_info(G, MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
     assert(len(participant_public_keys) == MAX_PARTICIPANTS)
-    assert(group_public_key == vss_commitment[0])
+    assert(group_public_key == dealer_group_public_key)
 
     for share_i in participant_private_keys:
         assert(vss_verify(G, share_i, vss_commitment))
