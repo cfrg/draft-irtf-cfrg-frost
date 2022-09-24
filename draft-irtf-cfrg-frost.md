@@ -1028,15 +1028,15 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256
-  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
-    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
-    prime modulus equal to `Order()`.
-  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
-    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
-    prime modulus equal to `Order()`.
-  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
-    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
-    prime modulus equal to `Order()`.
+  - H1(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "rho",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
+  - H2(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "chal",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
+  - H3(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "nonce",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
@@ -1069,15 +1069,15 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256
-  - H1(m): Implemented using hash_to_field from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
-    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "rho", and
-    prime modulus equal to `Order()`.
-  - H2(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
-    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "chal", and
-    prime modulus equal to `Order()`.
-  - H3(m): Implemented using hash_to_field from {{!HASH-TO-CURVE, Section 5.2}}
-    using L = 48, `expand_message_xmd` with SHA-256, DST = contextString || "nonce", and
-    prime modulus equal to `Order()`.
+  - H1(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "rho",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
+  - H2(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "chal",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
+  - H3(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "nonce",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
