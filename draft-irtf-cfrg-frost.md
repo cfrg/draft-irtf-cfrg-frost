@@ -1028,7 +1028,7 @@ The value of the contextString parameter is "FROST-P256-SHA256-v8".
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHA-256
-  - H1(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.3}}
+  - H1(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.2}}
     using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "rho",
     F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
   - H2(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
