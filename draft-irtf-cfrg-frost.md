@@ -255,7 +255,9 @@ scalars corresponds to `GF(p)`, which we refer to as the scalar field. This docu
 `Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
 We denote Scalar(x) as the conversion of integer input `x` to the corresponding Scalar value with
 the same numeric value. For example, Scalar(1) yields a Scalar representing the value 1.
-We denote equality comparison as `==` and assignment of values by `=`.
+We denote equality comparison as `==` and assignment of values by `=`. Finally, it is assumed that
+group element addition, negation, and equality comparisons can be efficiently computed for
+arbitrary group elements.
 
 We now detail a number of member functions that can be invoked on `G`.
 
@@ -264,13 +266,13 @@ We now detail a number of member functions that can be invoked on `G`.
 - RandomScalar(): Outputs a random `Scalar` element in GF(p), i.e., a random scalar in \[0, p - 1\].
 - ScalarMult(A, k): Output the scalar multiplication between Element `A` and Scalar `k`.
 - ScalarBaseMult(k): Output the scalar multiplication between Scalar `k` and the group generator `B`.
-- SerializeElement(A): Maps an `Element` `A` to a unique byte array `buf` of fixed length `Ne`.
+- SerializeElement(A): Maps an `Element` `A` to a canonical byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
-  and fails if the input is not a valid byte representation of an element of
+  and fails if the input is not the valid canonical byte representation of an element of
   the group. This function can raise a DeserializeError if deserialization fails
   or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
   input validation steps.
-- SerializeScalar(s): Maps a Scalar `s` to a unique byte array `buf` of fixed length `Ns`.
+- SerializeScalar(s): Maps a Scalar `s` to a canonical byte array `buf` of fixed length `Ns`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
   This function can raise a DeserializeError if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
