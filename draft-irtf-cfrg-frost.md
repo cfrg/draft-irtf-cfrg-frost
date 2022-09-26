@@ -1211,8 +1211,8 @@ It is included to complement the routines present in {{RFC8032}} for prime-order
 ristretto255, P-256, and secp256k1. The functions for generating and verifying signatures are
 `prime_order_sign` and `prime_order_verify`, respectively.
 
-The function `prime_order_sign` produces a Schnorr signature over a message given a secret signing
-key as input.
+The function `prime_order_sign` produces a Schnorr signature over a message given a full secret signing
+key as input (as opposed to a key share.)
 
 ~~~
   prime_order_sign(msg, SK):
