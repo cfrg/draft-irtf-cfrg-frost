@@ -72,14 +72,12 @@ def secret_share_combine(G, t, shares):
     return s
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
-def secret_share_shard(G, s, n, t):
+def secret_share_shard(G, s, coeffs, n, t):
     if t > n:
         raise Exception("invalid parameters")
 
     # Generate random coefficients for the polynomial
-    coefficients = [s]
-    for i in range(t - 1):
-        coefficients.append(G.random_scalar())
+    coefficients = [s] + coeffs
 
     # Evaluate the polynomial for each participants, identified by their identifier i > 0
     secret_shares = []
@@ -90,8 +88,12 @@ def secret_share_shard(G, s, n, t):
     return secret_shares, coefficients
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-trusted-dealer-key-generati
-def trusted_dealer_keygen(G, secret_key, n, t):
-    participant_private_keys, coefficients = secret_share_shard(G, secret_key, n, t)
+def trusted_dealer_keygen(G, secret_key, n, t, coeffs=None):
+    if coeffs is None:
+        coeffs = []
+        for _ in range(t - 1):
+            coeffs.append(G.random_scalar())
+    participant_private_keys, coefficients = secret_share_shard(G, secret_key, coeffs, n, t)
     vss_commitment = vss_commit(G, coefficients)
     recovered_key = secret_share_combine(G, t, participant_private_keys)
     assert(secret_key == recovered_key)
@@ -288,7 +290,10 @@ for (fname, name, G, H) in ciphersuites:
 
     # Create all inputs, including the group key and individual participant key shares
     group_secret_key = G.random_scalar()
-    participant_private_keys, dealer_group_public_key, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
+    coeffs = []
+    for _ in range(MIN_PARTICIPANTS - 1):
+        coeffs.append(G.random_scalar())
+    participant_private_keys, dealer_group_public_key, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS, coeffs)
     assert(len(vss_commitment) == MIN_PARTICIPANTS)
 
     group_public_key, participant_public_keys = derive_group_info(G, MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
@@ -312,6 +317,7 @@ for (fname, name, G, H) in ciphersuites:
         "group_secret_key": to_hex(G.serialize_scalar(group_secret_key)),
         "group_public_key": to_hex(G.serialize(group_public_key)),
         "message": to_hex(message),
+        "coefficients": [to_hex(G.serialize_scalar(c)) for c in coeffs],
         "participants": {}
     }
     for identifier in participants:
