@@ -1219,19 +1219,19 @@ key as input (as opposed to a key share.)
 
   Inputs:
   - msg, message to sign, a byte string
-  - SK, secret key, a Scalar
+  - sk, secret key, a Scalar
 
   Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
-  def prime_order_sign(msg, SK):
+  def prime_order_sign(msg, sk):
     r = G.RandomScalar()
     R = G.ScalarBaseMult(r)
-    PK = G.ScalarBaseMult(SK)
+    PK = G.ScalarBaseMult(sk)
     comm_enc = G.SerializeElement(R)
     pk_enc = G.SerializeElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
-    z = r + (c * SK) // Scalar addition and multiplication
+    z = r + (c * sk) // Scalar addition and multiplication
     return (R, z)
 ~~~
 
