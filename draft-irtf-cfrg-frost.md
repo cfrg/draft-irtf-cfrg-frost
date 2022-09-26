@@ -79,6 +79,12 @@ informative:
       - name: Dan Boneh
       - name: Victor Shoup
     date: 2020-01
+  Pornin22:
+    target: https://eprint.iacr.org/2022/1164.pdf
+    title: "Point-Halving and Subgroup Membership in Twisted Edwards Curves"
+    author:
+      - name: Thomas Pornin
+    date: 2022-09-06
 
 --- abstract
 
@@ -928,6 +934,7 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [8][S]B = [8]R + [8][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
+Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
@@ -1002,6 +1009,7 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [4][S]B = [4]R + [4][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
+Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(P-256, SHA-256)
 
