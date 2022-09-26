@@ -1214,11 +1214,40 @@ T. Wilson-Brown,
 and Conrado Gouvea
 for their inputs and contributions.
 
-# Schnorr Signature Verification for Prime-Order Groups {#prime-order-verify}
+# Schnorr Signature Generation and Verification for Prime-Order Groups {#prime-order-verify}
 
-This section contains a routine for verifying Schnorr signatures with validated inputs.
-Specifically, it assumes that signature R component and public key belong to the
-prime-order group.
+This section contains descriptions of functions for generating and verifying Schnorr signatures.
+It is included to complement the routines present in {{RFC8032}} for prime-order groups, including
+ristretto255, P-256, and secp256k1. The functions for generating and verifying signatures are
+`prime_order_sign` and `prime_order_verify`, respectively.
+
+The function `prime_order_sign` produces a Schnorr signature over a message given a full secret signing
+key as input (as opposed to a key share.)
+
+~~~
+  prime_order_sign(msg, sk):
+``
+
+  Inputs:
+  - msg, message to sign, a byte string
+  - sk, secret key, a Scalar
+
+  Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
+
+  def prime_order_sign(msg, sk):
+    r = G.RandomScalar()
+    R = G.ScalarBaseMult(r)
+    PK = G.ScalarBaseMult(sk)
+    comm_enc = G.SerializeElement(R)
+    pk_enc = G.SerializeElement(PK)
+    challenge_input = comm_enc || pk_enc || msg
+    c = H2(challenge_input)
+    z = r + (c * sk) // Scalar addition and multiplication
+    return (R, z)
+~~~
+
+The function `prime_order_verify` verifies Schnorr signatures with validated inputs.
+Specifically, it assumes that signature R component and public key belong to the prime-order group.
 
 ~~~
   prime_order_verify(msg, sig, PK):
