@@ -1007,6 +1007,7 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [4][S]B = [4]R + [4][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
+Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(P-256, SHA-256)
 
