@@ -1295,7 +1295,7 @@ The procedure for splitting a secret into shares is as follows.
   Inputs:
   - s, secret value to be shared, a Scalar
   - coefficients, an array of size MIN_PARTICIPANTS - 1 with randomly generated
-    scalars
+    Scalars
   - MAX_PARTICIPANTS, the number of shares to generate, an integer less than 2^16
   - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer greater than 0
 
