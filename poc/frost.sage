@@ -370,20 +370,20 @@ for (fname, name, G, H) in ciphersuites:
         "sig": to_hex(sig.encode())
     }
 
-    def generate_schnorr_signature(G, H, sk, msg):
+    def prime_order_sign(G, H, sk, msg):
+        r = G.random_scalar()
+        R = r * G.generator()
         PK = sk * G.generator()
-        k = G.random_scalar()
-        R = k * G.generator()
 
         group_comm_enc = G.serialize(R)
         pk_enc = G.serialize(PK)
         challenge_input = bytes(group_comm_enc + pk_enc + msg)
         c = H.H2(challenge_input)
 
-        z = k + (sk * c)
+        z = r + (sk * c)
         return Signature(G, R, z)
 
-    def verify_schnorr_signature(G, H, Y, msg, sig):
+    def prime_order_verify(G, H, Y, msg, sig):
         R, z = sig.R, sig.z
 
         comm_enc = G.serialize(R)
@@ -395,9 +395,9 @@ for (fname, name, G, H) in ciphersuites:
         r = (c * Y) + R
         return l == r
 
-    # Sanity check verification logic
-    single_sig = generate_schnorr_signature(G, H, group_secret_key, message)
-    assert(verify_schnorr_signature(G, H, group_public_key, message, single_sig))
+    # Sanity check verification logic (from the draft appendix)
+    single_sig = prime_order_sign(G, H, group_secret_key, message)
+    assert(prime_order_verify(G, H, group_public_key, message, single_sig))
 
     if type(G) == type(GroupEd25519()):
         # Sanity check of standard encoding/decoding logic
@@ -415,7 +415,7 @@ for (fname, name, G, H) in ciphersuites:
         assert(verify_ed25519_rfc8032(pk_enc, message, rfc8032_sig))
 
     # Verify the group signature just the same
-    assert(verify_schnorr_signature(G, H, group_public_key, message, sig))
+    assert(prime_order_verify(G, H, group_public_key, message, sig))
 
     vector = {
         "config": config,
