@@ -1215,7 +1215,8 @@ The function `prime_order_sign` produces a Schnorr signature over a message give
 key as input (as opposed to a key share.)
 
 ~~~
-  prime_order_sign(msg, SK):
+  prime_order_sign(msg, sk):
+``
 
   Inputs:
   - msg, message to sign, a byte string
