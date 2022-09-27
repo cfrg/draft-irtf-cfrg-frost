@@ -408,7 +408,7 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
     if x_i not in L:
       raise "invalid parameters"
     for x_j in L:
-      if count(x_i, L) > 1:
+      if count(x_j, L) > 1:
         raise "invalid parameters"
 
     numerator = Scalar(1)
