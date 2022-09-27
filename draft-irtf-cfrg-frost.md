@@ -588,7 +588,7 @@ without a distinguished Coordinator; see {{no-coordinator}} for more information
 
 FROST produces signatures that are indistinguishable from those produced with a single
 participant using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
-value and `PK = G.ScalarMultBase(s)`. As a threshold signing protocol, the group signing
+value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
 key `s` is secret-shared amongst each participant and used to produce signatures. In particular,
 FROST assumes each participant is configured with the following information:
 
@@ -596,7 +596,7 @@ FROST assumes each participant is configured with the following information:
   and MUST be distinct from the identifier of every other participant.
 - A signing key share `sk_i`, which is a Scalar value representing the i-th secret share
   of the group signing key `s`. The public key corresponding to this signing key share
-  is `PK_i = G.ScalarMultBase(sk_i)`.
+  is `PK_i = G.ScalarBaseMult(sk_i)`.
 
 The Coordinator and each participant is additionally configured
 with common group information, denoted "group info," which consists of the following
