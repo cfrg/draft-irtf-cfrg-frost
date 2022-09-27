@@ -79,12 +79,6 @@ informative:
       - name: Dan Boneh
       - name: Victor Shoup
     date: 2020-01
-  Pornin22:
-    target: https://eprint.iacr.org/2022/1164.pdf
-    title: "Point-Halving and Subgroup Membership in Twisted Edwards Curves"
-    author:
-      - name: Thomas Pornin
-    date: 2022-09-06
 
 --- abstract
 
@@ -279,11 +273,12 @@ arbitrary group elements.
 
 We now detail a number of member functions that can be invoked on `G`.
 
+- Cofactor(): Outputs the cofactor of `G`.
 - Order(): Outputs the order of `G` (i.e. `p`).
 - Identity(): Outputs the identity `Element` of the group (i.e. `I`).
 - RandomScalar(): Outputs a random `Scalar` element in GF(p), i.e., a random scalar in \[0, p - 1\].
-- ScalarMult(A, k): Output the scalar multiplication between Element `A` and Scalar `k`.
-- ScalarBaseMult(k): Output the scalar multiplication between Scalar `k` and the group generator `B`.
+- ScalarMult(A, k): Output the scalar multiplication between `Element` `A` and Scalar `k`.
+- ScalarBaseMult(k): Output the scalar multiplication between `Scalar` `k` and the group generator `B`.
 - SerializeElement(A): Maps an `Element` `A` to a canonical byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not the valid canonical byte representation of an element of
@@ -294,6 +289,21 @@ We now detail a number of member functions that can be invoked on `G`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
   This function can raise a DeserializeError if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
+
+Two additional functions, `SerializePrimeOrderElement` and `DeserializePrimeOrderElement`, are provided.
+These create a prime order construction out of the provided group, enabling using FROST with groups which
+aren't prime order.
+
+- SerializePrimeOrderElement(A): Multiplies an `Element` `A` by the inverse of the group's
+cofactor and then maps to a canonical byte array via calling `SerializeElement`. The serialized
+element is not guaranteed to be prime order, yet when deserialized with `DeserializePrimeOrderElement`
+is guaranteed to become a prime-order equivalent element to the original.
+- DeserializePrimeOrderElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
+calling `DeserializeElement` on `buf`. On success, the result `A` is multiplied by the group's
+cofactor. If the result is the identity element of the group, a `DeserializeError` is raised.
+
+Both of these functions may be optimized to simply being `SerializeElement` and `DeserializeElement` for
+groups whose cofactor is 1.
 
 ## Cryptographic Hash Function {#dep-hash}
 
@@ -442,8 +452,8 @@ commitments into a bytestring for use in the FROST protocol.
     encoded_group_commitment = nil
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       encoded_commitment = G.SerializeScalar(identifier) ||
-                           G.SerializeElement(hiding_nonce_commitment) ||
-                           G.SerializeElement(binding_nonce_commitment)
+                           G.SerializePrimeOrderElement(hiding_nonce_commitment) ||
+                           G.SerializePrimeOrderElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
     return encoded_group_commitment
 ~~~
@@ -560,8 +570,8 @@ This section describes the subroutine for creating the per-message challenge.
   Outputs: A Scalar representing the challenge
 
   def compute_challenge(group_commitment, group_public_key, msg):
-    group_comm_enc = G.SerializeElement(group_commitment)
-    group_public_key_enc = G.SerializeElement(group_public_key)
+    group_comm_enc = G.SerializePrimeOrderElement(group_commitment)
+    group_public_key_enc = G.SerializePrimeOrderElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg
     challenge = H2(challenge_input)
     return challenge
@@ -664,7 +674,7 @@ Aggregation step is described in {{frost-aggregation}}.
 
 FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
-of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
+of type Element or Scalar is deserialized using DeserializePrimeOrderElement and DeserializeScalar,
 respectively, as these functions perform the necessary input validation steps.
 
 FROST assumes reliable message delivery between the Coordinator and participants in
@@ -719,7 +729,7 @@ The Coordinator begins by sending each participant the message to be signed alon
 set of signing commitments for all participants in the participant list. Each participant
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
-list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
+list using DeserializePrimeOrderElement from {{dep-pog}}. If deserialization fails, the Signer
 MUST abort the protocol. Moreover, each participant MUST ensure that their identifier as
 well as their commitment as from the first round appears in commitment_list.
 Applications which require that participants not process arbitrary
@@ -779,7 +789,7 @@ across FROST signing operations for the same signing group. As such, participant
 can compute it once and store it for reuse across signing sessions.
 
 Upon receipt from each Signer, the Coordinator MUST validate the input
-signature share using DeserializeElement. If validation fails, the Coordinator MUST abort
+signature share using DeserializePrimeOrderElement. If validation fails, the Coordinator MUST abort
 the protocol. If validation succeeds, the Coordinator then verifies the set of
 signature shares using the following procedure.
 
@@ -893,14 +903,13 @@ The (Ed25519, SHA-512) ciphersuite is included for backwards compatibility
 with {{!RFC8032}}.
 
 The DeserializeElement and DeserializeScalar functions instantiated for a
-particular prime-order group corresponding to a ciphersuite MUST adhere
+particular group corresponding to a ciphersuite MUST adhere
 to the description in {{dep-pog}}. Validation steps for these functions
 are described for each the ciphersuites below. Future ciphersuites MUST
 describe how input validation is done for DeserializeElement and DeserializeScalar.
 
-Each ciphersuite includes explicit instructions for verifying signatures produced
-by FROST. Note that these instructions are equivalent to those produced by a single
-participant.
+Signatures produced by a ciphersuite must be verifiable as specified in {{prime-order-verify}}.
+Note that these instructions are equivalent to those produced by a single participant.
 
 ## FROST(Ed25519, SHA-512)
 
@@ -909,6 +918,7 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is "FROST-ED25519-SHA512-v10".
 
 - Group: edwards25519 {{!RFC8032}}
+  - Cofactor(): Return 8.
   - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
   - Identity(): As defined in {{RFC7748}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -916,9 +926,7 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v10".
   - SerializeElement(A): Implemented as specified in {{!RFC8032, Section 5.1.2}}.
   - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
-    identity element and is in the prime-order subgroup. The latter check can
-    be implemented by multiplying the resulting point by the order of the group and
-    checking that the result is the identity element.
+    identity element.
   - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value with the top three bits set to zero.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
@@ -939,14 +947,8 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v10".
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
-
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
-
-Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
-constraint that implementations MUST check the group equation [8][S]B = [8]R + [8][k]A'.
-The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
-Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
@@ -954,6 +956,7 @@ This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash functi
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v10".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
+  - Cofactor(): Return 1.
   - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
   - Identity(): As defined in {{RISTRETTO}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -979,8 +982,6 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v10".
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
-Signature verification is as specified in {{prime-order-verify}}.
-
 ## FROST(Ed448, SHAKE256)
 
 This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
@@ -988,6 +989,7 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is "FROST-ED448-SHAKE256-v10".
 
 - Group: edwards448 {{!RFC8032}}
+  - Cofactor(): Return 4.
   - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
   - Identity(): As defined in {{RFC7748}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -1018,17 +1020,13 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v10".
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
 
-Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
-constraint that implementations MUST check the group equation [4][S]B = [4]R + [4][k]A'.
-The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
-Note that optimizations for this check exist; see {{Pornin22}}.
-
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256-v10".
 
 - Group: P-256 (secp256r1) {{x9.62}}
+  - Cofactor(): Return 1.
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity(): As defined in {{x9.62}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -1062,14 +1060,13 @@ The value of the contextString parameter is "FROST-P256-SHA256-v10".
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
-Signature verification is as specified in {{prime-order-verify}}.
-
 ## FROST(secp256k1, SHA-256)
 
 This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-secp256k1-SHA256-v10".
 
 - Group: secp256k1 {{SEC2}}
+  - Cofactor(): Return 1.
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
   - Identity(): As defined in {{SEC2}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -1102,8 +1099,6 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v10".
     F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
-
-Signature verification is as specified in {{prime-order-verify}}.
 
 # Security Considerations {#sec-considerations}
 
@@ -1228,10 +1223,10 @@ for their inputs and contributions.
 
 # Schnorr Signature Generation and Verification for Prime-Order Groups {#prime-order-verify}
 
-This section contains descriptions of functions for generating and verifying Schnorr signatures.
-It is included to complement the routines present in {{RFC8032}} for prime-order groups, including
-ristretto255, P-256, and secp256k1. The functions for generating and verifying signatures are
-`prime_order_sign` and `prime_order_verify`, respectively.
+This section contains descriptions of functions for generating and verifying Schnorr signatures
+containing prime-order values. It is included to complement the routines present in {{RFC8032}}.
+The functions for generating and verifying signatures are `prime_order_sign` and `prime_order_verify`,
+respectively.
 
 The function `prime_order_sign` produces a Schnorr signature over a message given a full secret signing
 key as input (as opposed to a key share.)
@@ -1250,8 +1245,8 @@ key as input (as opposed to a key share.)
     r = G.RandomScalar()
     R = G.ScalarBaseMult(r)
     PK = G.ScalarBaseMult(sk)
-    comm_enc = G.SerializeElement(R)
-    pk_enc = G.SerializeElement(PK)
+    comm_enc = G.SerializePrimeOrderElement(R)
+    pk_enc = G.SerializePrimeOrderElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
     z = r + (c * sk) // Scalar addition and multiplication
@@ -1272,8 +1267,8 @@ Specifically, it assumes that signature R component and public key belong to the
   Outputs: 1 if signature is valid, and 0 otherwise
 
   def prime_order_verify(msg, sig = (R, z), PK):
-    comm_enc = G.SerializeElement(R)
-    pk_enc = G.SerializeElement(PK)
+    comm_enc = G.SerializePrimeOrderElement(R)
+    pk_enc = G.SerializePrimeOrderElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
