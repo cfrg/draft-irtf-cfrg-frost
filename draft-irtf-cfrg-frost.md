@@ -568,7 +568,7 @@ This section describes the two-round variant of the FROST threshold signature
 protocol for producing Schnorr signatures. The protocol is configured to
 run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
 `NUM_PARTICIPANTS` is a positive integer at least `MIN_PARTICIPANTS` but no larger than
-`MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS < MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
+`MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS <= MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
 integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
 A signer participant, or simply participant, is an entity that is trusted to hold and
 use a signing key share. The Coordinator is an entity with the following responsibilities:
@@ -577,7 +577,7 @@ use a signing key share. The Coordinator is an entity with the following respons
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-FROST assumes that all participants, including the Coordinator and the set of participants,
+FROST assumes that all parties and their roles, including the Coordinator and the set of participants,
 are chosen externally to the protocol. Note that it is possible to deploy the protocol
 without a distinguished Coordinator; see {{no-coordinator}} for more information.
 
@@ -593,12 +593,12 @@ FROST assumes each participant is configured with the following information:
   of the group signing key `s`. The public key corresponding to this signing key share
   is `PK_i = G.ScalarMultBase(sk_i)`.
 
-Each participant, including the Coordinator, is additionally configured
+The Coordinator and each participant is additionally configured
 with common group information, denoted "group info," which consists of the following
 information:
 
 - Group public key, which is an `Element` in `G` denoted `PK`.
-- Public keys `PK_i` for each signer, which are `Element` values in `G` denoted `PK_i`
+- Public keys `PK_i` for each participant, which are `Element` values in `G` denoted `PK_i`
   for each `i` in `[1, MAX_PARTICIPANTS]`.
 
 This document does not specify how this information, including the signing key shares,
@@ -1336,7 +1336,7 @@ the scalar field of the prime-order group `G`.
 The procedure for splitting a secret into shares is as follows.
 
 ~~~
-  secret_share_shard(s, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
+  secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
 
   Inputs:
   - s, secret value to be shared, a Scalar
@@ -1520,8 +1520,8 @@ the range \[0, G.Order() -1\] are as follows:
 Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
 by calling `DeserializeScalar` in constant time. If it succeeds, return the
 result. If it fails, try again with another random byte array, until the
-procedure succeeds. Failure to implement this in constant time can leak information
-about the underlying corresponding Scalar.
+procedure succeeds. Failure to implement rejecting sampling in constant time can
+leak information about the underlying corresponding Scalar.
 
 Note the that the Scalar size might be some bits smaller than the array size,
 which can result in the loop iterating more times than required. In that case
