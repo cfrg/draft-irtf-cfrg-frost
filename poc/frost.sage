@@ -351,8 +351,8 @@ for (fname, name, G, H) in ciphersuites:
         round_one_outputs["participants"][str(identifier)]["binding_nonce_randomness"] = to_hex(nonce_randomness[identifier][1])
         round_one_outputs["participants"][str(identifier)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][0]))
         round_one_outputs["participants"][str(identifier)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][1]))
-        round_one_outputs["participants"][str(identifier)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[identifier][0]))
-        round_one_outputs["participants"][str(identifier)]["binding_nonce_commitment"] = to_hex(G.serialize(comms[identifier][1]))
+        round_one_outputs["participants"][str(identifier)]["hiding_nonce_commitment"] = to_hex(G.serialize_prime_order(comms[identifier][0]))
+        round_one_outputs["participants"][str(identifier)]["binding_nonce_commitment"] = to_hex(G.serialize_prime_order(comms[identifier][1]))
         round_one_outputs["participants"][str(identifier)]["binding_factor_input"] = to_hex(rho_inputs[identifier])
         round_one_outputs["participants"][str(identifier)]["binding_factor"] = to_hex(G.serialize_scalar(binding_factors[identifier]))
 

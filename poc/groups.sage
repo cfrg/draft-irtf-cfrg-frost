@@ -35,14 +35,31 @@ class Group(object):
     def identity(self):
         raise Exception("not implemented")
 
+    def cofactor(self):
+        raise Exception("not implemented")
+
     def order(self):
         raise Exception("not implemented")
 
     def serialize(self, element):
         raise Exception("not implemented")
 
+    def serialize_prime_order(self, element):
+      cofactor = self.cofactor()
+      if cofactor == 1:
+        return self.serialize(element)
+      else:
+        return self.serialize(element * inverse_mod(cofactor, self.order()))
+
     def deserialize(self, encoded):
         raise Exception("not implemented")
+
+    def deserialize_prime_order(self, element):
+      res = self.deserialize(element)
+      cofactor = self.cofactor()
+      if cofactor != 1:
+        res *= cofactor
+      return res
 
     def serialize_scalar(self, scalar):
         raise Exception("not implemented")
@@ -87,6 +104,9 @@ class GroupNISTCurve(Group):
 
     def generator(self):
         return self.G
+
+    def cofactor(self):
+        return 1
 
     def order(self):
         return self.group_order
@@ -217,6 +237,9 @@ class GroupEd25519(Group):
     def generator(self):
         return self.G
 
+    def cofactor(self):
+        return 8
+
     def order(self):
         return self.group_order
 
@@ -307,6 +330,9 @@ class GroupEd448(Group):
     def generator(self):
         return self.G
 
+    def cofactor(self):
+        return 4
+
     def order(self):
         return self.group_order
 
@@ -359,6 +385,9 @@ class GroupRistretto255(Group):
 
     def generator(self):
         return Ed25519Point().base()
+
+    def cofactor(self):
+        return 1
 
     def order(self):
         return Ed25519Point().order
