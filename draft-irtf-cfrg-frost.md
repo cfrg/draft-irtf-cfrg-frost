@@ -1140,7 +1140,7 @@ The rest of this section documents issues particular to implementations or deplo
 ## Nonce Reuse Attacks
 
 {{dep-nonces}} describes the procedure that participants use to produce nonces during
-the first round of singing. The randomness produced in this procedure MUST be sampled
+the first round of signing. The randomness produced in this procedure MUST be sampled
 uniformly at random. The resulting nonces produced via `nonce_generate` are indistinguishable
 from values sampled uniformly at random. This requirement is necessary to avoid
 replay attacks initiated by other participants, which allow for a complete key-recovery attack.
