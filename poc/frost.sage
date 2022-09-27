@@ -317,7 +317,7 @@ for (fname, name, G, H) in ciphersuites:
         "group_secret_key": to_hex(G.serialize_scalar(group_secret_key)),
         "group_public_key": to_hex(G.serialize(group_public_key)),
         "message": to_hex(message),
-        "coefficients": [to_hex(G.serialize_scalar(c)) for c in coeffs],
+        "share_polynomial_coefficients": [to_hex(G.serialize_scalar(c)) for c in coeffs],
         "participants": {}
     }
     for identifier in participants:

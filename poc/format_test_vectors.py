@@ -11,7 +11,7 @@ input_keys = [
     "group_secret_key",
     "group_public_key",
     "message",
-    # "coefficients" is added manually in format_vector_inputs
+    # "share_polynomial_coefficients" is added manually in format_vector_inputs
 ]
 
 input_signer_keys = [
@@ -66,11 +66,12 @@ def format_vector_inputs(name, vector):
         for input_key in vector["inputs"]:
             if key == input_key:
                 wrap_print(key + ":", vector["inputs"][key])
-    key = "coefficients"
+
+    key = "share_polynomial_coefficients"
     for input_key in vector["inputs"]:
         if key == input_key:
             for i, c in enumerate(vector["inputs"][key]):
-                wrap_print(key + "[" + str(i) + "]:", c)
+                wrap_print(key + "[" + str(i+1) + "]:", c)
 
     print("")
     print("// Signer input parameters")
