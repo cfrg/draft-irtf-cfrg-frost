@@ -452,8 +452,8 @@ commitments into a bytestring for use in the FROST protocol.
     encoded_group_commitment = nil
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
       encoded_commitment = G.SerializeScalar(identifier) ||
-                           G.SerializePrimeOrderElement(hiding_nonce_commitment) ||
-                           G.SerializePrimeOrderElement(binding_nonce_commitment)
+                           G.SerializeElement(hiding_nonce_commitment) ||
+                           G.SerializeElement(binding_nonce_commitment)
       encoded_group_commitment = encoded_group_commitment || encoded_commitment
     return encoded_group_commitment
 ~~~
@@ -570,7 +570,7 @@ This section describes the subroutine for creating the per-message challenge.
   Outputs: A Scalar representing the challenge
 
   def compute_challenge(group_commitment, group_public_key, msg):
-    group_comm_enc = G.SerializePrimeOrderElement(group_commitment)
+    group_comm_enc = G.SerializeElement(group_commitment)
     group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg
     challenge = H2(challenge_input)
@@ -712,9 +712,10 @@ a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding 
 
 The outputs `nonce` and `comm` from participant `P_i` should both be stored locally and
 kept for use in the second round. The `nonce` value is secret and MUST NOT be shared, whereas
-the public output `comm` is sent to the Coordinator. The nonce values produced by this
-function MUST NOT be reused in more than one invocation of FROST, and it MUST be generated
-from a source of secure randomness.
+the public output `comm` is sent to the Coordinator, serializing group Elements using
+`SerializePrimeOrderElement` from {{dep-pog}}. The nonce values produced by this function MUST NOT
+be reused in more than one invocation of FROST, and it MUST be generated from a source of secure
+randomness.
 
 <!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
 
@@ -726,12 +727,12 @@ additionally require locally held data; specifically, their private key and the
 nonces corresponding to their commitment issued in round one.
 
 The Coordinator begins by sending each participant the message to be signed along with the
-set of signing commitments for all participants in the participant list. Each participant
-MUST validate the inputs before processing the Coordinator's request. In particular,
-the Signer MUST validate commitment_list, deserializing each group Element in the
-list using DeserializePrimeOrderElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Moreover, each participant MUST ensure that their identifier as
-well as their commitment as from the first round appears in commitment_list.
+set of signing commitments for all participants in the participant list, serializing each group
+Element using SerializePrimeOrderElement from {{dep-pog}}. Each participant MUST validate the inputs
+before processing the Coordinator's request. In particular, the Signer MUST validate commitment_list,
+deserializing each group Element in the list using DeserializePrimeOrderElement from {{dep-pog}}.
+If deserialization fails, the Signer MUST abort the protocol. Moreover, each participant MUST ensure
+that their identifier as well as their commitment as from the first round appears in commitment_list.
 Applications which require that participants not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
@@ -1245,7 +1246,7 @@ key as input (as opposed to a key share.)
     r = G.RandomScalar()
     R = G.ScalarBaseMult(r)
     PK = G.ScalarBaseMult(sk)
-    comm_enc = G.SerializePrimeOrderElement(R)
+    comm_enc = G.SerializeElement(R)
     pk_enc = G.SerializeElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
@@ -1267,7 +1268,7 @@ Specifically, it assumes that signature R component and public key belong to the
   Outputs: 1 if signature is valid, and 0 otherwise
 
   def prime_order_verify(msg, sig = (R, z), PK):
-    comm_enc = G.SerializePrimeOrderElement(R)
+    comm_enc = G.SerializeElement(R)
     pk_enc = G.SerializeElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
