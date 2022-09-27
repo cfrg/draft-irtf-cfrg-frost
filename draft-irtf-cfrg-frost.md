@@ -571,7 +571,7 @@ This section describes the subroutine for creating the per-message challenge.
 
   def compute_challenge(group_commitment, group_public_key, msg):
     group_comm_enc = G.SerializePrimeOrderElement(group_commitment)
-    group_public_key_enc = G.SerializePrimeOrderElement(group_public_key)
+    group_public_key_enc = G.SerializeElement(group_public_key)
     challenge_input = group_comm_enc || group_public_key_enc || msg
     challenge = H2(challenge_input)
     return challenge
@@ -1246,7 +1246,7 @@ key as input (as opposed to a key share.)
     R = G.ScalarBaseMult(r)
     PK = G.ScalarBaseMult(sk)
     comm_enc = G.SerializePrimeOrderElement(R)
-    pk_enc = G.SerializePrimeOrderElement(PK)
+    pk_enc = G.SerializeElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
     z = r + (c * sk) // Scalar addition and multiplication
@@ -1268,7 +1268,7 @@ Specifically, it assumes that signature R component and public key belong to the
 
   def prime_order_verify(msg, sig = (R, z), PK):
     comm_enc = G.SerializePrimeOrderElement(R)
-    pk_enc = G.SerializePrimeOrderElement(PK)
+    pk_enc = G.SerializeElement(PK)
     challenge_input = comm_enc || pk_enc || msg
     c = H2(challenge_input)
 
