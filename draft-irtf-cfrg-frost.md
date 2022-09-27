@@ -136,6 +136,13 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
 
+draft-09
+
+- Add single-signer signature generation to complement RFC8032 functions (#293)
+- Address Thomas Pornin review comments from https://mailarchive.ietf.org/arch/msg/crypto-panel/bPyYzwtHlCj00g8YF1tjj-iYP2c/ (#292, #291, #290, #289, #287, #286, #285, #282, #281, #280, #279, #278, #277, #276, #275, #273, #272, #267)
+- Correct Ed448 ciphersuite (#246)
+- Various editorial changes (#241, #240)
+
 draft-08
 
 - Add notation for Scalar multiplication (#237)
