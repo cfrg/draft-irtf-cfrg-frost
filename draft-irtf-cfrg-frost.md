@@ -320,7 +320,7 @@ These sections describes these operations in more detail.
 
 To hedge against a bad RNG that outputs predictable values, nonces are
 generated with the `nonce_generate` function by combining fresh randomness
-and with the secret key as input to a domain-separated hash function built
+with the secret key as input to a domain-separated hash function built
 from the ciphersuite hash function `H`. This domain-separated hash function
 is denoted `H3`. This function always samples 32 bytes of fresh randomness
 to ensure that the probability of nonce reuse is at most 2<sup>-128</sup>
@@ -403,7 +403,7 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
     if x_i not in L:
       raise "invalid parameters"
     for x_j in L:
-      if count(x_i, L) > 1:
+      if count(x_j, L) > 1:
         raise "invalid parameters"
 
     numerator = Scalar(1)
@@ -568,6 +568,8 @@ This section describes the two-round variant of the FROST threshold signature
 protocol for producing Schnorr signatures. The protocol is configured to
 run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
 `NUM_PARTICIPANTS` is a positive integer at least `MIN_PARTICIPANTS` but no larger than
+[IG: Shouldn't the below be "<="? The way it is now, a n-out-of-n scheme
+would be forbidden?]
 `MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS < MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
 integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
 A signer participant, or simply participant, is an entity that is trusted to hold and
@@ -577,13 +579,16 @@ use a signing key share. The Coordinator is an entity with the following respons
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
+[IG: with the change of "signer" to "participant", the following line
+doesn't really make sense any more. In particular, the Coordinator is no
+longer a "participant".]
 FROST assumes that all participants, including the Coordinator and the set of participants,
 are chosen externally to the protocol. Note that it is possible to deploy the protocol
 without a distinguished Coordinator; see {{no-coordinator}} for more information.
 
 FROST produces signatures that are indistinguishable from those produced with a single
 participant using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
-value and `PK = G.ScalarMultBase(s)`. As a threshold signing protocol, the group signing
+value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
 key `s` is secret-shared amongst each participant and used to produce signatures. In particular,
 FROST assumes each participant is configured with the following information:
 
@@ -591,8 +596,9 @@ FROST assumes each participant is configured with the following information:
   and MUST be distinct from the identifier of every other participant.
 - A signing key share `sk_i`, which is a Scalar value representing the i-th secret share
   of the group signing key `s`. The public key corresponding to this signing key share
-  is `PK_i = G.ScalarMultBase(sk_i)`.
+  is `PK_i = G.ScalarBaseMult(sk_i)`.
 
+[IG: and here]
 Each participant, including the Coordinator, is additionally configured
 with common group information, denoted "group info," which consists of the following
 information:
@@ -600,6 +606,7 @@ information:
 - Group public key, which is an `Element` in `G` denoted `PK`.
 - Public keys `PK_i` for each signer, which are `Element` values in `G` denoted `PK_i`
   for each `i` in `[1, MAX_PARTICIPANTS]`.
+  [IG: "signer" should be "participant" above?]
 
 This document does not specify how this information, including the signing key shares,
 are configured and distributed to participants. In general, two possible configuration
@@ -654,7 +661,7 @@ This complete interaction is shown in {{fig-frost}}.
 
 Details for round one are described in {{frost-round-one}}, and details for round two
 are described in {{frost-round-two}}. Note that each participant persists some state between
-both rounds, and this state is deleted as described in {{frost-round-two}}. The final
+the two rounds, and this state is deleted as described in {{frost-round-two}}. The final
 Aggregation step is described in {{frost-aggregation}}.
 
 FROST assumes that all inputs to each round, especially those of which are received
@@ -715,8 +722,9 @@ set of signing commitments for all participants in the participant list. Each pa
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Moreover, each participant MUST ensure that their identifier as
-well as their commitment as from the first round appears in commitment_list.
+MUST abort the protocol. Moreover, each participant MUST ensure that
+their identifier appears in commitment_list along with
+their commitment from the first round.
 Applications which require that participants not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
@@ -1135,7 +1143,7 @@ The rest of this section documents issues particular to implementations or deplo
 ## Nonce Reuse Attacks
 
 {{dep-nonces}} describes the procedure that participants use to produce nonces during
-the first round of singing. The randomness produced in this procedure MUST be sampled
+the first round of signing. The randomness produced in this procedure MUST be sampled
 uniformly at random. The resulting nonces produced via `nonce_generate` are indistinguishable
 from values sampled uniformly at random. This requirement is necessary to avoid
 replay attacks initiated by other participants, which allow for a complete key-recovery attack.
@@ -1336,7 +1344,7 @@ the scalar field of the prime-order group `G`.
 The procedure for splitting a secret into shares is as follows.
 
 ~~~
-  secret_share_shard(s, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
+  secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
 
   Inputs:
   - s, secret value to be shared, a Scalar
@@ -1520,7 +1528,7 @@ the range \[0, G.Order() -1\] are as follows:
 Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
 by calling `DeserializeScalar` in constant time. If it succeeds, return the
 result. If it fails, try again with another random byte array, until the
-procedure succeeds. Failure to implement this in constant time can leak information
+procedure succeeds. Failure to implement `DeserializeScalar` in constant time can leak information
 about the underlying corresponding Scalar.
 
 Note the that the Scalar size might be some bits smaller than the array size,
