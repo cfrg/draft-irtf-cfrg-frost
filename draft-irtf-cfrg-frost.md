@@ -918,7 +918,8 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v10".
     Additionally, this function validates that the resulting element is not the group
     identity element and is in the prime-order subgroup. The latter check can
     be implemented by multiplying the resulting point by the order of the group and
-    checking that the result is the identity element.
+    checking that the result is the identity element. Note that optimizations for
+    this check exist; see {{Pornin22}}.
   - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value with the top three bits set to zero.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
@@ -946,7 +947,6 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [8][S]B = [8]R + [8][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
-Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
@@ -995,7 +995,10 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v10".
   - SerializeElement(A): Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
-    identity element.
+    identity element and is in the prime-order subgroup. The latter check can
+    be implemented by multiplying the resulting point by the order of the group and
+    checking that the result is the identity element. Note that optimizations for
+    this check exist; see {{Pornin22}}.
   - SerializeScalar(s): Implemented by outputting the little-endian 48-byte encoding of
     the Scalar value.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
@@ -1021,7 +1024,6 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [4][S]B = [4]R + [4][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
-Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(P-256, SHA-256)
 
