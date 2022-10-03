@@ -568,9 +568,7 @@ This section describes the two-round variant of the FROST threshold signature
 protocol for producing Schnorr signatures. The protocol is configured to
 run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
 `NUM_PARTICIPANTS` is a positive integer at least `MIN_PARTICIPANTS` but no larger than
-[IG: Shouldn't the below be "<="? The way it is now, a n-out-of-n scheme
-would be forbidden?]
-`MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS < MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
+`MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS <= MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
 integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
 A signer participant, or simply participant, is an entity that is trusted to hold and
 use a signing key share. The Coordinator is an entity with the following responsibilities:
@@ -579,12 +577,9 @@ use a signing key share. The Coordinator is an entity with the following respons
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-[IG: with the change of "signer" to "participant", the following line
-doesn't really make sense any more. In particular, the Coordinator is no
-longer a "participant".]
-FROST assumes that all participants, including the Coordinator and the set of participants,
-are chosen externally to the protocol. Note that it is possible to deploy the protocol
-without a distinguished Coordinator; see {{no-coordinator}} for more information.
+FROST assumes that the Coordinator and the set of signer participants, are chosen
+externally to the protocol. Note that it is possible to deploy the protocol without
+a distinguished Coordinator; see {{no-coordinator}} for more information.
 
 FROST produces signatures that are indistinguishable from those produced with a single
 participant using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
@@ -598,15 +593,12 @@ FROST assumes each participant is configured with the following information:
   of the group signing key `s`. The public key corresponding to this signing key share
   is `PK_i = G.ScalarBaseMult(sk_i)`.
 
-[IG: and here]
-Each participant, including the Coordinator, is additionally configured
-with common group information, denoted "group info," which consists of the following
-information:
+The Coordinator and each participant are additionally configured with common group
+information, denoted "group info," which consists of the following:
 
 - Group public key, which is an `Element` in `G` denoted `PK`.
-- Public keys `PK_i` for each signer, which are `Element` values in `G` denoted `PK_i`
+- Public keys `PK_i` for each participant, which are `Element` values in `G` denoted `PK_i`
   for each `i` in `[1, MAX_PARTICIPANTS]`.
-  [IG: "signer" should be "participant" above?]
 
 This document does not specify how this information, including the signing key shares,
 are configured and distributed to participants. In general, two possible configuration
