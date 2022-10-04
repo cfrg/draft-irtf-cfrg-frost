@@ -136,6 +136,11 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 
 ## Change Log
 
+draft-10
+
+- Update version string constant (#296)
+- Fix some editorial issues from Ian Goldberg (#295)
+
 draft-09
 
 - Add single-signer signature generation to complement RFC8032 functions (#293)
@@ -901,7 +906,7 @@ participant.
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed25519 as specified in {{!RFC8032}}.
-The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
+The value of the contextString parameter is "FROST-ED25519-SHA512-v10".
 
 - Group: edwards25519 {{!RFC8032}}
   - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
@@ -913,7 +918,8 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v8".
     Additionally, this function validates that the resulting element is not the group
     identity element and is in the prime-order subgroup. The latter check can
     be implemented by multiplying the resulting point by the order of the group and
-    checking that the result is the identity element.
+    checking that the result is the identity element. Note that optimizations for
+    this check exist; see {{Pornin22}}.
   - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value with the top three bits set to zero.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
@@ -941,12 +947,11 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [8][S]B = [8]R + [8][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
-Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
-The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v8".
+The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v10".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
   - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
@@ -980,7 +985,7 @@ Signature verification is as specified in {{prime-order-verify}}.
 
 This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
 meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
-The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
+The value of the contextString parameter is "FROST-ED448-SHAKE256-v10".
 
 - Group: edwards448 {{!RFC8032}}
   - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
@@ -990,7 +995,10 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v8".
   - SerializeElement(A): Implemented as specified in {{!RFC8032, Section 5.2.2}}.
   - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
-    identity element.
+    identity element and is in the prime-order subgroup. The latter check can
+    be implemented by multiplying the resulting point by the order of the group and
+    checking that the result is the identity element. Note that optimizations for
+    this check exist; see {{Pornin22}}.
   - SerializeScalar(s): Implemented by outputting the little-endian 48-byte encoding of
     the Scalar value.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
@@ -1016,12 +1024,11 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [4][S]B = [4]R + [4][k]A'.
 The alternative check [S]B = R + [k]A' is not safe or interoperable in practice.
-Note that optimizations for this check exist; see {{Pornin22}}.
 
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-P256-SHA256-v8".
+The value of the contextString parameter is "FROST-P256-SHA256-v10".
 
 - Group: P-256 (secp256r1) {{x9.62}}
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
@@ -1062,7 +1069,7 @@ Signature verification is as specified in {{prime-order-verify}}.
 ## FROST(secp256k1, SHA-256)
 
 This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-secp256k1-SHA256-v8".
+The value of the contextString parameter is "FROST-secp256k1-SHA256-v10".
 
 - Group: secp256k1 {{SEC2}}
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
@@ -1520,8 +1527,8 @@ the range \[0, G.Order() -1\] are as follows:
 Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
 by calling `DeserializeScalar` in constant time. If it succeeds, return the
 result. If it fails, try again with another random byte array, until the
-procedure succeeds. Failure to implement `DeserializeScalar` in constant time can leak information
-about the underlying corresponding Scalar.
+procedure succeeds. Failure to implement `DeserializeScalar` in constant time
+can leak information about the underlying corresponding Scalar.
 
 Note the that the Scalar size might be some bits smaller than the array size,
 which can result in the loop iterating more times than required. In that case
@@ -1598,56 +1605,56 @@ P3 participant_share: d3cb090a075eb154e82fdb4b3cb507f110040905468bb9c
 participant_list: 1,3
 
 // Signer round one outputs
-P1 hiding_nonce_randomness: 5c8f4d74076647069566b460154525c0d80bf278a
-49ef0da7e5b56ab1cceac08
-P1 binding_nonce_randomness: 90cda7316703b5f5e0c890ac456a1f64c0db1e9b
-025493b50f795a38ec373b69
-P1 hiding_nonce: 8fa57cf7b4f6476d1f0ee1ee972ea9acc79633fc6a46a1ab7223
-4e8f4cc65b00
-P1 binding_nonce: 305458d8109e95c71d5e61fb985a8e00126276dcd02ba9814fa
-2a5674f36f70d
-P1 hiding_nonce_commitment: 9edff055e77f1b7addf4bf48a58beea392a0032ac
-f2744196c61f3b3c3b1cb47
-P1 binding_nonce_commitment: 4a03fb80acea2712f2ff1548e990457cdd58fb17
-1a69f70fcdf53d1b0ea83008
-P1 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
-d84dd46d0dcbf3a21d21a23a776628859678a968acc8c8564c4641a1fd4b29a12d536
-7ca12ab10b6b497c2385b35930a34d98238021b25ab0641e39f8cf4277f90e3c03161
-b1755e7b08b7c5e5334a57e89c5e841186e9cca95214851ed99dcbd07f104fc399194
-fd8dc0100000000000000000000000000000000000000000000000000000000000000
-P1 binding_factor: febb7ae5b20ffe3c1d2bcf08f7e6104a78b3136ad3b7df35d5
-f84878ce7bb50d
-P3 hiding_nonce_randomness: a85d5ce57b709e59b07b1fefc80a50a928b409881
-7e482fa38f831ab453da14d
-P3 binding_nonce_randomness: b74a04b3a7e7311c974204c1e142952d1e93cb1e
-e0791c90126d2c4eb375e0e1
-P3 hiding_nonce: 59b0da2f402a69956b4c904737afefe29ef0aaa4401330f56dec
-ebe450204a08
-P3 binding_nonce: 1a54642c6b975f1b39a1b391bebc4f72b6dc6ca551cbebedee6
-ce5a60069fd0d
-P3 hiding_nonce_commitment: 5e11b65802153b03332533a3018d22fe760098508
-a250832a457e6004848411b
-P3 binding_nonce_commitment: 9ef535b69175da3833d330c1a43823b4b08dc1fb
-38fdc3af99f6804d8b250a09
-P3 binding_factor_input: 25120720c3a416e292edfb0510780bc84eb734347a5f
-d84dd46d0dcbf3a21d21a23a776628859678a968acc8c8564c4641a1fd4b29a12d536
-7ca12ab10b6b497c2385b35930a34d98238021b25ab0641e39f8cf4277f90e3c03161
-b1755e7b08b7c5e5334a57e89c5e841186e9cca95214851ed99dcbd07f104fc399194
-fd8dc0300000000000000000000000000000000000000000000000000000000000000
-P3 binding_factor: 6662bfe16e045aba72954ef54b6dabfc61db322698b57d5a40
-94b39d4ce01f05
+P1 hiding_nonce_randomness: 6c69be7a46a0e3be20833f864c77788bb05d6c239
+8ceadb84dbafa9522520049
+P1 binding_nonce_randomness: f6e164329c66be6fa75954dde46967171be80dda
+fd1d1defe51f03f6e3e6876e
+P1 hiding_nonce: 4e64f59e90a3b9cdce346fae68eb0e459532c8ca1ad59a566c3e
+e2c67bf0100b
+P1 binding_nonce: 470c660895c6db164ee6564120eec71023fa5297f09c663bb81
+71646c5632d00
+P1 hiding_nonce_commitment: f0ff219693d61f164ca785e03d6209ef94d57047c
+fc5c14d2cab4eb70c5fb0f4
+P1 binding_nonce_commitment: 71269d5f41d79e3d13059170875bf437c28369c6
+7aa6ae7478faf1334550c8d0
+P1 binding_factor_input: 736c1aac57730ec200b2e1518606c711d9ea10906582
+8e5ff26e81eb0247093047543440063365d5442a86234a8c9808720b77e094ace1f0c
+924183e30605b86dae87916da6a9544612f403ea4789735698142db05b44519ce717d
+a7cee249174689aa30845e44d8f93d5993259112e5f17e293ece62de4a844f79ef1f4
+61db00100000000000000000000000000000000000000000000000000000000000000
+P1 binding_factor: 02e82a18a7de829a93e63114d56841e060affd3595c8079fe7
+dea00eec053806
+P3 hiding_nonce_randomness: a2de7b16419a23bf116e6b89f75264802063944d1
+131ec7d9e789e01ab002aa1
+P3 binding_nonce_randomness: 177cec6de656b2c53f53198e74fefcb387753b45
+470ab373dc93a1adfbaafabf
+P3 hiding_nonce: 6fc516495dbb364b807cdd0c2e5e3f58aa4914a53fed33cc3400
+33979bb07304
+P3 binding_nonce: 0837e770a88147d41ff39138ca23b35d6cf303a4f148294755e
+de4b7e760d701
+P3 hiding_nonce_commitment: a98ebfeab6684035cc51983f72e682837c70dd8a8
+f6dfd52f116680ba35e9d54
+P3 binding_nonce_commitment: bb6f0926361c9ef40a171bfcee67c3a693fc25a6
+0e8a8d40d35f31829fda7799
+P3 binding_factor_input: 736c1aac57730ec200b2e1518606c711d9ea10906582
+8e5ff26e81eb0247093047543440063365d5442a86234a8c9808720b77e094ace1f0c
+924183e30605b86dae87916da6a9544612f403ea4789735698142db05b44519ce717d
+a7cee249174689aa30845e44d8f93d5993259112e5f17e293ece62de4a844f79ef1f4
+61db00300000000000000000000000000000000000000000000000000000000000000
+P3 binding_factor: f573b30ea1920f52dab3ec741430ce7b8838cd16ed0ff9b9d1
+32e13e62c01601
 
 // Round two parameters
 participant_list: 1,3
 
 // Signer round two outputs
-P1 sig_share: d21fd9d6f793c8efef622ae139ec94071dc1b1f47624f638f4f8615
-e1934bc09
-P3 sig_share: 7b599a881fc39829b2f69b194fd64bd6ee0df8b34e3d067be5612fa
-c4da8ac0b
+P1 sig_share: 3f2eb12735e5b39da97e884a6caadf6bb83f1efcec709d6f66333d0
+d67ebe707
+P3 sig_share: 79e572b8632fbb928519dd2eff793de8784a56d582ae48c807d39b0
+dc5b93509
 
-sig: 7c64be7528effeab65503e813ee28f94c53a4d8e45a0a71e936c840c78e42233
-60a57d02fdf34ec1cbbcce57aac801c90bcfa9a8c561fcb3d95a910a67dc6805
+sig: e31e69a4e10d5ca2307c4a0d12cd86e3fceee550e55cb5b3f47c7ad6dbb38884
+cb3f2e837eb15cd858fb6dd68c2a3e3f318a74d16f1fe6376e06d91a2ca51d01
 ~~~
 
 ## FROST(Ed448, SHAKE256)
@@ -1680,70 +1687,70 @@ P3 participant_share: 00db7a8146f995db0a7cf844ed89d8e94c2b5f259378ff6
 participant_list: 1,3
 
 // Signer round one outputs
-P1 hiding_nonce_randomness: b5eb1b4e369491e7d09427b01285803215bbc4c44
-0edebf8a337bfa3bc75a931
-P1 binding_nonce_randomness: c73b102813418576607ed61e726233f5df303f96
-38af479b05fbc8dda6739eeb
-P1 hiding_nonce: aa4606f9b2e5cf331e473833087769579685c4582a80ae45b01e
-3ffe83c0455b6f0eb05b320db0de0223509e8f8d30f356173b1ff2383a0100
-P1 binding_nonce: 90c118161d17804126d474af8cc1e2358319b704b8adb4088a8
-a36a3f48e8ec1c6b5106d394a36bd9e62d7dd7ee2a9978c866931d8da792300
-P1 hiding_nonce_commitment: 55d2fe1b9b91d8bd8511417ff9b315c752944acdf
-a483f134d2004c441bf6da055219dd0632ccaf8f35970fac9bea116f7269855833453
-9800
-P1 binding_nonce_commitment: 8ac0e4cf4d9fb584d5372d963341d6144d5d0310
-b6029c34c7c7a2bba4b259a3bb803da16e024764de4612aafc8d63d48f4e2a97df3f4
-0e800
-P1 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
-e1a5b8fa8ea5adaf3e7989b2c167a38a42a1693ad69cfd674e089a498672753563d53
-54654ba106d5fdffb134a8917fae91d412164436f734b95572af6208605744400c6ff
-9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef0277d99dbfcd70bf9162c46ca
-7f45754d1eabb8ab239f4fb88cc8af91e5f1af5d81f1f2f8dfb564c6ddb0a75bdf681
-b2f403d7d903000c647602978b2e714360a3847ca469b932d4dcdff6ea421c27a382c
-c230625e7c9b45e662056ef73687412f705f77fc4bc20e3d902888c02c2fd2ff07801
+P1 hiding_nonce_randomness: 924ca0a20602aecf5b46a44191beae0f82662a934
+5d8bba273e752d49cf09d38
+P1 binding_nonce_randomness: 53cd669e849b4d2a357f122f5ba3b99242bde269
+791ed1194a855e10befdaad3
+P1 hiding_nonce: 06f2e15b05d29a50f0686a890259f4dcf66147a80809ed9e5092
+6f5f173fe23a0627561efa003724dc270effc47a30bc4d80aba30725401d00
+P1 binding_nonce: e0482e611c34f191d1c13a09bc8bbf4bda68db4de32aa790884
+9b02ba912cfba46c805e2d8560ab9437e343e1dde6b481a2bae527e111b2c00
+P1 hiding_nonce_commitment: 7034e3ad2c5641259d481fcc32b56b4552d3d0369
+11dc456f948858bfca51c2c231d407222b9d6d997ff3c093309895c0ec510272b7cf0
+bd00
+P1 binding_nonce_commitment: 90d557d616fd4d495044fef2cd9da9ef7e962950
+0888bc715d68702510f4757eb2eebe85493d2cc73c1d785b57984ee220da72fdedc35
+7fc00
+P1 binding_factor_input: 80c3dfd62df16cc677ad6772d130badcd6dbd9754fd1
+939a3db6252646088570c91470beec2cf5e32dac40f5ab582cbd21f538f48a69ad053
+ffac2ddbb2c73e2b503edb94c3e86c1b71d114dda9980d87e7ce96172719c6de68869
+f9552edcf4a909bb2010822c236cff0a52afb5e85f897137f4d456aef79b8212fb9a6
+c22e8ab92b5455a01423a2f158324749f1828384d9dc96169753c7f19b206f7fd0a55
+fd2a85311170c5e4953de3d48894d4aa978e29df2332293ca97390068753aee1e4008
+a99d699d3a56451caeaed1b54be56a47a84c277b228f000232e75b32610db0c366001
 000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000
-P1 binding_factor: 4d58a6a888309da8b8d2d2068a44ad3c597591b1b806cc8ac1
-2d2c1202c66ae9c4e68b6bfd2ef3b3a5968a288fa5a2aed86161ebeb2aa60e00
-P3 hiding_nonce_randomness: 516a0e41f6b2f1f9a6661b5549db7486c6073249b
-6dcc5bbdca69e7fd6bcbd12
-P3 binding_nonce_randomness: 28f89d1c037cf61ccd08f7e06fa2289bb5a31a60
-5455bad6bec61923d60fe811
-P3 hiding_nonce: 4fd3566260ecc3f57f1cfb7c84724d2fc80f90dab5ee3613eb9b
-278e71fd9d88c8dae06ec1bbf2fd535ec3fca393dd011d63ee5c3db7383000
-P3 binding_nonce: c0a583112b13e238f249bac41a01ccb1ad679c4feaab14fc7ab
-0df3511066cd117fadfc1ec3a0fd31820e8857943675262ebc5d16194cd2300
-P3 hiding_nonce_commitment: 148325fe0941216938cd6bcbe45a68c3184b1f087
-1f2b17f3bbdc4e2aef9c03d27845bd6f45c05a810b0dd2582af3e11518015405a4ffb
-d480
-P3 binding_nonce_commitment: 2a34a68cfb05f20f0e2437daf4480cbafdab3243
-9a6798c1f7b36e0e47714c570242ef8972914ec65b8ed49784dc62fbdc8f7838faa75
-63700
-P3 binding_factor_input: 766a004ac6e87a2fa70f2095b19596ac33b94e2f6803
-e1a5b8fa8ea5adaf3e7989b2c167a38a42a1693ad69cfd674e089a498672753563d53
-54654ba106d5fdffb134a8917fae91d412164436f734b95572af6208605744400c6ff
-9a60fa2ce8fb7f3213414c32e347ee2e29e3d17654ef0277d99dbfcd70bf9162c46ca
-7f45754d1eabb8ab239f4fb88cc8af91e5f1af5d81f1f2f8dfb564c6ddb0a75bdf681
-b2f403d7d903000c647602978b2e714360a3847ca469b932d4dcdff6ea421c27a382c
-c230625e7c9b45e662056ef73687412f705f77fc4bc20e3d902888c02c2fd2ff07803
+P1 binding_factor: d4f54f478b17d57cb62beced74b1e1d04124ecd955445645e9
+37bda9d501b06f2c029495267759b7ddb5a127fff61e913467dc045bd2721200
+P3 hiding_nonce_randomness: 59eb2ee60798a0df135361845963f0e4f16529158
+e89c2e5144c6fe9bf407087
+P3 binding_nonce_randomness: 70814edfac5db2ab76c7e216859bbd87e5e2c092
+e903e82fb8b4dc920378056c
+P3 hiding_nonce: 295c56447c070157e6bc3c83ed2afca194569e07d0ad27d28a40
+dec2c4107c07d507db20da1be62ea6976b8e53ab5d26e225c663f2e7151100
+P3 binding_nonce: b97303a6c5ab12b6ad310834361033a19d99dfdf93109da721d
+a35c3abbc5f29df33b3402692bef9f005bb8ea00af5ba20cc688360fd883100
+P3 hiding_nonce_commitment: ee8acb4b1c466d539ffac6d7a66b934c2ba929fd0
+4f45398d18e7086953a7e064a1bd61cfcf04d7cb3f2efc71fac2769a445ba187fe0e9
+5280
+P3 binding_nonce_commitment: e81d75c6d11d14cf22387dc1e3f1734dc6c8cb77
+44a0473c6af46b133a5f94a7f9fba511c5f95b1ac7ab6542ff98603c5b2e0fc0554bb
+bd800
+P3 binding_factor_input: 80c3dfd62df16cc677ad6772d130badcd6dbd9754fd1
+939a3db6252646088570c91470beec2cf5e32dac40f5ab582cbd21f538f48a69ad053
+ffac2ddbb2c73e2b503edb94c3e86c1b71d114dda9980d87e7ce96172719c6de68869
+f9552edcf4a909bb2010822c236cff0a52afb5e85f897137f4d456aef79b8212fb9a6
+c22e8ab92b5455a01423a2f158324749f1828384d9dc96169753c7f19b206f7fd0a55
+fd2a85311170c5e4953de3d48894d4aa978e29df2332293ca97390068753aee1e4008
+a99d699d3a56451caeaed1b54be56a47a84c277b228f000232e75b32610db0c366003
 000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000
-P3 binding_factor: 7bfb1317cd530ba478544ee911687d0d0fa5e4c49e40a79347
-2601f9c587440478eebb90bbec84c98055783a32e442a3b40503b2a9389d3d00
+P3 binding_factor: 4525e6d697a2b8e5a373d051061f3ecb3f1cf2fb462fe6ee95
+75c3e71e15412244667b5406ed76c39c99f4b24d5e88d564082e926f5db12400
 
 // Round two parameters
 participant_list: 1,3
 
 // Signer round two outputs
-P1 sig_share: d982cdbb5d14fb53c8cb28cfb690ec38fc4f8f44c666de910703ee7
-ba2183989286c614c9bb5319a3a70bf22ee68ca54b3a6b90f33a33a1a00
-P3 sig_share: adc2d8301b5f5597af72c51cce53ab6d265e8e788ce4738b1e2fbdc
-e24eaa283b0bfbd7b587a407844c20e958c21a5ba9895b51fdfbb3e3700
+P1 sig_share: 5b65641e27007ec71509c6af5cf8527eb01fee5b2b07d8beecf6646
+eb7e7e27d85119b74f895b56ba7561834a1b0c42639b122160a0b620800
+P3 sig_share: 821b7ac04d7c01d970b0b3ba4ae8f737a5bac934aed1600b1cad760
+11c240629bce6a4671a1b6f572cec708ec161a72a5ca04e50eabdfc2500
 
-sig: 22943fef7107155064b0baa1d6ad78ee6c5d909ca88ac8bd1002bde99e124a34
-514f826d24d83fbdecf7752be1fd166fd31752fd4eb3a3280093004e41e6b0d7c722a
-f285e12222b859277470e097003593c0ee1cdc702dc0cd92b1fc8f32f72127f32ceb7
-7a8a6f0f4c3c6f2f125f791100
+sig: c7ad7ad9fcfeef9d1492361ba641400bd3a3c8335a83cdffbdd8867d2849bb44
+19dcc3e594baa731081a1a00cd3dea9219a81ecba4646e9500dd80dede747c7fa086b
+9796aa7e04ab655dab790d9d838ca08a4db6fd30be9a641f83fdc12b124c3d34289c2
+62126c5195517166f4c85e2e00
 ~~~
 
 ## FROST(ristretto255, SHA-512)
@@ -1775,56 +1782,56 @@ P3 participant_share: f17e505f0e2581c6acfe54d3846a622834b5e7b50cad9a2
 participant_list: 1,3
 
 // Signer round one outputs
-P1 hiding_nonce_randomness: b8f4ed5c201cb19151d091945eb0011db6bf4b816
-debfc21fc6833a99dca87b8
-P1 binding_nonce_randomness: 2588621bdf623b8a687f4def4f4f720b8da24f6b
-15c64a2a11dc74ffa04c9c02
-P1 hiding_nonce: 05a9f136274e02107502f5073e91b72bd42165f277d524b2eb3f
-9c6fa7a38a08
-P1 binding_nonce: 8fe91bee76721535b6ac5b84ea5474892cb476404217a9b6129
-d1974cd211703
-P1 hiding_nonce_commitment: 4ce0c9d3de33b7876122a3490cef6a5b8cc22acc2
-9e96195629b5b8cfb1b784f
-P1 binding_nonce_commitment: 26d80e82877fd0fd78a803996bf4847ee9d1ffd8
-0072c9f16d34c5dde4138115
-P1 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
-016254dc7c9d4869cbae0f6e4d94b23e5781b91bc74a25e0c773446b2640290d07c83
-f0b067ff870a801f846633bc5505172ee8dc7bb109916b61ea54ddc715684bb50f612
-8cec164ab16da6bcebddb83b78493ef85fca52ca460199609523f3eb877d46c399d28
-a00900100000000000000000000000000000000000000000000000000000000000000
-P1 binding_factor: 38915e5ab3b90122785515aa89d20c8e592de9f04cb0f42c6a
-e7cf99d3990d0b
-P3 hiding_nonce_randomness: 7f417eadf8651b6043eece2965411bfb237b0a468
-9c88a8469a2a66b79a6d7f9
-P3 binding_nonce_randomness: 53dd06d89cdeb574fc32e83fa138f73f668a99aa
-ccfa03f82e68ff6b845b7a8a
-P3 hiding_nonce: 2efc0a895c5788cb3b65f1032f8d64cf59ed71637353a7103fce
-ea669a169f04
-P3 binding_nonce: 6e60f3eac7359a4c19a22b618aa4531bd49a1ec83d2c3f503d7
-5474ddb15b406
-P3 hiding_nonce_commitment: 064f733cb26f728ef185d40e75c50b717cd543abe
-8057e38a96831a7de47b17f
-P3 binding_nonce_commitment: 6a47acc247a4cbf5b753a1d1f2dcb43241f2df71
-3468bf9a7a00e6257442bc46
-P3 binding_factor_input: fe9082dcc1ae1ae11380ac4cf0b6e2770af565ff5af9
-016254dc7c9d4869cbae0f6e4d94b23e5781b91bc74a25e0c773446b2640290d07c83
-f0b067ff870a801f846633bc5505172ee8dc7bb109916b61ea54ddc715684bb50f612
-8cec164ab16da6bcebddb83b78493ef85fca52ca460199609523f3eb877d46c399d28
-a00900300000000000000000000000000000000000000000000000000000000000000
-P3 binding_factor: 3f83b7811980bb032a3f85d857af755a00f4b16a10cdf88f32
-d13ea908d3b107
+P1 hiding_nonce_randomness: 0a016efd0abf8e556fd67288950bb7fc0843be63e
+306c7264bc9d24d1d65e0ee
+P1 binding_nonce_randomness: 35b6bab19e3e931e36c612ccc6b3c9d3a3479d27
+04aac3324b79c7bb6665acfb
+P1 hiding_nonce: de3e8f526dcb51a1b9b48cc284aeca27c385aa3ba1a92a0c8440
+d51e1a1d2f00
+P1 binding_nonce: fa8dca5ec7a05d5a7b782be847ba3dde1509de1dbcf0569fc98
+0cff795db5404
+P1 hiding_nonce_commitment: 3677297a5df660bf63bb8fcae79b7f98cf4f2e99f
+61bc762de9795cacd1cba62
+P1 binding_nonce_commitment: 142aece8aa8b16766664d8aaa5a5e709404bb844
+3309ef1ea9ad9254794a1f09
+P1 binding_factor_input: c70ac0b3effa113b8f4d8a6b1393ef7f0910862d143f
+de83e410db94f3818295ff49ed5aed0e57b2712f2ce0f9166f1ffdce282786c7ee8c2
+db2df295c61dc5fd0f93a769d09d44352c4e709c2e239fc34a1b89db44cb241060228
+5ffd70f3fa0a62dd70cfdb369ac0a7efc587f6f671a88412b2570280da24bd36f8ffd
+a6d280100000000000000000000000000000000000000000000000000000000000000
+P1 binding_factor: dbaa0ae3c5663816cdc646281be46b0b09eca6a1ecf7781f29
+475be27d30fd08
+P3 hiding_nonce_randomness: ac4e65529397de3a868a902e9040e38b26547c18b
+7267fa1d1bbfe4ed14d6b5f
+P3 binding_nonce_randomness: 74213c820b7266c4990a0758f4c520685375cb98
+822499406654bdb1a426582e
+P3 hiding_nonce: e07061a9ab6735de9a75b0c64f086c5b999894611d0cdc03f85c
+4e87c8aae602
+P3 binding_nonce: 38b17578e8e6ad4077071ce6b0bf9cb85ac35fee7868dcb6d9b
+fa97f0e153e0e
+P3 hiding_nonce_commitment: f8d758ad9373754c1d2bca9c38478e4eb857aa032
+836ade6eb0726f5e1d08037
+P3 binding_nonce_commitment: 529823e80220849c195072a26acca88f65639d41
+81927bb7fcd96e43d9a34649
+P3 binding_factor_input: c70ac0b3effa113b8f4d8a6b1393ef7f0910862d143f
+de83e410db94f3818295ff49ed5aed0e57b2712f2ce0f9166f1ffdce282786c7ee8c2
+db2df295c61dc5fd0f93a769d09d44352c4e709c2e239fc34a1b89db44cb241060228
+5ffd70f3fa0a62dd70cfdb369ac0a7efc587f6f671a88412b2570280da24bd36f8ffd
+a6d280300000000000000000000000000000000000000000000000000000000000000
+P3 binding_factor: aa076fec41410f6c0667e47443fcd1ed828854d84b19d1d086
+24d084720c7d05
 
 // Round two parameters
 participant_list: 1,3
 
 // Signer round two outputs
-P1 sig_share: 86879530bc8d700ec20e6211d0c8d27d1b518f5aed00b9eef1b04ed
-625c1ab05
-P3 sig_share: 66f01933240c000ab4abb203f49bf8bb7138ffe17d5cd6c943ea30c
-f9f32410c
+P1 sig_share: a5f046916a6a111672111e47f9825586e1188da8a0f3b7c61f2b6b4
+32c636e07
+P3 sig_share: 4c175c7e43bd197980c2021774036eb288f54179f079fbf21b7d2f9
+f52846401
 
-sig: 8adca3c885d6ffa07429de8df9ba9bc72a3b0dfa0f6139035deadc72e13c645e
-ffa3b906c6365ec09f1d1d72e56aec248d898e3c6b5d8fb8359b7fa5c5f3ec01
+sig: 94b11def3f919503c3544452ad2a59f198f64cc323bd758bb1c65b42032a7473
+f107a30fae272b8ff2d3205e6d86c3386a0ecf21916db3b93ba89ae27ee7d208
 ~~~
 
 ## FROST(P-256, SHA-256)
@@ -1856,54 +1863,54 @@ P3 participant_share: 0e80d6e8f6192c003b5488ce1eec8f5429587d48cf00154
 participant_list: 1,3
 
 // Signer round one outputs
-P1 hiding_nonce_randomness: 3c3cce19a46e2539a2a3f0fc1302c04d643c80b61
-beff7545f09bf3379ce763f
-P1 binding_nonce_randomness: 7550f8224653dec3179586846a156e08911cad54
-e785e7a8db13539ad1fd7ac6
-P1 hiding_nonce: f07d7e697f7db6b0eaa29e8303e718440197ff47e1918cd4e630
-c202ab323223
-P1 binding_nonce: 248eb6983093337c1dae193643e8e4618cdafd189fb8289239b
-1b54a1778e0cf
-P1 hiding_nonce_commitment: 02cc0ef1b65d7284c0be9c555e9877fac2dad008d
-f7df6133928f900ca34d82bbe
-P1 binding_nonce_commitment: 0281413660fa8a78ae1ca4a65fdad3259246e19e
-74f81687b9812246c8b174b1f2
-P1 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
-7c4b72a298d1eaae57664a317d123a18b12922413ebd80944a0816821b2694b4aea22
-16ebbe38eb2daf3000000000000000000000000000000000000000000000000000000
+P1 hiding_nonce_randomness: 3029ae05a266703f618e60c26653f6b8f35a759ec
+2adecf8b7d9e1719375494e
+P1 binding_nonce_randomness: 86755fd9be109ff0549833931080ac344b0d775a
+029fca0329f8ce732060f81e
+P1 hiding_nonce: 9aa66350b0f72b27ce4668323b4280cd49709177ed8373977c22
+a75546c9995d
+P1 binding_nonce: bd8b05d7fd0ff5a5ed65b1f105478f7718a981741fa8fa9b55a
+c6d3c8fc59a05
+P1 hiding_nonce_commitment: 03071549b356988df0f7187585e2d82d6f916700c
+fdd49634d0c27965139fd53ec
+P1 binding_nonce_commitment: 02151f45451b719bf68f6c609967ebea3c78c9ec
+e4c04a564a0c50d22f0f534112
+P1 binding_factor_input: 47d0b1c45754dd58dc369bc4c1a9b24ffbb67ceb6d6e
+25c302e9875202f7d2b4755d9beaba0a02b01315bd42fa11590d5a4d531d1f7f81c5f
+c70a82ecada72e9000000000000000000000000000000000000000000000000000000
 0000000001
-P1 binding_factor: 0f2c1ea6da0fceb9cbb63bfe81d80bd22c434a5d9810b1cc97
-7f7eab7f0e9da4
-P3 hiding_nonce_randomness: 89c096201f0aeb36b0b8a33763ac92df1169ead49
-fcf2dec8209f858852a345f
-P3 binding_nonce_randomness: 8785c0b2a5817cf40c978e28f7804eff570c3c1c
-f9df11b37496c318fa38d107
-P3 hiding_nonce: dc34074d1f8f427ee8eabc546cb9931cc44371be94ad66f7a27f
-dc4a665db373
-P3 binding_nonce: 0a3e836f36b4011be4f6ef111596838fdfccf89c431d66da2ca
-75ea55dcf3b44
-P3 hiding_nonce_commitment: 02261bf8649d9943d5f664694219742e9abc501c6
-7be6b112e833b144462a662e3
-P3 binding_nonce_commitment: 03603f38cefae47af6be8dbeeef53e7b27b5af8d
-4159b968d489a1f7295581b0e5
-P3 binding_factor_input: 3617acb73b44df565fbcbbbd1824142c473ad1d6c800
-7c4b72a298d1eaae57664a317d123a18b12922413ebd80944a0816821b2694b4aea22
-16ebbe38eb2daf3000000000000000000000000000000000000000000000000000000
+P1 binding_factor: 0e9709d66649a0a245f28666bd01c863a6a647f213fd49eeaa
+cfeca15402ddf4
+P3 hiding_nonce_randomness: 2741900f778d51f4431644a62a69f1623d7569ecf
+2d628d60cb28e27db949161
+P3 binding_nonce_randomness: a62404370cb2a2e0aebef27ec72c1433a627dfcc
+5f0cdf5ba4799fc326a66a3f
+P3 hiding_nonce: 4c1aec8e84c496b80af98415fada2e6a4b1f902d4bc6c9682699
+b8aeffd97419
+P3 binding_nonce: eeaf5ef7af01e55050fb8acafc9c9306ef1cc13214677ba33e7
+bc51e8677e892
+P3 hiding_nonce_commitment: 0351cd636672cac59d384498dd9db2b72ea8e701a
+702867c17e3ecf675d9a9fc91
+P3 binding_nonce_commitment: 032bddd1ab4bfda79c707742f0e314ff2be95940
+58ba590613ba9840886bab1a59
+P3 binding_factor_input: 47d0b1c45754dd58dc369bc4c1a9b24ffbb67ceb6d6e
+25c302e9875202f7d2b4755d9beaba0a02b01315bd42fa11590d5a4d531d1f7f81c5f
+c70a82ecada72e9000000000000000000000000000000000000000000000000000000
 0000000003
-P3 binding_factor: 7598b94e95da5f81f9b3ad0c40499526429ec80de9cc0a8240
-0bbbd2725ea947
+P3 binding_factor: 0b5c759331915b25c5eb5307617e01aa99bc5c89a403d9c6b5
+9949045a4c0a77
 
 // Round two parameters
 participant_list: 1,3
 
 // Signer round two outputs
-P1 sig_share: 35e4cfe05008a064ad66f2ab62005632b5c44d4daea5cf1ffd193c5
-56ec4ddad
-P3 sig_share: 79aa1cc540bacfc5a96d4eb1940aa85ec56ec880885748c3de11ff3
-55d4e77cf
+P1 sig_share: ec5b8ab47d55903698492a07bb322ab6e7d3cf32581dcedf43c4fa1
+8b46f3e10
+P3 sig_share: c97da3580560e88725a8e393d46fee18ecd2e00148e5e303d4a510f
+ae9c11da5
 
-sig: 03fe31f09eb37b31956749b77eb3d5cf88ac6c2192481e2eaa6e729d4ed8ba0f
-28af8eeca590c3702a56d4415cf60afe917b3315ce36fd17e3db2b3b8acc13557c
+sig: 036b3eba585ff5d40df29893fb6f60572803aef97800cfaaaa5cf0f0f19d8237
+f7b5d92e0d82b678bcbdf20d9b8fa218d017bfb485f9ec135e24b04050a1cd3664
 ~~~
 
 ## FROST(secp256k1, SHA-256)
@@ -1935,52 +1942,52 @@ P3 participant_share: 00e95d59dd0d46b0e303e500b62b7ccb0e555d49f5b849f
 participant_list: 1,3
 
 // Signer round one outputs
-P1 hiding_nonce_randomness: cfeb82944dbbddde7863519b623acdaf0962217ae
-fa5a4ad08b07f176600c070
-P1 binding_nonce_randomness: 11b45cbcc8eec8877741fc2622ff0c7fbf68a6bd
-9b3f8ee313150d6e0bcb5d83
-P1 hiding_nonce: b97f0b3fa40a05cbbda2d0acce6170f046520bbf884748e1949b
-007c6f11b410
-P1 binding_nonce: 6f0c660fb917a39a8b61893ebf8d5e6000da5e766efe717bf40
-20c444327a4a0
-P1 hiding_nonce_commitment: 03e030abe3c24a6258fe5b15abcdfbb539f146998
-d86396e2d3f3cf6d5198f60de
-P1 binding_nonce_commitment: 0264617bf0828fa5eadc831b2fa4b4038d7e39c7
-01708282d707d5f58e6e41d28e
-P1 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
-49237106acab251dd954b5398f26122974fbb2a00ebfa06caafe44bc289dc964b83dd
-4f46411ebd2bce9000000000000000000000000000000000000000000000000000000
+P1 hiding_nonce_randomness: 753a4f3d424de828c2604f54a807677e4383a184b
+f373da9855af385e9014693
+P1 binding_nonce_randomness: 4f4b423493e7e676d30630c0b165cf6ea428bd43
+1af382377981a7f3971ba3f0
+P1 hiding_nonce: 36d5c4185c40b02b5e4673e2531a10e6ff9883840a68ec08dbeb
+896467e21355
+P1 binding_nonce: 7b3f573ca0a28f9f94522be4748df0ed04de8a83085aff4be7b
+01aa53fb6ac1b
+P1 hiding_nonce_commitment: 029ed3b6b8c3f7c1bca427160579ea1cdf47671c7
+76ed1933fb617c7d8ebd018cd
+P1 binding_nonce_commitment: 0217c99463f8ced8a2f2927a85d9a5fcc893bcf9
+a6dc0507418e6f511feea0964d
+P1 binding_factor_input: 8263cf41514645b3d57a9738502a0522c8d7b410ec42
+b6ba8cca0830faacfa01cabeb24393904d4051842b28fd09f3f53dd6812c1331a225d
+c9c9c6f872fe734000000000000000000000000000000000000000000000000000000
 0000000001
-P1 binding_factor: d80f1df14cfd6803b8501866ca1667297f7867c21886bc04a4
-0b56964efa6af6
-P3 hiding_nonce_randomness: c8e243917b9d06df6a92c6beca63d6be08325e7b9
-29114ec4670f54c07529b47
-P3 binding_nonce_randomness: 920d7850ac0d04049eae8e107ee0d86d416d9887
-23c505fde8e68ef3e6c36153
-P3 hiding_nonce: 9e73856e36f0ac77165af15ced03c71c4b0b3df9e63e1fc550d1
-38effb4cf827
-P3 binding_nonce: d1620add724f71f28248822ce5fad517428c6b7247dee8d6a46
-56b795d058173
-P3 hiding_nonce_commitment: 02ba01e4f0a2ead5da318536893cd20f658a51e78
-0dfc96b7604fe8ab73b34a00f
-P3 binding_nonce_commitment: 0317ec2be255f4647a98b3573582c48ac5c5f087
-fdaa057a92ed363f1a1a642056
-P3 binding_factor_input: d759fa818c284537bbb2efa2d7247eac9232b7b992cd
-49237106acab251dd954b5398f26122974fbb2a00ebfa06caafe44bc289dc964b83dd
-4f46411ebd2bce9000000000000000000000000000000000000000000000000000000
+P1 binding_factor: f995eeab0b6c02673f1e5e338652eac32729d9e827518f8350
+934261f7f8a118
+P3 hiding_nonce_randomness: 94b70f287aa5c9961a012e00c46f384cf7cc4b385
+f7d6f093e53c60117aae9a2
+P3 binding_nonce_randomness: a6b5ebff4fe4539535c33bcc267bb5f25c40e300
+8bf118ba8a97a12e131d0e8a
+P3 hiding_nonce: ba4f8b8e587b2c9fc61a6156885f0bc67654b5e068c9e7749f75
+c09a98f17c13
+P3 binding_nonce: 316de06639051ac7869e5ac4458eda1fef90ce93fa3c490556c
+4192e4fa550d0
+P3 hiding_nonce_commitment: 037d38246f1ac0d713a79956723e7766861ce624e
+7e3bfc98c786d5e20c6ae232a
+P3 binding_nonce_commitment: 03342d96ef52ad1f95423f32ef17805595393268
+f606c3a6d179e4f99910a41dfe
+P3 binding_factor_input: 8263cf41514645b3d57a9738502a0522c8d7b410ec42
+b6ba8cca0830faacfa01cabeb24393904d4051842b28fd09f3f53dd6812c1331a225d
+c9c9c6f872fe734000000000000000000000000000000000000000000000000000000
 0000000003
-P3 binding_factor: edd9bb6d85b3610a73e9eaeb2941924b25497d97cfdec17e47
-9ef5e9b2a7dcd7
+P3 binding_factor: 73dce3f4ade1d8a357bb4b219840da9ef6f99551cafcfe174e
+5d93f1994f5891
 
 // Round two parameters
 participant_list: 1,3
 
 // Signer round two outputs
-P1 sig_share: 8a89a17b72e7235d6fbbd0c25db85a1ede389f84d290258c1a42397
-dff111626
-P3 sig_share: 100275a38484954d345e238f92d4161bf8064a2c4767e916f406ada
-b0a734d26
+P1 sig_share: f9ee00d5ac0c746b751dde99f71d86f8f0300a81bd0336ca6649ef5
+97239e13f
+P3 sig_share: 61048ca334ac6a6cb59d6b3ea2b25b7098e204adc09e2f88b024531
+b081d1d6f
 
-sig: 02652105e8b9d3b30e6868c8cb4cb86d858201fc0f7cef211b6c8f0426d8ac63
-f69a8c171ef76bb8aaa419f451f08c703ad63ee9b119f80ea30e48e7290984634c
+sig: 023cf76388f92d403aa937af2e3cb3e7a2350e40400c16a282e330af2c60eeb8
+5a5af28d78e0b8ded82abb49d899cfe26ace633248ce58c617569be3e7aa20bd6d
 ~~~
