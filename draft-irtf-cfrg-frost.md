@@ -325,7 +325,7 @@ These sections describes these operations in more detail.
 
 To hedge against a bad RNG that outputs predictable values, nonces are
 generated with the `nonce_generate` function by combining fresh randomness
-and with the secret key as input to a domain-separated hash function built
+with the secret key as input to a domain-separated hash function built
 from the ciphersuite hash function `H`. This domain-separated hash function
 is denoted `H3`. This function always samples 32 bytes of fresh randomness
 to ensure that the probability of nonce reuse is at most 2<sup>-128</sup>
@@ -582,9 +582,9 @@ use a signing key share. The Coordinator is an entity with the following respons
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-FROST assumes that all parties and their roles, including the Coordinator and the set of participants,
-are chosen externally to the protocol. Note that it is possible to deploy the protocol
-without a distinguished Coordinator; see {{no-coordinator}} for more information.
+FROST assumes that the Coordinator and the set of signer participants, are chosen
+externally to the protocol. Note that it is possible to deploy the protocol without
+a distinguished Coordinator; see {{no-coordinator}} for more information.
 
 FROST produces signatures that are indistinguishable from those produced with a single
 participant using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
@@ -598,9 +598,8 @@ FROST assumes each participant is configured with the following information:
   of the group signing key `s`. The public key corresponding to this signing key share
   is `PK_i = G.ScalarBaseMult(sk_i)`.
 
-The Coordinator and each participant is additionally configured
-with common group information, denoted "group info," which consists of the following
-information:
+The Coordinator and each participant are additionally configured with common group
+information, denoted "group info," which consists of the following:
 
 - Group public key, which is an `Element` in `G` denoted `PK`.
 - Public keys `PK_i` for each participant, which are `Element` values in `G` denoted `PK_i`
@@ -659,7 +658,7 @@ This complete interaction is shown in {{fig-frost}}.
 
 Details for round one are described in {{frost-round-one}}, and details for round two
 are described in {{frost-round-two}}. Note that each participant persists some state between
-both rounds, and this state is deleted as described in {{frost-round-two}}. The final
+the two rounds, and this state is deleted as described in {{frost-round-two}}. The final
 Aggregation step is described in {{frost-aggregation}}.
 
 FROST assumes that all inputs to each round, especially those of which are received
@@ -720,8 +719,9 @@ set of signing commitments for all participants in the participant list. Each pa
 MUST validate the inputs before processing the Coordinator's request. In particular,
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
-MUST abort the protocol. Moreover, each participant MUST ensure that their identifier as
-well as their commitment as from the first round appears in commitment_list.
+MUST abort the protocol. Moreover, each participant MUST ensure that
+their identifier appears in commitment_list along with
+their commitment from the first round.
 Applications which require that participants not process arbitrary
 input messages are also required to also perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
@@ -1527,8 +1527,8 @@ the range \[0, G.Order() -1\] are as follows:
 Generate a random byte array with `Ns` bytes, and attempt to map to a Scalar
 by calling `DeserializeScalar` in constant time. If it succeeds, return the
 result. If it fails, try again with another random byte array, until the
-procedure succeeds. Failure to implement rejecting sampling in constant time can
-leak information about the underlying corresponding Scalar.
+procedure succeeds. Failure to implement `DeserializeScalar` in constant time
+can leak information about the underlying corresponding Scalar.
 
 Note the that the Scalar size might be some bits smaller than the array size,
 which can result in the loop iterating more times than required. In that case
