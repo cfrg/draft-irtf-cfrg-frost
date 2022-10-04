@@ -902,6 +902,9 @@ Each ciphersuite includes explicit instructions for verifying signatures produce
 by FROST. Note that these instructions are equivalent to those produced by a single
 participant.
 
+Each ciphersuite adheres to the requirements in {{ciphersuite-reqs}}. Future
+ciphersuites MUST also adhere to these requirements.
+
 ## FROST(Ed25519, SHA-512)
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
@@ -1107,29 +1110,45 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v10".
 
 Signature verification is as specified in {{prime-order-verify}}.
 
+## Ciphersuite Requirements {#ciphersuite-reqs}
+
+Future documents that introduce new ciphersuites MUST adhere to
+the following requirements.
+
+1. H1, H2, and H3 all have output distributions that are close to
+  (indistinguishable from) the uniform distribution.
+2. All hash functions MUST be domain separated with a per-suite context
+  string. Note that the FROST(Ed25519, SHA-512) ciphersuite does not
+  adhere to this requirement for backwards compatibility with {{RFC8032}}.
+3. The group MUST be of prime-order, and all deserialization functions MUST
+  output elements that belong to to their respective sets of Elements or Scalars,
+  or failure when deserialization fails.
+
 # Security Considerations {#sec-considerations}
 
 A security analysis of FROST exists in {{FROST20}} and {{Schnorr21}}. The protocol as specified
 in this document assumes the following threat model.
 
-* Trusted dealer. The dealer that performs key generation is trusted to follow
-the protocol, although participants still are able to verify the consistency of their
-shares via a VSS (verifiable secret sharing) step; see {{dep-vss}}.
+* Secure key distribution. The signer key shares are generated and distributed securely, i.e.,
+via a trusted dealer that performs key generation (see {{dep-vss}}) or through a distributed
+key generation protocol.
 
-* Unforgeability assuming at most `(MIN_PARTICIPANTS-1)` corrupted participants. So long as an adversary
-corrupts fewer than `MIN_PARTICIPANTS` participants, the scheme remains secure against Existential
-Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
-Definition 13.2.
-
-* Coordinator. We assume the Coordinator at the time of signing does not perform a
-denial of service attack. A denial of service would include any action which either
-prevents the protocol from completing or causing the resulting signature to be invalid.
-Such actions for the latter include sending inconsistent values to participants,
+* Honest-but-curious coordinator. We assume an honest-but-curious Coordinator which, at the
+time of signing, does not perform a denial of service attack. A denial of service would include
+any action which either prevents the protocol from completing or causing the resulting signature
+to be invalid. Such actions for the latter include sending inconsistent values to participants,
 such as messages or the set of individual commitments. Note that the Coordinator
 is *not* trusted with any private information and communication at the time of signing
 can be performed over a public but reliable channel.
 
-The protocol as specified in this document does not target the following goals:
+Under this threat model, FROST aims to achieve signature unforgeability assuming at most
+`(MIN_PARTICIPANTS-1)` corrupted participants. In particular, so long as an adversary corrupts
+fewer than `MIN_PARTICIPANTS` participants, the scheme remains secure against Existential
+Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
+Definition 13.2. Satisfying this requirement requires the ciphersuite to adhere to the
+requirements in {{ciphersuite-reqs}}.
+
+FROST does not aim to achieve the following goals:
 
 * Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol.
@@ -1212,9 +1231,6 @@ In general, input message validation is an application-specific consideration
 that varies based on the use case and threat model. However, it is RECOMMENDED
 that applications take additional precautions and validate inputs so that participants
 do not operate as signing oracles for arbitrary messages.
-
-# Contributors
-
 
 --- back
 
@@ -1530,12 +1546,12 @@ result. If it fails, try again with another random byte array, until the
 procedure succeeds. Failure to implement `DeserializeScalar` in constant time
 can leak information about the underlying corresponding Scalar.
 
-Note the that the Scalar size might be some bits smaller than the array size,
-which can result in the loop iterating more times than required. In that case
-it's acceptable to set the high-order bits to 0 before calling `DeserializeScalar`,
-but care must be taken to not set to zero more bits than required. For example,
-in the `FROST(Ed25519, SHA-512)` ciphersuite, the order has 253 bits while
-the array has 256; thus the top 3 bits of the last byte can be set to zero.
+As an optimization, if the group order is very close to a power of
+2, it is acceptable to omit the rejection test completely.  In
+particular, if the group order is p, and there is an integer b
+such that `p - 2<sup>b</sup>| < 2<sup>(b/2)</sup>`, then
+`RandomScalar` can simply return a uniformly random integer of at
+most b bits.
 
 ## Wide Reduction
 
