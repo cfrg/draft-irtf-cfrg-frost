@@ -287,12 +287,12 @@ We now detail a number of member functions that can be invoked on `G`.
 - SerializeElement(A): Maps an `Element` `A` to a canonical byte array `buf` of fixed length `Ne`.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not the valid canonical byte representation of an element of
-  the group. This function can raise a DeserializeError if deserialization fails
+  the group. This function can raise an error if deserialization fails
   or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
   input validation steps.
 - SerializeScalar(s): Maps a Scalar `s` to a canonical byte array `buf` of fixed length `Ns`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
-  This function can raise a DeserializeError if deserialization fails; see
+  This function can raise an error if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
 
 ## Cryptographic Hash Function {#dep-hash}
