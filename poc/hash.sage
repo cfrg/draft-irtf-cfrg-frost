@@ -12,7 +12,7 @@ except ImportError as e:
 
 _as_bytes = lambda x: x if isinstance(x, bytes) else bytes(x, "utf-8")
 
-VERSION = "v10"
+VERSION = "v11"
 
 class Hash(object):
     def __init__(self, G, H, name):
