@@ -95,6 +95,9 @@ class GroupNISTCurve(Group):
         return self.curve(0)
 
     def serialize(self, element):
+        if element == self.identity():
+            raise Exception("Identity element not permitted")
+
         x, y = element[0], element[1]
         sgn = sgn0(y)
         byte = 2 if sgn == 0 else 3
@@ -114,8 +117,10 @@ class GroupNISTCurve(Group):
         if sgn0(y) != parity:
             y = -y
         point = self.curve(self.F(x), self.F(y))
+
         if point == self.identity():
             raise Exception("Identity element not permitted")
+
         return point
 
     def serialize_scalar(self, scalar):
@@ -224,6 +229,9 @@ class GroupEd25519(Group):
         return self.curve(0)
 
     def serialize(self, element):
+        if element == self.identity():
+            raise Exception("Identity element not permitted")
+
         (x, y) = element.xy()
         (u, v) = GroupEd25519.to_twistededwards(self.a, self.d, x, y)
 
@@ -314,6 +322,9 @@ class GroupEd448(Group):
         return self.curve(0)
 
     def serialize(self, element):
+        if element == self.identity():
+            raise Exception("Identity element not permitted")
+
         (x, y) = element.xy()
         (u, v) = GroupEd448.to_twistededwards(self.a, self.d, x, y)
 
@@ -367,12 +378,17 @@ class GroupRistretto255(Group):
         return Ed25519Point().identity()
 
     def serialize(self, element):
+        if element == self.identity():
+            raise Exception("Identity element not permitted")
+
         return element.encode()
 
     def deserialize(self, encoded):
         element = Ed25519Point().decode(encoded)
+
         if element == self.identity():
             raise Exception("Identity element not permitted")
+
         return element
 
     def serialize_scalar(self, scalar):

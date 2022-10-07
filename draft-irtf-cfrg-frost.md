@@ -284,7 +284,8 @@ We now detail a number of member functions that can be invoked on `G`.
 - RandomScalar(): Outputs a random `Scalar` element in GF(p), i.e., a random scalar in \[0, p - 1\].
 - ScalarMult(A, k): Output the scalar multiplication between Element `A` and Scalar `k`.
 - ScalarBaseMult(k): Output the scalar multiplication between Scalar `k` and the group generator `B`.
-- SerializeElement(A): Maps an `Element` `A` to a canonical byte array `buf` of fixed length `Ne`.
+- SerializeElement(A): Maps an `Element` `A` to a canonical byte array `buf` of fixed length `Ne`. This
+  function can raise an error if `A` is the identity element of the group.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not the valid canonical byte representation of an element of
   the group. This function can raise an error if deserialization fails
@@ -917,6 +918,8 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v10".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented as specified in {{!RFC8032, Section 5.1.2}}.
+    Additionally, this function validates that the input element is not the group
+    identity element.
   - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element and is in the prime-order subgroup. The latter check can
@@ -962,6 +965,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v10".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the 'Encode' function from {{!RISTRETTO}}.
+    Additionally, this function validates that the input element is not the group
+    identity element.
   - DeserializeElement(buf): Implemented using the 'Decode' function from {{!RISTRETTO}}.
     Additionally, this function validates that the resulting element is not the group
     identity element.
@@ -996,6 +1001,8 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v10".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented as specified in {{!RFC8032, Section 5.2.2}}.
+    Additionally, this function validates that the input element is not the group
+    identity element.
   - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
     identity element and is in the prime-order subgroup. The latter check can
@@ -1039,7 +1046,8 @@ The value of the contextString parameter is "FROST-P256-SHA256-v10".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SEC1}}, yielding a 33 byte output.
+    method according to {{SEC1}}, yielding a 33 byte output. Additionally, this function validates
+    that the input element is not the group identity element.
   - DeserializeElement(buf): Implemented by attempting to deserialize a 33 byte input string to
     a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs partial public-key validation as defined in section 5.6.2.3.4 of
@@ -1080,7 +1088,8 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v10".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SEC1}}.
+    method according to {{SEC1}}. Additionally, this function validates that the input element
+    is not the group identity element.
   - DeserializeElement(buf): Implemented by attempting to deserialize a public key using
     the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs partial public-key validation as defined in section 3.2.2.1 of
