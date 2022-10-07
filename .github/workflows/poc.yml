@@ -2,7 +2,7 @@ name: FROST poc CI
 
 on:
   workflow_dispatch:
-  push: 
+  push:
     paths:
       - 'poc/**'
 
@@ -21,6 +21,7 @@ jobs:
 
       - name: Set up Sage
         run: |
+          brew update
           brew install sage
 
       - name: Test with Makefile
