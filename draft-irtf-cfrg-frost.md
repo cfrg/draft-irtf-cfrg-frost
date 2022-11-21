@@ -238,6 +238,8 @@ The following notation is used throughout the document.
 
 * `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG).
+* `encode_uint16(x)`: Convert two byte unsigned integer (uint16) x to
+a 2-byte, big-endian byte string.  For example, `encode_uint16(310) = [0x01, 0x36]`.
 * `count(i, L)`: Outputs the number of times the element `i` is represented in the list `L`.
 * `len(l)`: Outputs the length of input list `l`, e.g., `len([1,2,3]) = 3)`.
 * `reverse(l)`: Outputs the list `l` in reverse order, e.g., `reverse([1,2,3]) = [3,2,1]`.
@@ -309,12 +311,12 @@ FROST requires the use of a cryptographically secure hash function, generically
 written as H, which functions effectively as a random oracle. For concrete
 recommendations on hash functions which SHOULD be used in practice, see
 {{ciphersuites}}. Using H, we introduce separate domain-separated hashes,
-H1, H2, H3, H4, and H5:
+H1, H2, H3, H4, H5, and H6:
 
-- H1, H2, and H3 map arbitrary byte strings to Scalar elements of the prime-order group scalar field.
-- H4 and H5 are aliases for H with distinct domain separators.
+- H1, H2, H3, and H4 map arbitrary byte strings to Scalar elements of the prime-order group scalar field.
+- H5 and H6 are aliases for H with distinct domain separators.
 
-The details of H1, H2, H3, H4, and H5 vary based on ciphersuite. See {{ciphersuites}}
+The details of H1, H2, H3, H4, H5, and H6 vary based on ciphersuite. See {{ciphersuites}}
 for more details about each.
 
 # Helper Functions {#helpers}
@@ -514,8 +516,8 @@ on the participant commitment list and message to be signed.
   Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
 
   def compute_binding_factors(commitment_list, msg):
-    msg_hash = H4(msg)
-    encoded_commitment_hash = H5(encode_group_commitment_list(commitment_list))
+    msg_hash = H5(msg)
+    encoded_commitment_hash = H6(encode_group_commitment_list(commitment_list))
     rho_input_prefix = msg_hash || encoded_commitment_hash
 
     binding_factor_list = []
@@ -950,8 +952,11 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
   - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     2^252+27742317777372353535851937790883648493.
-  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
-  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
+  - H4(m): Implemented by computing H("poly" \|\| m), interpreting the 64-byte digest
+    as a little-endian integer, and reducing the resulting integer modulo
+    2^252+27742317777372353535851937790883648493.
+  - H5(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H6(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 
 Normally H2 would also include a domain separator, but for backwards compatibility
@@ -990,9 +995,11 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m) and mapping the
+    output to a Scalar as described in {{!RIsSTRETTO, Section 4.4}}.
+  - H4(m): Implemented by computing H("poly" \|\| m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
-  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
-  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
+  - H5(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H6(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
@@ -1032,8 +1039,11 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
   - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m), interpreting the
     114-byte digest as a little-endian integer, and reducing the resulting integer modulo
     2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
-  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
-  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
+  - H4(m): Implemented by computing H("poly" \|\| m), interpreting the
+    114-byte digest as a little-endian integer, and reducing the resulting integer modulo
+    2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
+  - H5(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H6(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Normally H2 would also include a domain separator, but for backwards compatibility
 with {{!RFC8032}}, it is omitted.
@@ -1079,8 +1089,11 @@ The value of the contextString parameter is "FROST-P256-SHA256-v11".
   - H3(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
     using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "nonce",
     F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
-  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
-  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
+  - H4(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = "poly",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
+  - H5(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H6(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
@@ -1121,8 +1134,11 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
   - H3(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
     using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "nonce",
     F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
-  - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
-  - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
+  - H4(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE, Section 5.2}}
+    using `expand_message_xmd` with SHA-256 with parameters DST = "poly",
+    F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
+  - H5(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
+  - H6(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
 
@@ -1225,9 +1241,9 @@ pre-hashing in settings where storing the full message is prohibitively expensiv
 In such cases, pre-hashing MUST use a collision-resistant hash function with a security
 level commensurate with the security in inherent to the ciphersuite chosen. It is
 RECOMMENDED that applications which choose to apply pre-hashing use the hash function
-(`H`) associated with the chosen ciphersuite in a manner similar to how `H4` is defined.
+(`H`) associated with the chosen ciphersuite in a manner similar to how `H5` is defined.
 In particular, a different prefix SHOULD be used to differentiate this pre-hash from
-`H4`. One possible example is to construct this pre-hash over message `m` as
+`H5`. One possible example is to construct this pre-hash over message `m` as
 `H(contextString \|\| "pre-hash" \|\| m)`.
 
 ## Input Message Validation {#message-validation}
@@ -1323,10 +1339,12 @@ dealer generates a group secret `s` uniformly at random and uses Shamir and Veri
 Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
 shares of s, denoted `s_i` for `i = 0, ..., MAX_PARTICIPANTS`, to be sent to all `MAX_PARTICIPANTS` participants.
 This operation is specified in the `trusted_dealer_keygen` algorithm. The mathematical relation
-between the secret key `s` and the `MAX_SIGNER` secret shares is formalized in the `secret_share_combine(shares)`
-algorithm, defined in {{dep-shamir}}.
+between the secret key `s` and the `MAX_SIGNER` secret shares is formalized in the
+`secret_share_combine(shares, MIN_PARTICIPANTS)` algorithm, defined in {{dep-shamir}}.
 
-The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good randomness, and 2) delete secret values after distributing shares to each participant, and 3) keep secret values confidential.
+The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good randomness,
+and 2) delete secret values after distributing shares to each participant, and 3) keep
+secret values confidential.
 
 ~~~
   Inputs:
@@ -1344,11 +1362,9 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
     G.ScalarBaseMult(s).
 
   def trusted_dealer_keygen(secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
-    # Generate random coefficients for the polynomial
-    coefficients = []
-    for i in range(0, MIN_PARTICIPANTS - 1):
-      coefficients.append(G.RandomScalar())
-    participant_private_keys, coefficients = secret_share_shard(secret_key, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
+    poly_randomness = random_bytes(32)
+    participant_private_keys = secret_share_shard(secret_key, poly_randomness, MIN_PARTICIPANTS, MAX_PARTICIPANTS)
+    coefficients = secret_share_polynomial(secret_key, poly_randomness, MIN_PARTICIPANTS)
     vss_commitment = vss_commit(coefficients):
     return participant_private_keys, vss_commitment[0], vss_commitment
 ~~~
@@ -1372,67 +1388,121 @@ multiple shares, and (2) combining shares to reveal the resulting secret.
 This secret sharing scheme works over any field `F`. In this specification, `F` is
 the scalar field of the prime-order group `G`.
 
-The procedure for splitting a secret into shares is as follows.
+A single share of a secret with threshold `t` is generated using the following function.
 
 ~~~
-  secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
+  secret_share_sample(s, r, t, x):
 
   Inputs:
   - s, secret value to be shared, a Scalar
-  - coefficients, an array of size MIN_PARTICIPANTS - 1 with randomly generated
-    Scalars, not including the 0th coefficient of the polynomial
-  - MAX_PARTICIPANTS, the number of shares to generate, an integer less than 2^16
-  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer greater than 0
+  - r, a seed used to derive the secret sharing polynomial, a 32-byte string
+  - t, the threshold for the secret sharing scheme, an integer less than 2^16
+  - x, the point at which to produce a secret, a Scalar
 
   Outputs:
-  - secret_key_shares, A list of MAX_PARTICIPANTS number of secret shares, each a tuple
-    consisting of the participant identifier and the key share (a Scalar)
-  - coefficients, a vector of MIN_PARTICIPANTS coefficients which uniquely determine a polynomial f.
+  - y, A share of the secret corresponding to the input point x
 
   Errors:
-  - "invalid parameters", if MIN_PARTICIPANTS > MAX_PARTICIPANTS or if MIN_PARTICIPANTS is less than 2
+  - "invalid parameters", if t is less than 2
 
-  def secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
-    if MIN_PARTICIPANTS > MAX_PARTICIPANTS:
-      raise "invalid parameters"
-    if MIN_PARTICIPANTS < 2:
+  def secret_share_sample(s, r, t, x):
+    if t < 2:
       raise "invalid parameters"
 
-    # Prepend the secret to the coefficients
-    coefficients = [s] + coefficients
+    # Construct and evaluate the polynomial at point x
+    polynomial_coefficients = secret_share_polynomial(s, r, t)
+    y = polynomial_evaluate(x, polynomial_coefficients)
+
+    return y
+~~~
+
+The helper function secret_share_polynomial is defined as follows.
+
+~~~
+  secret_share_polynomial(s, r, t):
+
+  Inputs:
+  - s, secret value to be shared, a Scalar
+  - r, a seed used to derive the secret sharing polynomial, a 32-byte string
+  - t, the threshold for the secret sharing scheme, an integer less than 2^16
+
+  Outputs:
+  - polynomial_coefficients, the list of secret sharing polynomial coefficients
+    in increasing order, each a Scalar
+
+  Errors:
+  - "invalid parameters", if t is less than 2
+
+  def secret_share_polynomial(s, r, t):
+    if t < 2:
+      raise "invalid parameters"
+
+    # Construct the polynomial from the random seed and threshold count
+    polynomial_coefficients = [s]
+    for i in range(0, t - 1):
+      coefficient = H4(r || encode_uint16(i))
+      polynomial_coefficients.append(coefficient)
+
+    return polynomial_coefficients
+~~~
+
+Using secret_share_sample, the procedure for splitting a secret into some positive
+integer `n` shares with a threshold of size `t` is as follows.
+
+~~~
+  secret_share_shard(s, r, t, n):
+
+  Inputs:
+  - s, secret value to be shared, a Scalar
+  - r, a seed used to derive the secret sharing polynomial, a 32-byte string
+  - t, the threshold for the secret sharing scheme, an integer less than 2^16
+  - n, the number of shares to generate, an integer less than 2^16
+
+  Outputs:
+  - secret_key_shares, A list of secret shares, each a tuple of two Scalar values
+
+  Errors:
+  - "invalid parameters", if t > n or if t is less than 2
+
+  def secret_share_shard(s, r, t, n):
+    if t > n:
+      raise "invalid parameters"
+    if t < 2:
+      raise "invalid parameters"
 
     # Evaluate the polynomial for each point x=1,...,n
     secret_key_shares = []
-    for x_i in range(1, MAX_PARTICIPANTS + 1):
-      y_i = polynomial_evaluate(Scalar(x_i), coefficients)
+    for x_i in range(1, n + 1):
+      y_i = secret_share_sample(s, r, t, Scalar(x_i))
       secret_key_share_i = (x_i, y_i)
       secret_key_share.append(secret_key_share_i)
-    return secret_key_shares, coefficients
+    return secret_key_shares
 ~~~
 
-Let `points` be the output of this function. The i-th element in `points` is
+Let `points` be the output of secret_share_shard. The i-th element in `points` is
 the share for the i-th participant, which is the randomly generated polynomial
 evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i])`,
-and the list of these shares as `shares`.
-`i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
+and the list of these shares as `shares`. `i` MUST never equal `0`; recall that
+`f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
-The procedure for combining a `shares` list of length `MIN_PARTICIPANTS` to recover the
-secret `s` is as follows; the algorithm `polynomial_interpolation is defined in {{dep-polynomial-interpolate}}`.
+The procedure for combining a `shares` list of length at least thresold `t` to recover the
+secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in {{dep-polynomial-interpolate}}.
 
 ~~~
-  secret_share_combine(shares):
+  secret_share_combine(shares, t):
 
   Inputs:
-  - shares, a list of at minimum MIN_PARTICIPANTS secret shares, each a tuple (i, f(i))
+  - shares, a list of at minimum t secret shares, each a tuple (i, f(i))
     where i and f(i) are Scalars
+  - t, a threshold
 
   Outputs: The resulting secret s, a Scalar, that was previously split into shares
 
   Errors:
-  - "invalid parameters", if fewer than MIN_PARTICIPANTS input shares are provided
+  - "invalid parameters", if fewer than t input shares are provided
 
-  def secret_share_combine(shares):
-    if len(shares) < MIN_PARTICIPANTS:
+  def secret_share_combine(shares, t):
+    if len(shares) < t:
       raise "invalid parameters"
     s = polynomial_interpolation(shares)
     return s
@@ -1474,19 +1544,18 @@ is the constant term. This check ensures that all participants have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
 the correct secret.
 
-The procedure for committing to a polynomial `f` of degree at most `MIN_PARTICIPANTS-1` is as follows.
+The procedure for committing to a polynomial `f` is as follows.
 
 ~~~
-  vss_commit(coeffs):
+  vss_commit(coefficients):
 
   Inputs:
-  - coeffs, a vector of the MIN_PARTICIPANTS coefficients which uniquely determine
-  a polynomial f.
+  - coefficients, a vector of the coefficients which uniquely determine a polynomial f.
 
   Outputs: a commitment vss_commitment, which is a vector commitment to each of the
   coefficients in coeffs, where each element of the vector commitment is an Element in G.
 
-  def vss_commit(coeffs):
+  def vss_commit(coefficients):
     vss_commitment = []
     for coeff in coeffs:
       A_i = G.ScalarBaseMult(coeff)
@@ -1511,11 +1580,11 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
   Outputs: 1 if sk_i is valid, and 0 otherwise
 
   vss_verify(share_i, vss_commitment)
-    (i, sk_i) = share_i
-    S_i = ScalarBaseMult(sk_i)
+    (x_i, y_i) = share_i
+    S_i = ScalarBaseMult(y_i)
     S_i' = G.Identity()
     for j in range(0, MIN_PARTICIPANTS):
-      S_i' += G.ScalarMult(vss_commitment[j], pow(i, j))
+      S_i' += G.ScalarMult(vss_commitment[j], pow(x_i, j))
     if S_i == S_i':
       return 1
     return 0
@@ -1525,28 +1594,28 @@ We now define how the Coordinator and participants can derive group info,
 which is an input into the FROST signing protocol.
 
 ~~~
-    derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment):
+  derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment):
 
-    Inputs:
-    - MAX_PARTICIPANTS, the number of shares to generate, an integer
-    - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer
-    - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
-    coefficients in coeffs, where each element of the vector commitment is an Element in G.
+  Inputs:
+  - MAX_PARTICIPANTS, the number of shares to generate, an integer
+  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer
+  - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
+  coefficients in coeffs, where each element of the vector commitment is an Element in G.
 
-    Outputs:
-    - PK, the public key representing the group, an Element.
-    - participant_public_keys, a list of MAX_PARTICIPANTS public keys PK_i for i=1,...,MAX_PARTICIPANTS,
-      where each PK_i is the public key, an Element, for participant i.
+  Outputs:
+  - PK, the public key representing the group, an Element.
+  - participant_public_keys, a list of MAX_PARTICIPANTS public keys PK_i for i=1,...,MAX_PARTICIPANTS,
+    where each PK_i is the public key, an Element, for participant i.
 
-    derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
-      PK = vss_commitment[0]
-      participant_public_keys = []
-      for i in range(1, MAX_PARTICIPANTS+1):
-        PK_i = G.Identity()
-        for j in range(0, MIN_PARTICIPANTS):
-          PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
-        participant_public_keys.append(PK_i)
-      return PK, participant_public_keys
+  derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
+    PK = vss_commitment[0]
+    participant_public_keys = []
+    for i in range(1, MAX_PARTICIPANTS+1):
+      PK_i = G.Identity()
+      for j in range(0, MIN_PARTICIPANTS):
+        PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
+      participant_public_keys.append(PK_i)
+    return PK, participant_public_keys
 ~~~
 
 # Random Scalar Generation {#random-scalar}

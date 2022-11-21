@@ -35,6 +35,9 @@ class Hash(object):
     def H5(self, m):
         raise Exception("Not implemented")
 
+    def H6(self, m):
+        raise Exception("Not implemented")
+
 class HashEd25519(Hash):
     def __init__(self):
         Hash.__init__(self, GroupEd25519(), sha512, "SHA-512")
@@ -51,12 +54,16 @@ class HashEd25519(Hash):
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
     def H4(self, m):
+        hash_input = _as_bytes("poly") + m
+        return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
+
+    def H5(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-ED25519-SHA512-" + VERSION + "msg"))
         hasher.update(m)
         return hasher.digest()
 
-    def H5(self, m):
+    def H6(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-ED25519-SHA512-" + VERSION + "com"))
         hasher.update(m)
@@ -80,12 +87,16 @@ class HashEd448(Hash):
         return int.from_bytes(shake_256(hash_input).digest(int(114)), "little") % self.G.order()
 
     def H4(self, m):
+        hash_input = _as_bytes("poly") + m
+        return int.from_bytes(shake_256(hash_input).digest(int(114)), "little") % self.G.order()
+
+    def H5(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-ED448-SHAKE256-" + VERSION + "msg"))
         hasher.update(m)
         return hasher.digest(int(114))
 
-    def H5(self, m):
+    def H6(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-ED448-SHAKE256-" + VERSION + "com"))
         hasher.update(m)
@@ -108,12 +119,16 @@ class HashRistretto255(Hash):
         return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
 
     def H4(self, m):
+        hash_input = _as_bytes("poly") + m
+        return int.from_bytes(sha512(hash_input).digest(), "little") % self.G.order()
+
+    def H5(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-RISTRETTO255-SHA512-" + VERSION + "msg"))
         hasher.update(m)
         return hasher.digest()
 
-    def H5(self, m):
+    def H6(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-RISTRETTO255-SHA512-" + VERSION + "com"))
         hasher.update(m)
@@ -136,12 +151,16 @@ class HashP256(Hash):
         return self.G.hash_to_scalar(m, dst=dst)
 
     def H4(self, m):
+        dst = _as_bytes("poly")
+        return self.G.hash_to_scalar(m, dst=dst)
+
+    def H5(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-P256-SHA256-" + VERSION + "msg"))
         hasher.update(m)
         return hasher.digest()
 
-    def H5(self, m):
+    def H6(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-P256-SHA256-" + VERSION + "com"))
         hasher.update(m)
@@ -164,12 +183,16 @@ class HashSecp256k1(Hash):
         return self.G.hash_to_scalar(m, dst=dst)
 
     def H4(self, m):
+        dst = _as_bytes("poly")
+        return self.G.hash_to_scalar(m, dst=dst)
+
+    def H5(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-secp256k1-SHA256-" + VERSION + "msg"))
         hasher.update(m)
         return hasher.digest()
 
-    def H5(self, m):
+    def H6(self, m):
         hasher = self.H()
         hasher.update(_as_bytes("FROST-secp256k1-SHA256-" + VERSION + "com"))
         hasher.update(m)

@@ -5,6 +5,7 @@ import os
 import sys
 import json
 
+from hash_to_field import I2OSP
 from ed25519_rfc8032 import verify_ed25519_rfc8032, point_compress, secret_to_public_raw
 
 try:
@@ -26,6 +27,9 @@ def to_hex(byte_string):
 
 def random_bytes(n):
     return os.urandom(n)
+
+def encode_uint16(x):
+    return I2OSP(x, 2)
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-lagrange-coefficients
 def derive_lagrange_coefficient(G, i, L):
@@ -71,30 +75,51 @@ def secret_share_combine(G, t, shares):
     s = polynomial_interpolation(shares[:t])
     return s
 
-# https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
-def secret_share_shard(G, s, coeffs, n, t):
-    if t > n:
+def secret_share_polynomial(G, H, s, r, t):
+    if t < 2:
         raise Exception("invalid parameters")
 
-    # Generate random coefficients for the polynomial
-    coefficients = [s] + coeffs
+    # Construct the polynomial from the random seed and threshold count
+    polynomial_coefficients = [s]
+    for i in range(0, t - 1):
+        coefficient = H.H4(r + encode_uint16(i))
+        polynomial_coefficients.append(coefficient)
+    
+    return polynomial_coefficients
+
+def secret_share_sample(G, H, s, r, t, x):
+    if t < 2:
+        raise Exception("invalid parameters")
+
+    # Construct and evaluate the polynomial at point x
+    polynomial_coefficients = secret_share_polynomial(G, H, s, r, t)
+    y = polynomial_evaluate(G, x, polynomial_coefficients)
+    
+    return y
+
+# https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
+def secret_share_shard(G, H, s, r, t, n):
+    if t > n:
+        raise Exception("invalid parameters")
+    if t < 2:
+        raise Exception("invalid parameters")
 
     # Evaluate the polynomial for each participants, identified by their identifier i > 0
     secret_shares = []
     for x_i in range(1, n+1):
-        y_i = polynomial_evaluate(G, x_i, coefficients)
+        y_i = secret_share_sample(G, H, s, r, t, x_i)
         share_i = (x_i, y_i)
         secret_shares.append(share_i)
-    return secret_shares, coefficients
+    return secret_shares
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-trusted-dealer-key-generati
-def trusted_dealer_keygen(G, secret_key, n, t, coeffs=None):
-    if coeffs is None:
-        coeffs = []
-        for _ in range(t - 1):
-            coeffs.append(G.random_scalar())
-    participant_private_keys, coefficients = secret_share_shard(G, secret_key, coeffs, n, t)
-    vss_commitment = vss_commit(G, coefficients)
+def trusted_dealer_keygen(G, H, secret_key, n, t, poly_randomness=None):
+    if poly_randomness is None:
+        poly_randomness = random_bytes(32)
+
+    participant_private_keys = secret_share_shard(G, H, secret_key, poly_randomness, t, n)
+    polynomial_coefficients = secret_share_polynomial(G, H, secret_key, poly_randomness, t)
+    vss_commitment = vss_commit(G, polynomial_coefficients)
     recovered_key = secret_share_combine(G, t, participant_private_keys)
     assert(secret_key == recovered_key)
     return participant_private_keys, vss_commitment[0], vss_commitment
@@ -146,8 +171,8 @@ def encode_group_commitment_list(G, commitment_list):
     return B_e
 
 def compute_binding_factors(G, H, commitment_list, msg):
-    msg_hash = H.H4(msg)
-    encoded_commitment_hash = H.H5(encode_group_commitment_list(G, commitment_list))
+    msg_hash = H.H5(msg)
+    encoded_commitment_hash = H.H6(encode_group_commitment_list(G, commitment_list))
     rho_input_prefix = msg_hash + encoded_commitment_hash
 
     binding_factors = {}
@@ -290,10 +315,8 @@ for (fname, name, G, H) in ciphersuites:
 
     # Create all inputs, including the group key and individual participant key shares
     group_secret_key = G.random_scalar()
-    coeffs = []
-    for _ in range(MIN_PARTICIPANTS - 1):
-        coeffs.append(G.random_scalar())
-    participant_private_keys, dealer_group_public_key, vss_commitment = trusted_dealer_keygen(G, group_secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS, coeffs)
+    poly_randomness = random_bytes(32)
+    participant_private_keys, dealer_group_public_key, vss_commitment = trusted_dealer_keygen(G, H, group_secret_key, MAX_PARTICIPANTS, MIN_PARTICIPANTS, poly_randomness)
     assert(len(vss_commitment) == MIN_PARTICIPANTS)
 
     group_public_key, participant_public_keys = derive_group_info(G, MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
@@ -317,7 +340,7 @@ for (fname, name, G, H) in ciphersuites:
         "group_secret_key": to_hex(G.serialize_scalar(group_secret_key)),
         "group_public_key": to_hex(G.serialize(group_public_key)),
         "message": to_hex(message),
-        "share_polynomial_coefficients": [to_hex(G.serialize_scalar(c)) for c in coeffs],
+        "share_polynomial_randomness": to_hex(poly_randomness),
         "participants": {}
     }
     for identifier in participants:
