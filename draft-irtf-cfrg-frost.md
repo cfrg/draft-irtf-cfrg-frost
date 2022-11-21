@@ -995,7 +995,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H3(m): Implemented by computing H(contextString \|\| "nonce" \|\| m) and mapping the
-    output to a Scalar as described in {{!RIsSTRETTO, Section 4.4}}.
+    output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H4(m): Implemented by computing H("poly" \|\| m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H5(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
