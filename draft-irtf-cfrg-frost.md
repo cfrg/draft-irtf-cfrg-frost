@@ -327,7 +327,7 @@ following helper operations:
 - Encoding operations, {{dep-encoding}};
 - Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}.
 
-These sections describes these operations in more detail.
+These sections describe these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
@@ -854,7 +854,7 @@ the Coordinator).
 Excluding one participant means that their nonce will not be included in the joint response `z`
 and consequently the output signature will not verify. This is because the
 group commitment will be with respect to a different signing set than the
-the aggregated response.
+aggregated response.
 
 Otherwise, if all shares from participants that participated in Rounds 1 and 2 are valid, the Coordinator
 performs the `aggregate` operation and publishes the resulting signature.
@@ -1137,7 +1137,7 @@ the following requirements.
   string. Note that the FROST(Ed25519, SHA-512) ciphersuite does not
   adhere to this requirement for backwards compatibility with {{RFC8032}}.
 3. The group MUST be of prime-order, and all deserialization functions MUST
-  output elements that belong to to their respective sets of Elements or Scalars,
+  output elements that belong to their respective sets of Elements or Scalars,
   or failure when deserialization fails.
 
 # Security Considerations {#sec-considerations}
@@ -1223,12 +1223,12 @@ FROST signatures do not pre-hash message inputs. This means that the entire mess
 must be known in advance of invoking the signing protocol. Applications can apply
 pre-hashing in settings where storing the full message is prohibitively expensive.
 In such cases, pre-hashing MUST use a collision-resistant hash function with a security
-level commensurate with the security in inherent to the ciphersuite chosen. It is
+level commensurate with the security inherent to the ciphersuite chosen. It is
 RECOMMENDED that applications which choose to apply pre-hashing use the hash function
 (`H`) associated with the chosen ciphersuite in a manner similar to how `H4` is defined.
 In particular, a different prefix SHOULD be used to differentiate this pre-hash from
 `H4`. One possible example is to construct this pre-hash over message `m` as
-`H(contextString \|\| "pre-hash" \|\| m)`.
+`H(contextString || "pre-hash" || m)`.
 
 ## Input Message Validation {#message-validation}
 
@@ -1272,7 +1272,6 @@ key as input (as opposed to a key share.)
 
 ~~~
   prime_order_sign(msg, sk):
-``
 
   Inputs:
   - msg, message to sign, a byte string
@@ -1417,7 +1416,7 @@ and the list of these shares as `shares`.
 `i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
 The procedure for combining a `shares` list of length `MIN_PARTICIPANTS` to recover the
-secret `s` is as follows; the algorithm `polynomial_interpolation is defined in {{dep-polynomial-interpolate}}`.
+secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in {{dep-polynomial-interpolate}}.
 
 ~~~
   secret_share_combine(shares):
