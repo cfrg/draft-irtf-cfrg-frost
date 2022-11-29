@@ -1022,7 +1022,7 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
     little-endian 48-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
 
-- Hash (`H`): SHAKE256
+- Hash (`H`): SHAKE256 with 114 bytes of output
   - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the
     114-byte digest as a little-endian integer, and reducing the resulting integer modulo
     2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
