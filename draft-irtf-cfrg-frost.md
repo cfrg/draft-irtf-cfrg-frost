@@ -940,7 +940,7 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
     represent a Scalar in the range \[0, `G.Order()` - 1\]. Note that this means the
     top three bits of the input MUST be zero.
 
-- Hash (`H`): SHA-512
+- Hash (`H`): SHA-512, which has 64 bytes of output
   - H1(m): Implemented by computing H(contextString \|\| "rho" \|\| m), interpreting the 64-byte digest
     as a little-endian integer, and reducing the resulting integer modulo
     2^252+27742317777372353535851937790883648493.
@@ -984,7 +984,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
     represent a Scalar in the range \[0, `G.Order()` - 1\]. Note that this means the
     top three bits of the input MUST be zero.
 
-- Hash (`H`): SHA-512
+- Hash (`H`): SHA-512, which has 64 bytes of output
   - H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
     output to a Scalar as described in {{!RISTRETTO, Section 4.4}}.
   - H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
@@ -1069,7 +1069,7 @@ The value of the contextString parameter is "FROST-P256-SHA256-v11".
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
-- Hash (`H`): SHA-256
+- Hash (`H`): SHA-256, which has 32 bytes of output
   - H1(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.2}}
     using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "rho",
     F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
@@ -1111,7 +1111,7 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
     string using Octet-String-to-Field-Element from {{SEC1}}. This function can fail if the
     input does not represent a Scalar in the range \[0, `G.Order()` - 1\].
 
-- Hash (`H`): SHA-256
+- Hash (`H`): SHA-256, which has 32 bytes of output
   - H1(m): Implemented as hash_to_field(m, 1) from {{!HASH-TO-CURVE=I-D.irtf-cfrg-hash-to-curve, Section 5.2}}
     using `expand_message_xmd` with SHA-256 with parameters DST = contextString || "rho",
     F set to the scalar field, p set to `G.Order()`, m = 1, and L = 48.
