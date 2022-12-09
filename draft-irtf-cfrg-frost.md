@@ -1016,10 +1016,10 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
     be implemented by multiplying the resulting point by the order of the group and
     checking that the result is the identity element. Note that optimizations for
     this check exist; see {{Pornin22}}.
-  - SerializeScalar(s): Implemented by outputting the little-endian 48-byte encoding of
+  - SerializeScalar(s): Implemented by outputting the little-endian 57-byte encoding of
     the Scalar value.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
-    little-endian 48-byte string. This function can fail if the input does not
+    little-endian 57-byte string. This function can fail if the input does not
     represent a Scalar in the range \[0, `G.Order()` - 1\].
 
 - Hash (`H`): SHAKE256 with 114 bytes of output
