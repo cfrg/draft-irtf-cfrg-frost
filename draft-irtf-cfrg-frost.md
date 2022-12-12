@@ -357,9 +357,11 @@ signing participant.
 ## Polynomial Operations {#dep-polynomial}
 
 This section describes operations on and associated with polynomials over Scalars
-that are used in the main signing protocol. A polynomial of maximum degree t+1
-is represented as a list of t coefficients, where the constant term of the polynomial
+that are used in the main signing protocol. A polynomial of maximum degree t
+is represented as a list of t+1 coefficients, where the constant term of the polynomial
 is in the first position and the highest-degree coefficient is in the last position.
+For example, the polynomial `x^2 + 2x + 3` has degree 2 and is represented as
+a list of 3 coefficients `[3, 2, 1]`.
 A point on the polynomial is a tuple (x, y), where `y = f(x)`. For notational
 convenience, we refer to the x-coordinate and y-coordinate of a
 point p as `p.x` and `p.y`, respectively.
