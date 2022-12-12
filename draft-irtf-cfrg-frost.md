@@ -1053,16 +1053,16 @@ The value of the contextString parameter is "FROST-P256-SHA256-v11".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SEC1}}, yielding a 33 byte output. Additionally, this function validates
+    method according to {{SEC1}}, yielding a 33-byte output. Additionally, this function validates
     that the input element is not the group identity element.
-  - DeserializeElement(buf): Implemented by attempting to deserialize a 33 byte input string to
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 33-byte input string to
     a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
-    and then performs partial public-key validation as defined in section 5.6.2.3.4 of
-    {{!KEYAGREEMENT=DOI.10.6028/NIST.SP.800-56Ar3}}. This includes checking that the
-    coordinates of the resulting point are in the correct range, that the point is on
-    the curve, and that the point is not the point at infinity. Additionally, this function
-    validates that the resulting element is not the group identity element.
-    If these checks fail, deserialization returns an error.
+    and then performs public-key validation as defined in section 3.2.2.1 of {{SEC1}}.
+    This includes checking that the coordinates of the resulting point are
+    in the correct range, that the point is on the curve, and that the point is not
+    the point at infinity. (As noted in the specification, validation of the point
+    order is not required since the cofactor is 1.) If any of these checks fail,
+    deserialization returns an error.
   - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
     according to {{SEC1}}.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
@@ -1095,16 +1095,16 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
   - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SEC1}}. Additionally, this function validates that the input element
-    is not the group identity element.
-  - DeserializeElement(buf): Implemented by attempting to deserialize a public key using
-    the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
-    and then performs partial public-key validation as defined in section 3.2.2.1 of
-    {{SEC1}}. This includes checking that the coordinates of the resulting point are
+    method according to {{SEC1}}, yielding a 33-byte output. Additionally, this function validates
+    that the input element is not the group identity element.
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 33-byte input string to
+    a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+    and then performs public-key validation as defined in section 3.2.2.1 of {{SEC1}}.
+    This includes checking that the coordinates of the resulting point are
     in the correct range, that the point is on the curve, and that the point is not
-    the point at infinity. Additionally, this function validates that the resulting
-    element is not the group identity element. If these checks fail, deserialization
-    returns an error.
+    the point at infinity. (As noted in the specification, validation of the point
+    order is not required since the cofactor is 1.) If any of these checks fail,
+    deserialization returns an error.
   - SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
     according to {{SEC1}}.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
