@@ -1228,8 +1228,8 @@ level commensurate with the security inherent to the ciphersuite chosen. It is
 RECOMMENDED that applications which choose to apply pre-hashing use the hash function
 (`H`) associated with the chosen ciphersuite in a manner similar to how `H4` is defined.
 In particular, a different prefix SHOULD be used to differentiate this pre-hash from
-`H4`. One possible example is to construct this pre-hash over message `m` as
-`H(contextString || "pre-hash" || m)`.
+`H4`. For example, if a fictional protocol Quux decided to pre-hash its input messages,
+one possible way to do so is via `H(contextString || "Quux-pre-hash" || m)`.
 
 ## Input Message Validation {#message-validation}
 
