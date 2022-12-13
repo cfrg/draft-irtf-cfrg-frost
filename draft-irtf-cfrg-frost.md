@@ -120,7 +120,7 @@ signing with FROST is out of scope.
 
 FROST depends only on a prime-order group and cryptographic hash function. This document specifies
 a number of ciphersuites to instantiate FROST using different prime-order groups and hash functions.
-Two ciphersuites can be used to produce signatures that are compatible Ed25519 and Ed448 as
+Two ciphersuites can be used to produce signatures that are compatible with Ed25519 and Ed448 as
 specified in {{!RFC8032}}, i.e., the signatures can be verified with an {{!RFC8032}} compliant
 verifier. However, unlike {{!RFC8032}}, the signatures produced FROST are not deterministic,
 since deriving nonces deterministically allows for a complete key-recovery attack in multi-party
