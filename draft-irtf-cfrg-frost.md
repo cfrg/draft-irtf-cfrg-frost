@@ -732,7 +732,7 @@ MUST abort the protocol. Moreover, each participant MUST ensure that
 their identifier appears in commitment_list along with
 their commitment from the first round.
 Applications which require that participants not process arbitrary
-input messages are also required to also perform relevant application-layer input
+input messages are also required to perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
 
 Upon receipt and successful input validation, each Signer then runs the following
@@ -1233,21 +1233,25 @@ In particular, a different prefix SHOULD be used to differentiate this pre-hash 
 
 ## Input Message Validation {#message-validation}
 
-Some applications may require that participants only process messages of a certain
-structure. For example, in digital currency applications wherein multiple
-participants may collectively sign a transaction, it is reasonable to require that
-each participant check the input message to be a syntactically valid transaction.
+Message validation varies by application. For example, some applications may
+require that participants only process messages of a certain structure. In digital
+currency applications, wherein multiple participants may collectively sign a transaction,
+it is reasonable to require that each participant check the input message to be a
+syntactically valid transaction.
 
-As another example, use of threshold signatures in {{?TLS=RFC8446}} to produce
-signatures of transcript hashes might require the participants receive the source
-handshake messages themselves, and recompute the transcript hash which is used
-as input message to the signature generation process, so that they can verify
-that they are signing a proper TLS transcript hash and not some other data.
+As another example, some applications may require that participants only process
+messages with permitted content according to some policy. In digital currency
+applications, this might mean that a transaction being signed is allowed and
+intended by the relevant stakeholders. Another instance of this type of message
+validation is in the context of {{?TLS=RFC8446}}, wherein implementations may
+use threshold signing protocols to produce signatures of transcript hashes. In
+this setting, signing particiapnts might require the raw TLS handshake messages
+to validate before computing the transcript hash that is signed.
 
 In general, input message validation is an application-specific consideration
 that varies based on the use case and threat model. However, it is RECOMMENDED
-that applications take additional precautions and validate inputs so that participants
-do not operate as signing oracles for arbitrary messages.
+that applications take additional precautions and validate inputs so that
+participants do not operate as signing oracles for arbitrary messages.
 
 --- back
 
