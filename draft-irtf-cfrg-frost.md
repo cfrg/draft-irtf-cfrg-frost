@@ -1394,7 +1394,7 @@ The procedure for splitting a secret into shares is as follows.
   - coefficients, a vector of MIN_PARTICIPANTS coefficients which uniquely determine a polynomial f.
 
   Errors:
-  - "invalid parameters", if MIN_PARTICIPANTS > MAX_PARTICIPANTS or if MIN_PARTICIPANTS is less than 2
+  - "invalid parameters", if MIN_PARTICIPANTS > MAX_PARTICIPANTS or if MIN_PARTICIPANTS is less than 1
 
   def secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
     if MIN_PARTICIPANTS > MAX_PARTICIPANTS:
