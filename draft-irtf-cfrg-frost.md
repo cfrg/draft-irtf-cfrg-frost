@@ -85,6 +85,16 @@ informative:
     author:
       - name: Thomas Pornin
     date: 2022-09-06
+  ROAST:
+    target: https://eprint.iacr.org/2022/550
+    title: "ROAST: Robust Asynchronous Schnorr Threshold Signatures"
+    author:
+      - name: Tim Ruffing
+      - name: Viktoria Ronge
+      - name: Elliott Jin
+      - name: Jonas Schneider-Bensch
+      - name: Dominique Schröder
+    date: 2022-09-18
 
 --- abstract
 
@@ -856,6 +866,10 @@ Excluding one participant means that their nonce will not be included in the joi
 and consequently the output signature will not verify. This is because the
 group commitment will be with respect to a different signing set than the
 aggregated response.
+
+If robustness is desired (i.e, the signing protocol will complete even if some
+participants abort or submit invalid shares), see {{ROAST}} as a wrapper
+protocol.
 
 Otherwise, if all shares from participants that participated in Rounds 1 and 2 are valid, the Coordinator
 performs the `aggregate` operation and publishes the resulting signature.
