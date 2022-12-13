@@ -795,7 +795,7 @@ signature shares using the following procedure.
 ## Signature Share Verification and Aggregation {#frost-aggregation}
 
 After participants perform round two and send their signature shares to the Coordinator,
-the Coordinator verifies each signature share for correctness. In particular,
+the Coordinator verifies each signature share for correctness. To do so,
 for each participant, the Coordinator uses commitment pairs generated during round
 one and the signature share generated during round two, along with other group
 parameters, to check that the signature share is valid using the following procedure.
@@ -848,6 +848,9 @@ parameters, to check that the signature share is valid using the following proce
     return l == r
 ~~~
 
+Performing `verify_signature_share` allows to identify misbehaving participants
+if any participant submitted an invalid signature share.
+
 If any signature share fails to verify, i.e., if verify_signature_share returns False for
 any participant share, the Coordinator MUST abort the protocol for correctness reasons
 (this is true regardless of the size or makeup of the signing set selected by
@@ -859,6 +862,11 @@ aggregated response.
 
 Otherwise, if all shares from participants that participated in Rounds 1 and 2 are valid, the Coordinator
 performs the `aggregate` operation and publishes the resulting signature.
+
+Note that the coordinator can also first aggregate the signature shares, and
+then verify the resulting (joint) signature. Doing so will determine if any
+signature share is invalid, and then `verify_signature_share` can be performed
+if failure does occur, to identify the misbehaving party.
 
 ~~~
   Inputs:
