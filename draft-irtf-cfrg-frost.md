@@ -1245,7 +1245,7 @@ applications, this might mean that a transaction being signed is allowed and
 intended by the relevant stakeholders. Another instance of this type of message
 validation is in the context of {{?TLS=RFC8446}}, wherein implementations may
 use threshold signing protocols to produce signatures of transcript hashes. In
-this setting, signing particiapnts might require the raw TLS handshake messages
+this setting, signing participants might require the raw TLS handshake messages
 to validate before computing the transcript hash that is signed.
 
 In general, input message validation is an application-specific consideration
