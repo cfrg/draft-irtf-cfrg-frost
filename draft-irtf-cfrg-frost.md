@@ -482,8 +482,7 @@ The following function is used to extract a binding factor from a list of bindin
   Inputs:
   - binding_factor_list = [(i, binding_factor), ...],
     a list of binding factors for each participant, where each element in the list
-    indicates the participant identifier i and their binding factor. This list MUST be sorted
-    in ascending order by participant identifier.
+    indicates the participant identifier i and their binding factor.
   - identifier, participant identifier, a Scalar.
 
   Outputs: A Scalar value.
@@ -541,7 +540,7 @@ from a commitment list.
     sorted in ascending order by participant identifier.
   - binding_factor_list = [(i, binding_factor), ...],
     a list of (identifier, Scalar) tuples representing the binding factor Scalar
-    for the given identifier. This list MUST be sorted in ascending order by identifier.
+    for the given identifier.
 
   Outputs: An Element in G representing the group commitment
 
