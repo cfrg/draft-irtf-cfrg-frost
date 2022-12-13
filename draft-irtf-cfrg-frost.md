@@ -547,7 +547,7 @@ from a commitment list.
   def compute_group_commitment(commitment_list, binding_factor_list):
     group_commitment = G.Identity()
     for (identifier, hiding_nonce_commitment, binding_nonce_commitment) in commitment_list:
-      binding_factor = binding_factor_for_participant(binding_factors, identifier)
+      binding_factor = binding_factor_for_participant(binding_factor_list, identifier)
       group_commitment = group_commitment +
         hiding_nonce_commitment + G.ScalarMult(binding_nonce_commitment, binding_factor)
     return group_commitment
