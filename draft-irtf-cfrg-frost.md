@@ -56,19 +56,14 @@ informative:
       - name: Chelsea Komlo
       - name: Ian Goldberg
     date: 2020-12-22
-  Schnorr21:
-    target: https://eprint.iacr.org/2021/1375
-    title: "How to Prove Schnorr Assuming Schnorr"
+  StrongerSec22:
+    target: https://crypto.iacr.org/2022/papers/538806_1_En_18_Chapter_OnlinePDF.pdf
+    title: "Better than Advertised Security for Non-interactive Threshold Signatures"
     author:
+      - name: Mihir Bellare
       - name: Elizabeth Crites
       - name: Chelsea Komlo
       - name: Mary Maller
-    date: 2021-10-11
-  StrongerSec22:
-    target: https://eprint.iacr.org/2022/833
-    title: "Stronger Security for Non-Interactive Threshold Signatures: BLS and FROST"
-    author:
-      - name: Mihir Bellare
       - name: Stefano Tessaro
       - name: Chenzhi Zhu
     date: 2022-06-01
@@ -124,7 +119,7 @@ For select ciphersuites, the signatures produced by this draft are compatible wi
 deterministic, since deriving nonces deterministically allows for a complete key-recovery
 attack in multi-party discrete logarithm-based signatures, such as FROST.
 
-While an optimization to FROST was shown in {{Schnorr21}} that reduces scalar multiplications
+While an optimization to FROST was shown in {{StrongerSec22}} that reduces scalar multiplications
 from linear in the number of signing participants to constant, this draft does not specify that optimization
 due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
 Specifically, this optimization removes the guarantee that the set of signer participants that started
@@ -1143,7 +1138,7 @@ the following requirements.
 
 # Security Considerations {#sec-considerations}
 
-A security analysis of FROST exists in {{FROST20}} and {{Schnorr21}}. The protocol as specified
+A security analysis of FROST exists in {{FROST20}} and {{StrongerSec22}}. The protocol as specified
 in this document assumes the following threat model.
 
 * Secure key distribution. The signer key shares are generated and distributed securely, i.e.,
