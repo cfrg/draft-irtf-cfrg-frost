@@ -975,7 +975,7 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [8][z]B = [8]R + [8][c]PK
 (changed to use the notation in this document).
-The alternative check [z]B = R + [c]PK is not safe or interoperable in practice.
+The alternative check [z]B = R + [c]PK is not interoperable in practice.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
@@ -1057,7 +1057,7 @@ with {{!RFC8032}}, it is omitted.
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [4][z]B = [4]R + [4][c]PK
 (changed to use the notation in this document).
-The alternative check [z]B = R + [c]PK is not safe or interoperable in practice.
+The alternative check [z]B = R + [c]PK is not interoperable in practice.
 
 ## FROST(P-256, SHA-256)
 
