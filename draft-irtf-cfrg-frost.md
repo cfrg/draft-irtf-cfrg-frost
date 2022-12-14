@@ -867,10 +867,6 @@ and consequently the output signature will not verify. This is because the
 group commitment will be with respect to a different signing set than the
 aggregated response.
 
-If robustness is desired (i.e, the signing protocol will complete even if some
-participants abort or submit invalid shares), see {{ROAST}} as a wrapper
-protocol.
-
 Otherwise, if all shares from participants that participated in Rounds 1 and 2 are valid, the Coordinator
 performs the `aggregate` operation and publishes the resulting signature.
 
@@ -1182,7 +1178,8 @@ requirements in {{ciphersuite-reqs}}.
 FROST does not aim to achieve the following goals:
 
 * Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
-* Robustness. In the case of failure, FROST requires aborting the protocol.
+* Robustness. In the case of failure, FROST requires aborting the protocol. See {{ROAST}} as a wrapper protocol around
+  FROST that provides robustness.
 * Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
