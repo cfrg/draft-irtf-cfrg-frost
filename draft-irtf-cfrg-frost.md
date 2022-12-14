@@ -935,7 +935,7 @@ meant to produce signatures indistinguishable from Ed25519 as specified in {{!RF
 The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
 
 - Group: edwards25519 {{!RFC8032}}
-  - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}})
+  - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}}).
   - Identity(): As defined in {{RFC7748}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
@@ -944,7 +944,8 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
     identity element.
   - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.1.3}}.
     Additionally, this function validates that the resulting element is not the group
-    identity element and is in the prime-order subgroup. The latter check can
+    identity element and is in the prime-order subgroup. If any of these checks fail,
+    deserialization returns an error. The latter check can
     be implemented by multiplying the resulting point by the order of the group and
     checking that the result is the identity element. Note that optimizations for
     this check exist; see {{Pornin22}}.
@@ -982,7 +983,7 @@ This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash functi
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
-  - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}})
+  - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}}).
   - Identity(): As defined in {{RISTRETTO}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
@@ -991,7 +992,7 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
     identity element.
   - DeserializeElement(buf): Implemented using the 'Decode' function from {{!RISTRETTO}}.
     Additionally, this function validates that the resulting element is not the group
-    identity element.
+    identity element. If either 'Decode' or that check fails, deserialization returns an error.
   - SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
     the Scalar value with the top three bits set to zero.
   - DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
@@ -1018,7 +1019,7 @@ meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8
 The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
 
 - Group: edwards448 {{!RFC8032}}
-  - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885
+  - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - Identity(): As defined in {{RFC7748}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
@@ -1027,7 +1028,8 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
     identity element.
   - DeserializeElement(buf): Implemented as specified in {{!RFC8032, Section 5.2.3}}.
     Additionally, this function validates that the resulting element is not the group
-    identity element and is in the prime-order subgroup. The latter check can
+    identity element and is in the prime-order subgroup. If any of these checks fail,
+    deserialization returns an error. The latter check can
     be implemented by multiplying the resulting point by the order of the group and
     checking that the result is the identity element. Note that optimizations for
     this check exist; see {{Pornin22}}.
@@ -1063,7 +1065,7 @@ This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256-v11".
 
 - Group: P-256 (secp256r1) {{x9.62}}
-  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
   - Identity(): As defined in {{x9.62}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
@@ -1105,7 +1107,7 @@ This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function 
 The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
 
 - Group: secp256k1 {{SEC2}}
-  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
   - Identity(): As defined in {{SEC2}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
