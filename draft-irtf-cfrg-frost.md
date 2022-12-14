@@ -1150,20 +1150,20 @@ in this document assumes the following threat model.
 via a trusted dealer that performs key generation (see {{dep-vss}}) or through a distributed
 key generation protocol.
 
-* Honest-but-curious coordinator. We assume an honest-but-curious Coordinator which, at the
-time of signing, does not perform a denial of service attack. A denial of service would include
-any action which either prevents the protocol from completing or causing the resulting signature
-to be invalid. Such actions for the latter include sending inconsistent values to participants,
-such as messages or the set of individual commitments. Note that the Coordinator
-is *not* trusted with any private information and communication at the time of signing
-can be performed over a public but reliable channel.
-
-Under this threat model, FROST aims to achieve signature unforgeability assuming at most
+* Assumption of number of corrupted parties. FROST achieves signature unforgeability assuming at most
 `(MIN_PARTICIPANTS-1)` corrupted participants. In particular, so long as an adversary corrupts
 fewer than `MIN_PARTICIPANTS` participants, the scheme remains secure against Existential
-Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
-Definition 13.2. Satisfying this requirement requires the ciphersuite to adhere to the
+Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{StrongerSec22}}.
+Satisfying this requirement requires the ciphersuite to adhere to the
 requirements in {{ciphersuite-reqs}}.
+
+* Identifiable Abort. For the *unforgeability* of signatures, we
+assume the Coordinator and up to (MIN_PARTICIPANTS-1) number of participate can act adversarially and deviate
+arbitrarily from the protocol. However, to ensure the property of *identifiable abort*
+(i.e, if any participant causes the protocol to terminate), the Coordinator is
+trusted to perform reporting of misbehavior honestly.
+Note that the Coordinator is *not* trusted with any private information and communication at the time of signing
+can be performed over a public but reliable channel.
 
 FROST does not aim to achieve the following goals:
 
@@ -1195,8 +1195,9 @@ if the underlying transport failed to deliver the required messages.
 
 In some settings, it may be desirable to omit the role of the Coordinator entirely.
 Doing so does not change the security implications of FROST, but instead simply
-requires each participant to communicate with all other participants. We loosely
-describe how to perform FROST signing among participants without this coordinator role.
+requires each participant to communicate with all other participants over a *broadcast* channel,
+performing the steps of the Coordinator themselves.
+We now describe how to perform FROST signing among participants without this coordinator role.
 We assume that every participant receives as input from an external source the
 message to be signed prior to performing the protocol.
 
@@ -1209,14 +1210,6 @@ All participants will then publish their signature shares to one another. After 
 received all signature shares from all other participants, each participant will then perform
 `verify_signature_share` and then `aggregate` directly.
 
-The requirements for the underlying network channel remain the same in the setting
-where all participants play the role of the Coordinator, in that all messages that
-are exchanged are public and so the channel simply must be reliable. However, in
-the setting that a player attempts to split the view of all other players by
-sending disjoint values to a subset of players, the signing operation will output
-an invalid signature. To avoid this denial of service, implementations may wish
-to define a mechanism where messages are authenticated, so that cheating players
-can be identified and excluded.
 
 ## Input Message Hashing {#pre-hashing}
 
