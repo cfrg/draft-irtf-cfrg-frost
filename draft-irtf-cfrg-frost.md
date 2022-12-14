@@ -1465,8 +1465,8 @@ interpolation, defined as follows.
 
 ~~~
   Inputs:
-  - points, a set of t distinct points on a polynomial f, each a tuple of two
-    Scalar values representing the x and y coordinates
+  - points, a set of t points with distinct x coordinates on a polynomial f,
+    each a tuple of two Scalar values representing the x and y coordinates
 
   Outputs: The constant term of f, i.e., f(0)
 
