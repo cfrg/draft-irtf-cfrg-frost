@@ -263,7 +263,7 @@ class SignerParticipant(object):
 
 # Configure the setting
 MAX_PARTICIPANTS = 3
-MIN_PARTICIPANTS = 1
+MIN_PARTICIPANTS = 2
 NUM_PARTICIPANTS = MIN_PARTICIPANTS
 PARTICIPANT_LIST = [1, 3]
 message = _as_bytes("test")
