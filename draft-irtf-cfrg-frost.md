@@ -449,7 +449,7 @@ The following function is used to extract identifiers from a commitment list.
     in ascending order by identifier.
 
   Outputs:
-  - identifiers, a list of NonZeroScalar values
+  - identifiers, a list of NonZeroScalar values.
 
 def participants_from_commitment_list(commitment_list):
   identifiers = []
