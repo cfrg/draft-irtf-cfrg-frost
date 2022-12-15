@@ -721,7 +721,7 @@ a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding 
 The outputs `nonce` and `comm` from participant `P_i` should both be stored locally and
 kept for use in the second round. The `nonce` value is secret and MUST NOT be shared, whereas
 the public output `comm` is sent to the Coordinator. The nonce values produced by this
-function MUST NOT be reused in more than one invocation of FROST, and it MUST be generated
+function MUST NOT be used in more than one invocation of `sign`, and the nonces MUST be generated
 from a source of secure randomness.
 
 <!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
@@ -790,8 +790,8 @@ procedure to produce its own signature share.
 
 The output of this procedure is a signature share. Each participant then sends
 these shares back to the Coordinator. Each participant MUST delete the nonce and
-corresponding commitment after this round completes, and MUST use the nonce
-to generate at most one signature share.
+corresponding commitment after completing `sign`, and MUST NOT use the nonce
+as input more than once to `sign`.
 
 Note that the `lambda_i` value derived during this procedure does not change
 across FROST signing operations for the same signing group. As such, participants
