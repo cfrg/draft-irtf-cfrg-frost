@@ -276,7 +276,7 @@ ciphersuites = [
     ("frost-secp256k1-sha256", "FROST(secp256k1, SHA-256)", GroupSecp256k1(), HashSecp256k1()),
 ]
 for (fname, name, G, H) in ciphersuites:
-    assert(MIN_PARTICIPANTS > 1)
+    assert(MIN_PARTICIPANTS >= 1)
     assert(MIN_PARTICIPANTS <= NUM_PARTICIPANTS)
     assert(NUM_PARTICIPANTS <= MAX_PARTICIPANTS)
 
