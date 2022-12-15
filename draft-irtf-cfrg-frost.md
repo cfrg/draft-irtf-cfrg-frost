@@ -848,7 +848,7 @@ parameters, to check that the signature share is valid using the following proce
     return l == r
 ~~~
 
-Performing `verify_signature_share` allows to identify misbehaving participants
+Performing `verify_signature_share` enables identifying misbehaving participants
 if any participant submitted an invalid signature share.
 
 If any signature share fails to verify, i.e., if verify_signature_share returns False for
