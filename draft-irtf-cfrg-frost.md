@@ -100,6 +100,7 @@ redundancy with respect to a secret key. Further, this draft specifies signature
 compatible with {{!RFC8032}}. However, unlike {{!RFC8032}}, the protocol for producing
 signatures in this draft is not deterministic, so as to ensure protection against a
 key-recovery attack that is possible when even only one signer participant is malicious.
+This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF.
 
 --- middle
 
@@ -138,6 +139,9 @@ round two.
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
 key generation with a trusted dealer is specified in {{dep-dealer}}.
+
+This document represents the consensus of the Crypto Forum Research
+Group (CFRG). It is not an IETF product and is not a standard.
 
 ## Change Log
 
