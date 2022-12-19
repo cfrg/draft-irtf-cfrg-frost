@@ -388,7 +388,7 @@ particular input `x`, i.e., `y = f(x)` using Horner's method.
     return value
 ~~~
 
-### Lagrange coefficients
+### Lagrange bases
 
 The function `lagrange_basis_at_zero` derives a Lagrange coefficient
 to later perform polynomial interpolation to derive the zeroth point, and is provided a list of x-coordinates
