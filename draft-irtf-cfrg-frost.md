@@ -838,10 +838,16 @@ The Coordinator SHOULD verify this signature using the group public key before p
 releasing the signature. Signature verification is as specified for the corresponding
 ciphersuite; see {{ciphersuites}} for details.
 
+The aggregate signature will verify successfully if and only if all signature shares are valid.
+In other words, if there exists an invalid signature share, then the resulting aggregate
+signature will not verify successfully against the group public key. Moreover, subsets of
+valid signature shares will themselves not yield a valid aggregate signature.
+
 If the aggregate signature verification fails, the Coordinator can verify each signature
 share individually to identify and act on misbehaving participants. The mechanism for acting on
 a misbehaving participant is out of scope for this specification. However, a reasonable approach
 would be to remove the participant from the set of allowed participants in future runs of FROST.
+
 The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 
 ~~~
