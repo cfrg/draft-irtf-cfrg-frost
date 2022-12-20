@@ -45,12 +45,12 @@ def derive_interpolating_value(G, i, L):
             continue
         num = (num * j) % G.order()
         den = (den * (j - i)) % G.order()
-    L_i = (num * inverse_mod(den, G.order())) % G.order()
-    return L_i
+    value = (num * inverse_mod(den, G.order())) % G.order()
+    return value
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
 def secret_share_combine(G, t, shares):
-    def polynomial_interoplate_constant(points):
+    def polynomial_interpolate_constant(points):
         L = [x for (x, _) in points]
         constant = 0
         for (x, y) in points:
@@ -60,7 +60,7 @@ def secret_share_combine(G, t, shares):
 
     if len(shares) < t:
         raise Exception("invalid parameters")
-    s = polynomial_interoplate_constant(shares[:t])
+    s = polynomial_interpolate_constant(shares[:t])
     return s
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
@@ -192,7 +192,7 @@ def verify_signature_share(G, H, identifier, public_key_share, sig_share, commit
     # Compute the challenge
     challenge = compute_challenge(H, group_commitment, group_public_key, msg)
 
-    # Compute Lagrange coefficient
+    # Compute the interpolating value
     participant_list = participants_from_commitment_list(commitment_list)
     lambda_i = derive_interpolating_value(G, identifier, participant_list)
 
@@ -237,7 +237,7 @@ class SignerParticipant(object):
         # Compute the group commitment
         group_comm = compute_group_commitment(self.G, commitment_list, binding_factors)
 
-        # Compute Lagrange coefficient
+        # Compute the interpolating value
         participant_list = participants_from_commitment_list(commitment_list)
         lambda_i = derive_interpolating_value(self.G, self.identifier, participant_list)
 

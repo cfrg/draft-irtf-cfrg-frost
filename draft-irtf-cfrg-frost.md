@@ -383,7 +383,7 @@ cannot equal 0.
   - x_i, an x-coordinate contained in L, a Scalar
   - L, the set of x-coordinates, each a Scalar
 
-  Outputs: L_i, the i-th Lagrange coefficient
+  Outputs: value, a Scalar
 
   Errors:
   - "invalid parameters", if 1) any x-coordinate is equal to 0, 2) if x_i
@@ -408,8 +408,8 @@ cannot equal 0.
       numerator *= x_j
       denominator *= x_j - x_i
 
-    L_i = numerator / denominator
-    return L_i
+    value = numerator / denominator
+    return value
 ~~~
 
 ## List Operations {#dep-encoding}
@@ -744,7 +744,7 @@ procedure to produce its own signature share.
     # Compute the group commitment
     group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
 
-    # Compute Lagrange coefficient
+    # Compute the interpolating value
     participant_list = participants_from_commitment_list(commitment_list)
     lambda_i = derive_interpolating_value(identifier, participant_list)
 
@@ -817,7 +817,7 @@ parameters, to check that the signature share is valid using the following proce
     # Compute the challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
 
-    # Compute Lagrange coefficient
+    # Compute the interpolating value
     participant_list = participants_from_commitment_list(commitment_list)
     lambda_i = derive_interpolating_value(identifier, participant_list)
 
@@ -1423,7 +1423,7 @@ secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in
   def secret_share_combine(shares):
     if len(shares) < MIN_PARTICIPANTS:
       raise "invalid parameters"
-    s = polynomial_interoplate_constant(shares)
+    s = polynomial_interpolate_constant(shares)
     return s
 ~~~
 
@@ -1431,7 +1431,7 @@ secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in
 
 This section describes two functions. One function, denoted `polynomial_evaluate`,
 is for evaluating a polynomial `f(x)` at a particular point `x` using Horner's method,
-i.e., computing `y = f(x)`. The other function, `polynomial_interoplate_constant`, is for
+i.e., computing `y = f(x)`. The other function, `polynomial_interpolate_constant`, is for
 recovering the constant term of an interpolating polynomial defined by a set of points.
 
 The function `polynomial_evaluate` is defined as follows.
@@ -1453,7 +1453,7 @@ The function `polynomial_evaluate` is defined as follows.
     return value
 ~~~
 
-The function `polynomial_interoplate_constant` is defined as follows.
+The function `polynomial_interpolate_constant` is defined as follows.
 
 ~~~
   Inputs:
@@ -1462,7 +1462,7 @@ The function `polynomial_interoplate_constant` is defined as follows.
 
   Outputs: The constant term of f, i.e., f(0)
 
-  def polynomial_interoplate_constant(points):
+  def polynomial_interpolate_constant(points):
     x_coords = []
     for (x, y) in points:
       x_coords.append(x)
