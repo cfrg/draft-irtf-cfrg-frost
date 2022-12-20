@@ -332,7 +332,7 @@ Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:
 
 - Nonce generation, {{dep-nonces}};
-- Polynomial operations, {{dep-polynomial}};
+- Polynomials, {{dep-polynomial}};
 - Encoding operations, {{dep-encoding}};
 - Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}.
 
@@ -363,50 +363,21 @@ signing participant.
     return H3(random_bytes || secret_enc)
 ~~~
 
-## Polynomial Operations {#dep-polynomial}
+## Polynomials {#dep-polynomial}
 
-This section describes operations on and associated with polynomials over Scalars
-that are used in the main signing protocol. A polynomial of maximum degree t
-is represented as a list of t+1 coefficients, where the constant term of the polynomial
-is in the first position and the highest-degree coefficient is in the last position.
-For example, the polynomial `x^2 + 2x + 3` has degree 2 and is represented as
-a list of 3 coefficients `[3, 2, 1]`.
-A point on the polynomial is a tuple (x, y), where `y = f(x)`. For notational
-convenience, we refer to the x-coordinate and y-coordinate of a
-point p as `p.x` and `p.y`, respectively.
+This section defines polynomials over Scalars that are used in the main protocol.
+A polynomial of maximum degree t is represented as a list of t+1 coefficients,
+where the constant term of the polynomial is in the first position and the
+highest-degree coefficient is in the last position. For example, the polynomial
+`x^2 + 2x + 3` has degree 2 and is represented as a list of 3 coefficients `[3, 2, 1]`.
+A point on the polynomial is a tuple (x, y), where `y = f(x)`.
 
-### Evaluation of a polynomial
-
-This section describes a method for evaluating a polynomial `f` at a
-particular input `x`, i.e., `y = f(x)` using Horner's method.
+The function `derive_interpolating_value` derives a value used for polynomial
+interpolation. It is is provided a list of x-coordinates as input, each of which
+cannot equal 0.
 
 ~~~
-  polynomial_evaluate(x, coeffs):
-
-  Inputs:
-  - x, input at which to evaluate the polynomial, a Scalar
-  - coeffs, the polynomial coefficients, a list of Scalars
-
-  Outputs: Scalar result of the polynomial evaluated at input x
-
-  def polynomial_evaluate(x, coeffs):
-    value = 0
-    for coeff in reverse(coeffs):
-      value *= x
-      value += coeff
-    return value
-~~~
-
-### Lagrange coefficients
-
-The function `derive_lagrange_coefficient` derives a Lagrange coefficient
-to later perform polynomial interpolation, and is provided a list of x-coordinates
-as input. Note that `derive_lagrange_coefficient` does not permit any x-coordinate
-to equal 0. Lagrange coefficients are used in FROST to evaluate a polynomial `f`
-at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
-
-~~~
-  derive_lagrange_coefficient(x_i, L):
+  derive_interpolating_value(x_i, L):
 
   Inputs:
   - x_i, an x-coordinate contained in L, a Scalar
@@ -418,7 +389,7 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
   - "invalid parameters", if 1) any x-coordinate is equal to 0, 2) if x_i
     is not in L, or if 3) any x-coordinate is represented more than once in L.
 
-  def derive_lagrange_coefficient(x_i, L):
+  def derive_interpolating_value(x_i, L):
     if x_i == 0:
       raise "invalid parameters"
     for x_j in L:
@@ -775,7 +746,7 @@ procedure to produce its own signature share.
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
+    lambda_i = derive_interpolating_value(identifier, participant_list)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -848,7 +819,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
+    lambda_i = derive_interpolating_value(identifier, participant_list)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
@@ -1390,6 +1361,7 @@ This secret sharing scheme works over any field `F`. In this specification, `F` 
 the scalar field of the prime-order group `G`.
 
 The procedure for splitting a secret into shares is as follows.
+The algorithm `polynomial_evaluate` is defined in {{dep-extended-polynomial-operations}}.
 
 ~~~
   secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
@@ -1430,11 +1402,11 @@ The procedure for splitting a secret into shares is as follows.
 Let `points` be the output of this function. The i-th element in `points` is
 the share for the i-th participant, which is the randomly generated polynomial
 evaluated at coordinate `i`. We denote a secret share as the tuple `(i, points[i])`,
-and the list of these shares as `shares`.
-`i` MUST never equal `0`; recall that `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
+and the list of these shares as `shares`. `i` MUST never equal `0`; recall that
+`f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
 The procedure for combining a `shares` list of length `MIN_PARTICIPANTS` to recover the
-secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in {{dep-polynomial-interpolate}}.
+secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in {{dep-extended-polynomial-operations}}.
 
 ~~~
   secret_share_combine(shares):
@@ -1451,16 +1423,37 @@ secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in
   def secret_share_combine(shares):
     if len(shares) < MIN_PARTICIPANTS:
       raise "invalid parameters"
-    s = polynomial_interpolation(shares)
+    s = polynomial_interoplate_constant(shares)
     return s
 ~~~
 
-### Deriving the constant term of a polynomial  {#dep-polynomial-interpolate}
+### Additional polynomial operations  {#dep-extended-polynomial-operations}
 
-Secret sharing requires "splitting" a secret, which is represented as
-a constant term of some polynomial `f` of degree `t-1`. Recovering the
-constant term occurs with a set of `t` points using polynomial
-interpolation, defined as follows.
+This section describes two functions. One function, denoted `polynomial_evaluate`,
+is for evaluating a polynomial `f(x)` at a particular point `x` using Horner's method,
+i.e., computing `y = f(x)`. The other function, `polynomial_interoplate_constant`, is for
+recovering the constant term of an interpolating polynomial defined by a set of points.
+
+The function `polynomial_evaluate` is defined as follows.
+
+~~~
+  polynomial_evaluate(x, coeffs):
+
+  Inputs:
+  - x, input at which to evaluate the polynomial, a Scalar
+  - coeffs, the polynomial coefficients, a list of Scalars
+
+  Outputs: Scalar result of the polynomial evaluated at input x
+
+  def polynomial_evaluate(x, coeffs):
+    value = 0
+    for coeff in reverse(coeffs):
+      value *= x
+      value += coeff
+    return value
+~~~
+
+The function `polynomial_interoplate_constant` is defined as follows.
 
 ~~~
   Inputs:
@@ -1469,14 +1462,14 @@ interpolation, defined as follows.
 
   Outputs: The constant term of f, i.e., f(0)
 
-  def polynomial_interpolation(points):
+  def polynomial_interoplate_constant(points):
     x_coords = []
-    for point in points:
-      x_coords.append(point.x)
+    for (x, y) in points:
+      x_coords.append(x)
 
     f_zero = Scalar(0)
-    for point in points:
-      delta = point.y * derive_lagrange_coefficient(point.x, x_coords)
+    for (x, y) in points:
+      delta = y * derive_interpolating_value(x, x_coords)
       f_zero = f_zero + delta
 
     return f_zero
