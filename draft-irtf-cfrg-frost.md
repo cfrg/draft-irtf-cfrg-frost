@@ -796,16 +796,14 @@ Note that the `lambda_i` value derived during this procedure does not change
 across FROST signing operations for the same signing group. As such, participants
 can compute it once and store it for reuse across signing sessions.
 
-Upon receipt from each Signer, the Coordinator MUST validate the input
-signature share using DeserializeElement. If validation fails, the Coordinator MUST abort
-the protocol. If validation succeeds, the Coordinator then verifies the set of
-signature shares using the following procedure.
-
 ## Signature Share Aggregation {#frost-aggregation}
 
 After participants perform round two and send their signature shares to the Coordinator,
-the Coordinator can aggregate each share to produce a final signature. This is done
-using the following procedure.
+the Coordinator can aggregate each share to produce a final signature. Before aggregating,
+the Coordinator MUST validate each signature share using DeserializeElement. If validation
+fails, the Coordinator MUST abort the protocol as the resulting signature will be invalid.
+If all signature shares are valid, the Coordinator then aggregates them to produce the final
+signature using the following procedure.
 
 ~~~
   Inputs:
@@ -837,7 +835,10 @@ Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
 `G.SerializeScalar(z)`.
 
 The Coordinator SHOULD verify this signature using the group public key before publishing or
-releasing the signature. If verification fails, the Coordinator can verify each signature
+releasing the signature. Signature verification is as specified for the corresponding
+ciphersuite; see {{ciphersuites}} for details.
+
+If the aggregate signature verification fails, the Coordinator can verify each signature
 share individually to identify and act on misbehaving participants. The mechanism for acting on
 a misbehaving participant is out of scope for this specification. However, a reasonable approach
 would be to remove the participant from the set of allowed participants in future runs of FROST.
