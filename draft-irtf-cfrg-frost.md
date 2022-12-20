@@ -613,7 +613,7 @@ FROST assumes each participant is configured with the following information:
 - An identifier, which is a Scalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
   and MUST be distinct from the identifier of every other participant.
 - A signing key `sk_i`, which is a Scalar value representing the i-th Shamir secret share
-  of the group signing key `s`. In particular, `sk_i` is the point `f(i)` on a secret polynomial `f`, where `s` is `f(0)`.
+  of the group signing key `s`. In particular, `sk_i` is the value `f(i)` on a secret polynomial `f`, where `s` is `f(0)`.
   The public key corresponding to this signing key share is `PK_i = G.ScalarBaseMult(sk_i)`.
 
 The Coordinator and each participant are additionally configured with common group
