@@ -397,16 +397,16 @@ particular input `x`, i.e., `y = f(x)` using Horner's method.
     return value
 ~~~
 
-### Lagrange coefficients
+### Lagrange bases
 
-The function `derive_lagrange_coefficient` derives a Lagrange coefficient
-to later perform polynomial interpolation, and is provided a list of x-coordinates
-as input. Note that `derive_lagrange_coefficient` does not permit any x-coordinate
+The function `lagrange_basis_at_zero` derives a Lagrange coefficient
+to later perform polynomial interpolation to derive the zeroth point, and is provided a list of x-coordinates
+as input. Note that `lagrange_basis_at_zero` does not permit any x-coordinate
 to equal 0. Lagrange coefficients are used in FROST to evaluate a polynomial `f`
 at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
 
 ~~~
-  derive_lagrange_coefficient(x_i, L):
+  lagrange_basis_at_zero(x_i, L):
 
   Inputs:
   - x_i, an x-coordinate contained in L, a Scalar
@@ -418,7 +418,7 @@ at x-coordinate 0, i.e., `f(0)`, given a list of `t` other x-coordinates.
   - "invalid parameters", if 1) any x-coordinate is equal to 0, 2) if x_i
     is not in L, or if 3) any x-coordinate is represented more than once in L.
 
-  def derive_lagrange_coefficient(x_i, L):
+  def lagrange_basis_at_zero(x_i, L):
     if x_i == 0:
       raise "invalid parameters"
     for x_j in L:
@@ -775,7 +775,7 @@ procedure to produce its own signature share.
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
+    lambda_i = lagrange_basis_at_zero(identifier, participant_list)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -848,7 +848,7 @@ parameters, to check that the signature share is valid using the following proce
 
     # Compute Lagrange coefficient
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_lagrange_coefficient(identifier, participant_list)
+    lambda_i = lagrange_basis_at_zero(identifier, participant_list)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
@@ -1476,7 +1476,7 @@ interpolation, defined as follows.
 
     f_zero = Scalar(0)
     for point in points:
-      delta = point.y * derive_lagrange_coefficient(point.x, x_coords)
+      delta = point.y * lagrange_basis_at_zero(point.x, x_coords)
       f_zero = f_zero + delta
 
     return f_zero
