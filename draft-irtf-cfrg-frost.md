@@ -1151,7 +1151,7 @@ The rest of this section documents issues particular to implementations or deplo
 
 ## Optimizations
 
-{{Schnorr21}} presented an optimization to FROST that reduces the total number of scalar multiplications
+{{StrongerSec22}} presented an optimization to FROST that reduces the total number of scalar multiplications
 from linear in the number of signing participants to a constant. However, as described in {{StrongerSec22}},
 this optimization removes the guarantee that the set of signer participants that started round one of
 the protocol is the same set of signing participants that produced the signature output by round two.
