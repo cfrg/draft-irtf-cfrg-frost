@@ -1154,27 +1154,19 @@ the following requirements.
 
 # Security Considerations {#sec-considerations}
 
-A security analysis of FROST exists in {{FROST20}} and {{StrongerSec22}}. The protocol as specified
-in this document assumes the following threat model.
+A security analysis of FROST exists in {{FROST20}} and {{StrongerSec22}}. At a high
+level, FROST provides security against Existential Unforgeability Under Chosen Message
+Attack (EUF-CMA) attacks, as defined in {{StrongerSec22}}. Satisfying this requirement
+requires the ciphersuite to adhere to the requirements in {{ciphersuite-reqs}}, as well
+as the following assumptions to hold.
 
-* Secure key distribution. The signer key shares are generated and distributed securely, i.e.,
-via a trusted dealer that performs key generation (see {{dep-vss}}) or through a distributed
-key generation protocol.
+* The signer key shares are generated and distributed securely, e.g., via a trusted dealer
+that performs key generation (see {{dep-vss}}) or through a distributed key generation protocol.
+* The Coordinator and at most `(MIN_PARTICIPANTS-1)` participants are corrupted.
 
-* Honest-but-curious coordinator. We assume an honest-but-curious Coordinator which, at the
-time of signing, does not perform a denial of service attack. A denial of service would include
-any action which either prevents the protocol from completing or causing the resulting signature
-to be invalid. Such actions for the latter include sending inconsistent values to participants,
-such as messages or the set of individual commitments. Note that the Coordinator
-is *not* trusted with any private information and communication at the time of signing
-can be performed over a public but reliable channel.
-
-Under this threat model, FROST aims to achieve signature unforgeability assuming at most
-`MIN_PARTICIPANTS-1` corrupted participants. In particular, so long as an adversary corrupts
-fewer than `MIN_PARTICIPANTS` participants, the scheme remains secure against Existential
-Unforgeability Under Chosen Message Attack (EUF-CMA), as defined in {{BonehShoup}},
-Definition 13.2. Satisfying this requirement requires the ciphersuite to adhere to the
-requirements in {{ciphersuite-reqs}}.
+Note that the Coordinator is not trusted with any private information and communication
+at the time of signing can be performed over a public but reliable channel. Moreover, the
+Coordinator is trusted to not perform a denial of service attack.
 
 FROST does not aim to achieve the following goals:
 
