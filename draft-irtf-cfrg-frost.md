@@ -284,13 +284,16 @@ and `*` operators, respectively. (Note that this means `+` may refer to group el
 scalar addition, depending on types of the operands.) For any element `A`, `ScalarMult(A, p) = I`.
 We denote `B` as a fixed generator of the group. Scalar base multiplication is equivalent to the repeated application
 of the group operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
-scalars corresponds to `GF(p)`, which we refer to as the scalar field. This document uses types
-`Element` and `Scalar` to denote elements of the group `G` and its set of scalars, respectively.
-We denote Scalar(x) as the conversion of integer input `x` to the corresponding Scalar value with
-the same numeric value. For example, Scalar(1) yields a Scalar representing the value 1.
-We denote equality comparison as `==` and assignment of values by `=`. Finally, it is assumed that
+scalars corresponds to `GF(p)`, which we refer to as the scalar field. It is assumed that
 group element addition, negation, and equality comparisons can be efficiently computed for
 arbitrary group elements.
+
+This document uses types `Element` and `Scalar` to denote elements of the group `G` and
+its set of scalars, respectively. We denote Scalar(x) as the conversion of integer input `x`
+to the corresponding Scalar value with the same numeric value. For example, Scalar(1) yields
+a Scalar representing the value 1. Moreover, we use the type `NonZeroScalar` to denote a `Scalar`
+value that is not equal to zero, i.e., Scalar(0). We denote equality comparison of these types
+as `==` and assignment of values by `=`.
 
 We now detail a number of member functions that can be invoked on `G`.
 
@@ -421,9 +424,9 @@ commitments into a bytestring for use in the FROST protocol.
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
     a list of commitments issued by each participant, where each element in the list
-    indicates the participant identifier i and their two commitment Element values
+    indicates a NonZeroScalar identifier i and two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by participant identifier.
+    in ascending order by identifier.
 
   Outputs: A byte string containing the serialized representation of commitment_list
 
@@ -437,18 +440,17 @@ commitments into a bytestring for use in the FROST protocol.
     return encoded_group_commitment
 ~~~
 
-The following function is used to extract participant identifiers from a commitment
-list.
+The following function is used to extract identifiers from a commitment list.
 
 ~~~
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
     a list of commitments issued by each participant, where each element in the list
-    indicates the participant identifier i and their two commitment Element values
+    indicates a NonZeroScalar identifier i and two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by participant identifier.
+    in ascending order by identifier.
 
-  Outputs: A list of participant identifiers
+  Outputs: A list of identifiers
 
 def participants_from_commitment_list(commitment_list):
   identifiers = []
@@ -463,8 +465,8 @@ The following function is used to extract a binding factor from a list of bindin
   Inputs:
   - binding_factor_list = [(i, binding_factor), ...],
     a list of binding factors for each participant, where each element in the list
-    indicates the participant identifier i and their binding factor.
-  - identifier, participant identifier, a Scalar.
+    indicates a NonZeroScalar identifier i and Scalar binding factor.
+  - identifier, participant identifier, a NonZeroScalar.
 
   Outputs: A Scalar value.
 
@@ -486,12 +488,12 @@ on the participant commitment list and message to be signed.
   Inputs:
   - commitment_list = [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...],
     a list of commitments issued by each participant, where each element in the list
-    indicates the participant identifier i and their two commitment Element values
+    indicates a NonZeroScalar identifier i and two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
-    in ascending order by participant identifier.
+    in ascending order by identifier.
   - msg, the message to be signed.
 
-  Outputs: A list of (identifier, Scalar) tuples representing the binding factors.
+  Outputs: A list of (NonZeroScalar, Scalar) tuples representing the binding factors.
 
   def compute_binding_factors(commitment_list, msg):
     msg_hash = H4(msg)
@@ -516,14 +518,14 @@ from a commitment list.
   - commitment_list =
      [(i, hiding_nonce_commitment_i, binding_nonce_commitment_i), ...], a list
     of commitments issued by each participant, where each element in the list
-    indicates the participant identifier i and their two commitment Element values
+    indicates a NonZeroScalar identifier i and two commitment Element values
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be
-    sorted in ascending order by participant identifier.
+    sorted in ascending order by identifier.
   - binding_factor_list = [(i, binding_factor), ...],
-    a list of (identifier, Scalar) tuples representing the binding factor Scalar
+    a list of (NonZeroScalar, Scalar) tuples representing the binding factor Scalar
     for the given identifier.
 
-  Outputs: An Element in G representing the group commitment
+  Outputs: An Element representing the group commitment
 
   def compute_group_commitment(commitment_list, binding_factor_list):
     group_commitment = G.Identity()
@@ -579,7 +581,7 @@ value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group
 key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participant and used to produce signatures. In particular,
 FROST assumes each participant is configured with the following information:
 
-- An identifier, which is a Scalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
+- An identifier, which is a NonZeroScalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
   and MUST be distinct from the identifier of every other participant.
 - A signing key `sk_i`, which is a Scalar value representing the i-th Shamir secret share
   of the group signing key `s`. In particular, `sk_i` is the value `f(i)` on a secret polynomial `f`, where `s` is `f(0)`.
@@ -637,7 +639,7 @@ message and the other participant commitments. This complete interaction is show
   signature |
 <-----------+
 ~~~
-{: #fig-frost title="FROST signature overview" }
+{: #fig-frost title="FROST protocol overview" }
 
 Details for round one are described in {{frost-round-one}}, and details for round two
 are described in {{frost-round-two}}. Note that each participant persists some state between
@@ -714,7 +716,7 @@ procedure to produce its own signature share.
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the participant. Note identifier will never equal 0.
+  - identifier, identifier i of the participant, a NonZeroScalar.
   - sk_i, Signer secret key share, a Scalar.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
@@ -724,9 +726,9 @@ procedure to produce its own signature share.
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each participant and sent by the Coordinator.
-    Each element in the list indicates the participant identifier j and their two commitment
+    Each element in the list indicates a NonZeroScalar identifier j and two commitment
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by participant identifier.
+    This list MUST be sorted in ascending order by identifier.
 
   Outputs: a Scalar value representing the signature share
 
@@ -776,9 +778,9 @@ parameters, to check that the signature share is valid using the following proce
 
 ~~~
   Inputs:
-  - identifier, Identifier i of the participant. Note: identifier MUST never equal 0.
+  - identifier, identifier i of the participant, a NonZeroScalar.
   - PK_i, the public key for the ith participant, where PK_i = G.ScalarBaseMult(sk_i),
-    an Element in G
+    an Element.
   - comm_i, pair of Element values in G (hiding_nonce_commitment, binding_nonce_commitment)
     generated in round one from the ith participant.
   - sig_share_i, a Scalar value indicating the signature share as produced in
@@ -786,9 +788,9 @@ parameters, to check that the signature share is valid using the following proce
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each participant, where each element
-    in the list indicates the participant identifier j and their two commitment
+    in the list indicates a NonZeroScalar identifier j and two commitment
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
-    This list MUST be sorted in ascending order by participant identifier.
+    This list MUST be sorted in ascending order by identifier.
   - group_public_key, public key corresponding to the group signing key,
     an Element in G.
   - msg, the message to be signed.
@@ -1317,7 +1319,7 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
 
   Outputs:
   - participant_private_keys, MAX_PARTICIPANTS shares of the secret key s, each a tuple
-    consisting of the participant identifier and the key share (a Scalar).
+    consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar).
   - group_public_key, public key corresponding to the group signing key, an
     Element in G.
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
@@ -1369,7 +1371,7 @@ The algorithm `polynomial_evaluate` is defined in {{dep-extended-polynomial-oper
 
   Outputs:
   - secret_key_shares, A list of MAX_PARTICIPANTS number of secret shares, each a tuple
-    consisting of the participant identifier and the key share (a Scalar)
+    consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar)
   - coefficients, a vector of MIN_PARTICIPANTS coefficients which uniquely determine a polynomial f.
 
   Errors:
@@ -1506,7 +1508,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
   Inputs:
   - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier, and sk_i the participant's secret key, a secret share of the
+    identifier (a NonZeroScalar), and sk_i the participant's secret key, a secret share of the
     constant term of f, where sk_i is a Scalar.
   - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment
     to each of the coefficients in coeffs, where each element of the vector commitment
