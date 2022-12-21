@@ -763,18 +763,59 @@ Note that the `lambda_i` value derived during this procedure does not change
 across FROST signing operations for the same signing group. As such, participants
 can compute it once and store it for reuse across signing sessions.
 
-Upon receipt from each Signer, the Coordinator MUST validate the input
-signature share using DeserializeElement. If validation fails, the Coordinator MUST abort
-the protocol. If validation succeeds, the Coordinator then verifies the set of
-signature shares using the following procedure.
-
-## Signature Share Verification and Aggregation {#frost-aggregation}
+## Signature Share Aggregation {#frost-aggregation}
 
 After participants perform round two and send their signature shares to the Coordinator,
-the Coordinator verifies each signature share for correctness. In particular,
-for each participant, the Coordinator uses commitment pairs generated during round
-one and the signature share generated during round two, along with other group
-parameters, to check that the signature share is valid using the following procedure.
+the Coordinator can aggregate each share to produce a final signature. Before aggregating,
+the Coordinator MUST validate each signature share using DeserializeElement. If validation
+fails, the Coordinator MUST abort the protocol as the resulting signature will be invalid.
+If all signature shares are valid, the Coordinator then aggregates them to produce the final
+signature using the following procedure.
+
+~~~
+  Inputs:
+  - group_commitment, the group commitment returned by compute_group_commitment,
+    an Element in G.
+  - sig_shares, a set of signature shares z_i, Scalar values, for each participant,
+    of length NUM_PARTICIPANTS, where MIN_PARTICIPANTS <= NUM_PARTICIPANTS <= MAX_PARTICIPANTS.
+
+  Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
+
+  def aggregate(group_commitment, sig_shares):
+    z = 0
+    for z_i in sig_shares:
+      z = z + z_i
+    return (group_commitment, z)
+~~~
+
+The output signature (R, z) from the aggregation step MUST be encoded as follows
+(using notation from {{Section 3 of TLS}}):
+
+~~~
+  struct {
+    opaque R_encoded[Ne];
+    opaque z_encoded[Ns];
+  } Signature;
+~~~
+
+Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
+`G.SerializeScalar(z)`.
+
+The Coordinator SHOULD verify this signature using the group public key before publishing or
+releasing the signature. Signature verification is as specified for the corresponding
+ciphersuite; see {{ciphersuites}} for details.
+
+The aggregate signature will verify successfully if and only if all signature shares are valid.
+In other words, if there exists an invalid signature share, then the resulting aggregate
+signature will not verify successfully against the group public key. Moreover, subsets of
+valid signature shares will themselves not yield a valid aggregate signature.
+
+If the aggregate signature verification fails, the Coordinator can verify each signature
+share individually to identify and act on misbehaving participants. The mechanism for acting on
+a misbehaving participant is out of scope for this specification. However, a reasonable approach
+would be to remove the participant from the set of allowed participants in future runs of FROST.
+
+The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 
 ~~~
   Inputs:
@@ -824,46 +865,10 @@ parameters, to check that the signature share is valid using the following proce
     return l == r
 ~~~
 
-If any signature share fails to verify, i.e., if verify_signature_share returns False for
-any participant share, the Coordinator MUST abort the protocol for correctness reasons
-(this is true regardless of the size or makeup of the signing set selected by
-the Coordinator).
-Excluding one participant means that their nonce will not be included in the joint response `z`
-and consequently the output signature will not verify. This is because the
-group commitment will be with respect to a different signing set than the
-aggregated response.
-
-Otherwise, if all shares from participants that participated in Rounds 1 and 2 are valid, the Coordinator
-performs the `aggregate` operation and publishes the resulting signature.
-
-~~~
-  Inputs:
-  - group_commitment, the group commitment returned by compute_group_commitment,
-    an Element in G.
-  - sig_shares, a set of signature shares z_i, Scalar values, for each participant,
-    of length NUM_PARTICIPANTS, where MIN_PARTICIPANTS <= NUM_PARTICIPANTS <= MAX_PARTICIPANTS.
-
-  Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
-
-  def aggregate(group_commitment, sig_shares):
-    z = 0
-    for z_i in sig_shares:
-      z = z + z_i
-    return (group_commitment, z)
-~~~
-
-The output signature (R, z) from the aggregation step MUST be encoded as follows
-(using notation from {{Section 3 of TLS}}):
-
-~~~
-  struct {
-    opaque R_encoded[Ne];
-    opaque z_encoded[Ns];
-  } Signature;
-~~~
-
-Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
-`G.SerializeScalar(z)`.
+The Coordinator can verify each signature share before first aggregating and verifying the
+signature under the group public key. However, since the aggregate signature is valid if
+and only if all signature shares are valid, this order of operations is more expensive
+if the signature is valid.
 
 # Ciphersuites {#ciphersuites}
 
