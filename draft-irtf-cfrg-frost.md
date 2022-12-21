@@ -93,12 +93,12 @@ informative:
 
 --- abstract
 
-In this draft, we present the two-round signing variant of FROST, a Flexible Round-Optimized
-Schnorr Threshold signature scheme. FROST signatures can be issued after a threshold number
-of entities cooperate to issue a signature, allowing for improved distribution of trust and
-redundancy with respect to a secret key. Further, this draft specifies signatures that are
-compatible with {{!RFC8032}}. However, unlike {{!RFC8032}}, the protocol for producing
-signatures in this draft is not deterministic, so as to ensure protection against a
+This document specifies the Flexible Round-Optimized Schnorr Threshold (FROST) signing protocol.
+FROST signatures can be issued after a threshold number of entities cooperate to
+issue a signature, allowing for improved distribution of trust and
+redundancy with respect to a secret key. Further, this document specifies signatures that are
+compatible with RFC8032. However, unlike RFC8032, the protocol for producing
+signatures in this document is not deterministic, so as to ensure protection against a
 key-recovery attack that is possible when even only one signer participant is malicious.
 This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF.
 
@@ -118,20 +118,19 @@ require cooperation among a threshold number of signing participants each holdin
 of a common private key. The security of threshold schemes in general assumes
 that an adversary can corrupt strictly fewer than a threshold number of signer participants.
 
-This document presents a variant of a Flexible Round-Optimized Schnorr Threshold (FROST)
-signature scheme originally defined in {{FROST20}}. FROST reduces network overhead during
+This document specifies the Flexible Round-Optimized Schnorr Threshold (FROST) signing protocol
+based on the original work in {{FROST20}}. FROST reduces network overhead during
 threshold signing operations while employing a novel technique to protect against forgery
-attacks applicable to prior Schnorr-based threshold signature constructions. The variant of
-FROST presented in this document requires two rounds to compute a signature. Single-round
-signing with FROST is out of scope.
+attacks applicable to prior Schnorr-based threshold signature constructions. FROST requires
+two rounds to compute a signature. Single-round signing variants based on {{FROST20}} are out of scope.
 
-For select ciphersuites, the signatures produced by this draft are compatible with
+For select ciphersuites, the signatures produced by this document are compatible with
 {{!RFC8032}}. However, unlike {{!RFC8032}}, signatures produced by FROST are not
 deterministic, since deriving nonces deterministically allows for a complete key-recovery
 attack in multi-party discrete logarithm-based signatures, such as FROST.
 
 While an optimization to FROST was shown in {{StrongerSec22}} that reduces scalar multiplications
-from linear in the number of signing participants to constant, this draft does not specify that optimization
+from linear in the number of signing participants to constant, this document does not specify that optimization
 due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
 Specifically, this optimization removes the guarantee that the set of signer participants that started
 round one of the protocol is the same set of signing participants that produced the signature output by
@@ -558,9 +557,8 @@ This section describes the subroutine for creating the per-message challenge.
 
 # Two-Round FROST Signing Protocol {#frost-spec}
 
-This section describes the two-round variant of the FROST threshold signature
-protocol for producing Schnorr signatures. The protocol is configured to
-run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
+This section describes the two-round FROST signing protocol for producing Schnorr signatures.
+The protocol is configured to run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
 `NUM_PARTICIPANTS` is a positive integer at least `MIN_PARTICIPANTS` but no larger than
 `MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS <= MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
 integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
@@ -600,14 +598,10 @@ mechanisms are possible: one that requires a single, trusted dealer, and the oth
 which requires performing a distributed key generation protocol. We highlight
 key generation mechanism by a trusted dealer in {{dep-dealer}} for reference.
 
-The signing variant of FROST in this document requires participants to perform two network rounds:
-1) generating and publishing commitments, and 2) signature share generation and
-publication. The first round serves for each participant to issue a commitment to
-a nonce. The second round receives commitments for all participants as well as the message,
-and issues a signature share with respect to that message. The Coordinator performs
-the coordination of each of these rounds. At the end of the second round, the
-Coordinator then performs an aggregation step and outputs the final signature.
-This complete interaction is shown in {{fig-frost}}.
+FROST requires two rounds to complete. In the first round, participants generate
+and publish one-time-use commitments to be used in the second round. In the second
+round, each participant produces a share of the signature over the Coordinator-chosen
+message and the other participant commitments. This complete interaction is shown in {{fig-frost}}.
 
 ~~~
         (group info)            (group info,     (group info,
