@@ -1356,7 +1356,7 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
 
   Outputs:
   - participant_private_keys, MAX_PARTICIPANTS shares of the secret key s, each a tuple
-    consisting of the participant identifier and the key share (a Scalar).
+    consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar).
   - group_public_key, public key corresponding to the group signing key, an
     Element in G.
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
@@ -1406,7 +1406,7 @@ The procedure for splitting a secret into shares is as follows.
 
   Outputs:
   - secret_key_shares, A list of MAX_PARTICIPANTS number of secret shares, each a tuple
-    consisting of the participant identifier and the key share (a Scalar)
+    consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar)
   - coefficients, a vector of MIN_PARTICIPANTS coefficients which uniquely determine a polynomial f.
 
   Errors:
@@ -1522,7 +1522,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
   Inputs:
   - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier, and sk_i the participant's secret key, a secret share of the
+    identifier (a NonZeroScalar), and sk_i the participant's secret key, a secret share of the
     constant term of f, where sk_i is a Scalar.
   - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment
     to each of the coefficients in coeffs, where each element of the vector commitment
