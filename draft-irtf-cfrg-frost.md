@@ -95,18 +95,17 @@ informative:
 
 This document specifies the Flexible Round-Optimized Schnorr Threshold (FROST) signing protocol.
 FROST signatures can be issued after a threshold number of entities cooperate to
-issue a signature, allowing for improved distribution of trust and
-redundancy with respect to a secret key. Further, this document specifies signatures that are
-compatible with RFC8032. However, unlike RFC8032, the protocol for producing
-signatures in this document is not deterministic, so as to ensure protection against a
-key-recovery attack that is possible when even only one signer participant is malicious.
+compute a signature, allowing for improved distribution of trust and
+redundancy with respect to a secret key. FROST depends only on a prime-order group and cryptographic
+hash function. This document specifies a number of ciphersuites to instantiate FROST using different
+prime-order groups and hash functions. One such ciphersuite can be used to produce signatures
+that can be verified with an RFC8032 compliant verifier. However, unlike RFC8032, the
+signatures produced by FROST are not deterministic.
 This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF.
 
 --- middle
 
 # Introduction
-
-DISCLAIMER: This is a work-in-progress draft of FROST.
 
 RFC EDITOR: PLEASE REMOVE THE FOLLOWING PARAGRAPH The source for this draft is
 maintained in GitHub. Suggested changes should be submitted as pull requests
@@ -124,17 +123,13 @@ threshold signing operations while employing a novel technique to protect agains
 attacks applicable to prior Schnorr-based threshold signature constructions. FROST requires
 two rounds to compute a signature. Single-round signing variants based on {{FROST20}} are out of scope.
 
-For select ciphersuites, the signatures produced by this document are compatible with
-{{!RFC8032}}. However, unlike {{!RFC8032}}, signatures produced by FROST are not
-deterministic, since deriving nonces deterministically allows for a complete key-recovery
-attack in multi-party discrete logarithm-based signatures, such as FROST.
-
-While an optimization to FROST was shown in {{StrongerSec22}} that reduces scalar multiplications
-from linear in the number of signing participants to constant, this document does not specify that optimization
-due to the malleability that this optimization introduces, as shown in {{StrongerSec22}}.
-Specifically, this optimization removes the guarantee that the set of signer participants that started
-round one of the protocol is the same set of signing participants that produced the signature output by
-round two.
+FROST depends only on a prime-order group and cryptographic hash function. This document specifies
+a number of ciphersuites to instantiate FROST using different prime-order groups and hash functions.
+Two ciphersuites can be used to produce signatures that are compatible with Ed25519 and Ed448 as
+specified in {{!RFC8032}}, i.e., the signatures can be verified with an {{!RFC8032}} compliant
+verifier. However, unlike {{!RFC8032}}, the signatures produced by FROST are not deterministic,
+since deriving nonces deterministically allows for a complete key-recovery attack in multi-party
+discrete logarithm-based signatures.
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
 key generation with a trusted dealer is specified in {{dep-dealer}}.
@@ -575,8 +570,8 @@ FROST assumes that the Coordinator and the set of signer participants, are chose
 externally to the protocol. Note that it is possible to deploy the protocol without
 a distinguished Coordinator; see {{no-coordinator}} for more information.
 
-FROST produces signatures that are indistinguishable from those produced with a single
-participant using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
+FROST produces signatures that can be verified as if they were produced from a single signer
+using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
 value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
 key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participant and used to produce signatures. In particular,
 FROST assumes each participant is configured with the following information:
@@ -879,8 +874,8 @@ Each ciphersuite also includes a context string, denoted `contextString`,
 which is an ASCII string literal (with no NULL terminating character).
 
 The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
-The (Ed25519, SHA-512) ciphersuite is included for backwards compatibility
-with {{!RFC8032}}.
+The (Ed25519, SHA-512) and (Ed448, SHAKE256) ciphersuites are included
+for compatibility with {{!RFC8032}}.
 
 The DeserializeElement and DeserializeScalar functions instantiated for a
 particular prime-order group corresponding to a ciphersuite MUST adhere
@@ -898,7 +893,7 @@ ciphersuites MUST also adhere to these requirements.
 ## FROST(Ed25519, SHA-512)
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
-meant to produce signatures indistinguishable from Ed25519 as specified in {{!RFC8032}}.
+meant to produce Ed25519-compliant signatures as specified in {{!RFC8032}}.
 The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
 
 - Group: edwards25519 {{!RFC8032}}
@@ -937,8 +932,7 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 
-Normally H2 would also include a domain separator, but for backwards compatibility
-with {{!RFC8032}}, it is omitted.
+Normally H2 would also include a domain separator, but for compatibility with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [8][z]B = [8]R + [8][c]PK
@@ -983,7 +977,7 @@ Signature verification is as specified in {{prime-order-verify}}.
 ## FROST(Ed448, SHAKE256)
 
 This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
-meant to produce signatures indistinguishable from Ed448 as specified in {{!RFC8032}}.
+meant to produce Ed448-compliant signatures as specified in {{!RFC8032}}.
 The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
 
 - Group: edwards448 {{!RFC8032}}
@@ -1020,8 +1014,7 @@ The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
   - H4(m): Implemented by computing H(contextString \|\| "msg" \|\| m).
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
-Normally H2 would also include a domain separator, but for backwards compatibility
-with {{!RFC8032}}, it is omitted.
+Normally H2 would also include a domain separator, but for compatibility with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation [4][z]B = [4]R + [4][c]PK
@@ -1121,7 +1114,7 @@ the following requirements.
   (indistinguishable from) the uniform distribution.
 2. All hash functions MUST be domain separated with a per-suite context
   string. Note that the FROST(Ed25519, SHA-512) ciphersuite does not
-  adhere to this requirement for backwards compatibility with {{RFC8032}}.
+  adhere to this requirement for compatibility with {{RFC8032}}.
 3. The group MUST be of prime-order, and all deserialization functions MUST
   output elements that belong to their respective sets of Elements or Scalars,
   or failure when deserialization fails.
@@ -1160,6 +1153,14 @@ FROST does not aim to achieve the following goals:
 channel can be used to facilitate key generation and signing.
 
 The rest of this section documents issues particular to implementations or deployments.
+
+## Optimizations
+
+{{StrongerSec22}} presented an optimization to FROST that reduces the total number of scalar multiplications
+from linear in the number of signing participants to a constant. However, as described in {{StrongerSec22}},
+this optimization removes the guarantee that the set of signer participants that started round one of
+the protocol is the same set of signing participants that produced the signature output by round two.
+As such, the optimization is NOT RECOMENDED, and it is not covered in this document.
 
 ## Nonce Reuse Attacks
 
