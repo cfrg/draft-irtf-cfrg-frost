@@ -370,7 +370,7 @@ highest-degree coefficient is in the last position. For example, the polynomial
 A point on the polynomial is a tuple (x, y), where `y = f(x)`.
 
 The function `derive_interpolating_value` derives a value used for polynomial
-interpolation. It is is provided a list of x-coordinates as input, each of which
+interpolation. It is provided a list of x-coordinates as input, each of which
 cannot equal 0.
 
 ~~~
@@ -1411,7 +1411,7 @@ and the list of these shares as `shares`. `i` MUST never equal `0`; recall that
 `f(0) = s`, where `f` is the polynomial defined in a Shamir secret sharing operation.
 
 The procedure for combining a `shares` list of length `MIN_PARTICIPANTS` to recover the
-secret `s` is as follows; the algorithm `polynomial_interpolation` is defined in {{dep-extended-polynomial-operations}}.
+secret `s` is as follows; the algorithm `polynomial_interpolate_constant` is defined in {{dep-extended-polynomial-operations}}.
 
 ~~~
   secret_share_combine(shares):
