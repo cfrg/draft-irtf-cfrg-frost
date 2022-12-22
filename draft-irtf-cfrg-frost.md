@@ -781,15 +781,27 @@ signature using the following procedure.
 
 ~~~
   Inputs:
-  - group_commitment, the group commitment returned by compute_group_commitment,
-    an Element.
+  - commitment_list =
+      [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
+    list of commitments issued in Round 1 by each participant, where each element
+    in the list indicates a NonZeroScalar identifier j and two commitment
+    Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
+    This list MUST be sorted in ascending order by identifier.
+  - msg, the message to be signed, a byte string.
   - sig_shares, a set of signature shares z_i, Scalar values, for each participant,
     of length NUM_PARTICIPANTS, where MIN_PARTICIPANTS <= NUM_PARTICIPANTS <= MAX_PARTICIPANTS.
 
   Outputs:
   - (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
-  def aggregate(group_commitment, sig_shares):
+  def aggregate(commitment_list, msg, sig_shares):
+    # Compute the binding factors
+    binding_factor_list = compute_binding_factors(commitment_list, msg)
+
+    # Compute the group commitment
+    group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
+
+    # Compute aggregated signature
     z = 0
     for z_i in sig_shares:
       z = z + z_i
