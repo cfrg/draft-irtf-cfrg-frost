@@ -977,8 +977,9 @@ Signature verification is as specified in {{prime-order-verify}}.
 ## FROST(Ed448, SHAKE256)
 
 This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
-meant to produce Ed448-compliant signatures as specified in {{!RFC8032}}.
-The value of the contextString parameter is "FROST-ED448-SHAKE256-v11".
+meant to produce Ed448-compliant signatures as specified in {{!RFC8032}}. Note that this
+ciphersuite does not allow applications to specify a context string as is allowed for Ed448
+in {{RFC8032}}, and always sets the {{RFC8032}} context string to the empty string. The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHAKE256-v11".
 
 - Group: edwards448 {{!RFC8032}}
   - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
