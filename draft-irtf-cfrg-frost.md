@@ -350,9 +350,10 @@ signing participant.
   nonce_generate(secret):
 
   Inputs:
-  - secret, a Scalar
+  - secret, a Scalar.
 
-  Outputs: nonce, a Scalar
+  Outputs:
+  - nonce, a Scalar.
 
   def nonce_generate(secret):
     random_bytes = random_bytes(32)
@@ -377,10 +378,11 @@ cannot equal 0.
   derive_interpolating_value(x_i, L):
 
   Inputs:
-  - x_i, an x-coordinate contained in L, a Scalar
-  - L, the set of x-coordinates, each a Scalar
+  - x_i, an x-coordinate contained in L, a Scalar.
+  - L, the set of x-coordinates, each a Scalar.
 
-  Outputs: value, a Scalar
+  Outputs:
+  - value, a Scalar.
 
   Errors:
   - "invalid parameters", if 1) any x-coordinate is equal to 0, 2) if x_i
@@ -423,7 +425,8 @@ commitments into a bytestring for use in the FROST protocol.
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
     in ascending order by identifier.
 
-  Outputs: A byte string containing the serialized representation of commitment_list
+  Outputs:
+  - encoded_group_commitment, the serialized representation of commitment_list, a byte string.
 
   def encode_group_commitment_list(commitment_list):
     encoded_group_commitment = nil
@@ -445,7 +448,8 @@ The following function is used to extract identifiers from a commitment list.
     (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list MUST be sorted
     in ascending order by identifier.
 
-  Outputs: A list of identifiers
+  Outputs:
+  - identifiers, a list of NonZeroScalar values.
 
 def participants_from_commitment_list(commitment_list):
   identifiers = []
@@ -463,9 +467,11 @@ The following function is used to extract a binding factor from a list of bindin
     indicates a NonZeroScalar identifier i and Scalar binding factor.
   - identifier, participant identifier, a NonZeroScalar.
 
-  Outputs: A Scalar value.
+  Outputs:
+  - binding_factor, a Scalar.
 
-  Errors: "invalid participant", when the designated participant is not known
+  Errors:
+  - "invalid participant", when the designated participant is not known.
 
 def binding_factor_for_participant(binding_factor_list, identifier):
   for (i, binding_factor) in binding_factor_list:
@@ -488,7 +494,8 @@ on the participant commitment list and message to be signed.
     in ascending order by identifier.
   - msg, the message to be signed.
 
-  Outputs: A list of (NonZeroScalar, Scalar) tuples representing the binding factors.
+  Outputs:
+  - binding_factor_list, a list of (NonZeroScalar, Scalar) tuples representing the binding factors.
 
   def compute_binding_factors(commitment_list, msg):
     msg_hash = H4(msg)
@@ -520,7 +527,8 @@ from a commitment list.
     a list of (NonZeroScalar, Scalar) tuples representing the binding factor Scalar
     for the given identifier.
 
-  Outputs: An Element representing the group commitment
+  Outputs:
+  - group_commitment, an Element.
 
   def compute_group_commitment(commitment_list, binding_factor_list):
     group_commitment = G.Identity()
@@ -537,12 +545,13 @@ This section describes the subroutine for creating the per-message challenge.
 
 ~~~
   Inputs:
-  - group_commitment, an Element in G representing the group commitment
+  - group_commitment, the group commitment, an Element.
   - group_public_key, public key corresponding to the group signing key, an
-    Element in G.
-  - msg, the message to be signed.
+    Element.
+  - msg, the message to be signed, a byte string.
 
-  Outputs: A Scalar representing the challenge
+  Outputs:
+  - challenge, a Scalar.
 
   def compute_challenge(group_commitment, group_public_key, msg):
     group_comm_enc = G.SerializeElement(group_commitment)
@@ -663,11 +672,13 @@ a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding 
 `(hiding_nonce_commitment, binding_nonce_commitment)`.
 
 ~~~
-  Inputs: sk_i, the secret key share, a Scalar
+  Inputs:
+  - sk_i, the secret key share, a Scalar.
 
-  Outputs: (nonce, comm), a tuple of nonce and nonce commitment pairs,
+  Outputs:
+  - (nonce, comm), a tuple of nonce and nonce commitment pairs,
     where each value in the nonce pair is a Scalar and each value in
-    the nonce commitment pair is an Element
+    the nonce commitment pair is an Element.
 
   def commit(sk_i):
     hiding_nonce = nonce_generate(sk_i)
@@ -714,10 +725,10 @@ procedure to produce its own signature share.
   - identifier, identifier i of the participant, a NonZeroScalar.
   - sk_i, Signer secret key share, a Scalar.
   - group_public_key, public key corresponding to the group signing key,
-    an Element in G.
+    an Element.
   - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce) generated in
     round one.
-  - msg, the message to be signed (sent by the Coordinator).
+  - msg, the message to be signed, a byte string.
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each participant and sent by the Coordinator.
@@ -725,7 +736,8 @@ procedure to produce its own signature share.
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by identifier.
 
-  Outputs: a Scalar value representing the signature share
+  Outputs:
+  - sig_share, a signature share, a Scalar.
 
   def sign(identifier, sk_i, group_public_key, nonce_i, msg, commitment_list):
     # Compute the binding factor(s)
@@ -770,11 +782,12 @@ signature using the following procedure.
 ~~~
   Inputs:
   - group_commitment, the group commitment returned by compute_group_commitment,
-    an Element in G.
+    an Element.
   - sig_shares, a set of signature shares z_i, Scalar values, for each participant,
     of length NUM_PARTICIPANTS, where MIN_PARTICIPANTS <= NUM_PARTICIPANTS <= MAX_PARTICIPANTS.
 
-  Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
+  Outputs:
+  - (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
   def aggregate(group_commitment, sig_shares):
     z = 0
@@ -828,10 +841,11 @@ The function for verifying a signature share, denoted `verify_signature_share`, 
     Element values (hiding_nonce_commitment_j, binding_nonce_commitment_j).
     This list MUST be sorted in ascending order by identifier.
   - group_public_key, public key corresponding to the group signing key,
-    an Element in G.
-  - msg, the message to be signed.
+    an Element.
+  - msg, the message to be signed, a byte string.
 
-  Outputs: True if the signature share is valid, and False otherwise.
+  Outputs:
+  - True if the signature share is valid, and False otherwise.
 
   def verify_signature_share(identifier, PK_i, comm_i, sig_share_i, commitment_list,
                              group_public_key, msg):
@@ -1267,10 +1281,11 @@ key as input (as opposed to a key share.)
   prime_order_sign(msg, sk):
 
   Inputs:
-  - msg, message to sign, a byte string
-  - sk, secret key, a Scalar
+  - msg, message to sign, a byte string.
+  - sk, secret key, a Scalar.
 
-  Outputs: (R, z), a Schnorr signature consisting of an Element R and Scalar z.
+  Outputs:
+  - (R, z), a Schnorr signature consisting of an Element R and Scalar z.
 
   def prime_order_sign(msg, sk):
     r = G.RandomScalar()
@@ -1291,11 +1306,12 @@ Specifically, it assumes that signature R component and public key belong to the
   prime_order_verify(msg, sig, PK):
 
   Inputs:
-  - msg, signed message, a byte string
-  - sig, a tuple (R, z) output from signature generation
-  - PK, public key, an Element
+  - msg, signed message, a byte string.
+  - sig, a tuple (R, z) output from signature generation.
+  - PK, public key, an Element.
 
-  Outputs: 1 if signature is valid, and 0 otherwise
+  Outputs:
+  - True if signature is valid, and False otherwise.
 
   def prime_order_verify(msg, sig = (R, z), PK):
     comm_enc = G.SerializeElement(R)
@@ -1322,15 +1338,15 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
 
 ~~~
   Inputs:
-  - secret_key, a group secret, a Scalar, that MUST be derived from at least Ns bytes of entropy
-  - MAX_PARTICIPANTS, the number of shares to generate, an integer
-  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer
+  - secret_key, a group secret, a Scalar, that MUST be derived from at least Ns bytes of entropy.
+  - MAX_PARTICIPANTS, the number of shares to generate, an integer.
+  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer.
 
   Outputs:
   - participant_private_keys, MAX_PARTICIPANTS shares of the secret key s, each a tuple
     consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar).
   - group_public_key, public key corresponding to the group signing key, an
-    Element in G.
+    Element.
   - vss_commitment, a vector commitment of Elements in G, to each of the coefficients
     in the polynomial defined by secret_key_shares and whose first element is
     G.ScalarBaseMult(s).
@@ -1372,15 +1388,15 @@ The algorithm `polynomial_evaluate` is defined in {{dep-extended-polynomial-oper
   secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
 
   Inputs:
-  - s, secret value to be shared, a Scalar
+  - s, secret value to be shared, a Scalar.
   - coefficients, an array of size MIN_PARTICIPANTS - 1 with randomly generated
-    Scalars, not including the 0th coefficient of the polynomial
-  - MAX_PARTICIPANTS, the number of shares to generate, an integer less than 2^16
-  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer greater than 0
+    Scalars, not including the 0th coefficient of the polynomial.
+  - MAX_PARTICIPANTS, the number of shares to generate, an integer less than 2^16.
+  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer greater than 0.
 
   Outputs:
   - secret_key_shares, A list of MAX_PARTICIPANTS number of secret shares, each a tuple
-    consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar)
+    consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar).
   - coefficients, a vector of MIN_PARTICIPANTS coefficients which uniquely determine a polynomial f.
 
   Errors:
@@ -1418,12 +1434,13 @@ secret `s` is as follows; the algorithm `polynomial_interpolate_constant` is def
 
   Inputs:
   - shares, a list of at minimum MIN_PARTICIPANTS secret shares, each a tuple (i, f(i))
-    where i and f(i) are Scalars
+    where i and f(i) are Scalars.
 
-  Outputs: The resulting secret s, a Scalar, that was previously split into shares
+  Outputs:
+  - s, the resulting secret s that was previously split into shares, a Scalar.
 
   Errors:
-  - "invalid parameters", if fewer than MIN_PARTICIPANTS input shares are provided
+  - "invalid parameters", if fewer than MIN_PARTICIPANTS input shares are provided.
 
   def secret_share_combine(shares):
     if len(shares) < MIN_PARTICIPANTS:
@@ -1463,9 +1480,10 @@ The function `polynomial_interpolate_constant` is defined as follows.
 ~~~
   Inputs:
   - points, a set of t points with distinct x coordinates on a polynomial f,
-    each a tuple of two Scalar values representing the x and y coordinates
+    each a tuple of two Scalar values representing the x and y coordinates.
 
-  Outputs: The constant term of f, i.e., f(0)
+  Outputs:
+  - f_zero, the constant term of f, i.e., f(0), a Scalar.
 
   def polynomial_interpolate_constant(points):
     x_coords = []
@@ -1498,8 +1516,9 @@ The procedure for committing to a polynomial `f` of degree at most `MIN_PARTICIP
   - coeffs, a vector of the MIN_PARTICIPANTS coefficients which uniquely determine
   a polynomial f.
 
-  Outputs: a commitment vss_commitment, which is a vector commitment to each of the
-  coefficients in coeffs, where each element of the vector commitment is an Element in G.
+  Outputs:
+  - vss_commitment, a vector commitment to each of the coefficients in coeffs, where
+  each item of the vector commitment is an Element.
 
   def vss_commit(coeffs):
     vss_commitment = []
@@ -1517,13 +1536,14 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
   Inputs:
   - share_i: A tuple of the form (i, sk_i), where i indicates the participant
-    identifier (a NonZeroScalar), and sk_i the participant's secret key, a secret share of the
-    constant term of f, where sk_i is a Scalar.
-  - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment
+    identifier (a NonZeroScalar), and sk_i the participant's secret key, a
+    secret share of the constant term of f, where sk_i is a Scalar.
+  - vss_commitment, a VSS commitment to a secret polynomial f, a vector commitment
     to each of the coefficients in coeffs, where each element of the vector commitment
-    is an Element
+    is an Element.
 
-  Outputs: 1 if sk_i is valid, and 0 otherwise
+  Outputs:
+  - True if sk_i is valid, and False otherwise.
 
   vss_verify(share_i, vss_commitment)
     (i, sk_i) = share_i
@@ -1531,37 +1551,35 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
     S_i' = G.Identity()
     for j in range(0, MIN_PARTICIPANTS):
       S_i' += G.ScalarMult(vss_commitment[j], pow(i, j))
-    if S_i == S_i':
-      return 1
-    return 0
+    return S_i == S_i'
 ~~~
 
 We now define how the Coordinator and participants can derive group info,
 which is an input into the FROST signing protocol.
 
 ~~~
-    derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment):
+  derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment):
 
-    Inputs:
-    - MAX_PARTICIPANTS, the number of shares to generate, an integer
-    - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer
-    - vss_commitment: A VSS commitment to a secret polynomial f, a vector commitment to each of the
-    coefficients in coeffs, where each element of the vector commitment is an Element in G.
+  Inputs:
+  - MAX_PARTICIPANTS, the number of shares to generate, an integer.
+  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer.
+  - vss_commitment, a VSS commitment to a secret polynomial f, a vector commitment to each of the
+  coefficients in coeffs, where each element of the vector commitment is an Element.
 
-    Outputs:
-    - PK, the public key representing the group, an Element.
-    - participant_public_keys, a list of MAX_PARTICIPANTS public keys PK_i for i=1,...,MAX_PARTICIPANTS,
-      where each PK_i is the public key, an Element, for participant i.
+  Outputs:
+  - PK, the public key representing the group, an Element.
+  - participant_public_keys, a list of MAX_PARTICIPANTS public keys PK_i for i=1,...,MAX_PARTICIPANTS,
+    where each PK_i is the public key, an Element, for participant i.
 
-    derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
-      PK = vss_commitment[0]
-      participant_public_keys = []
-      for i in range(1, MAX_PARTICIPANTS+1):
-        PK_i = G.Identity()
-        for j in range(0, MIN_PARTICIPANTS):
-          PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
-        participant_public_keys.append(PK_i)
-      return PK, participant_public_keys
+  derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
+    PK = vss_commitment[0]
+    participant_public_keys = []
+    for i in range(1, MAX_PARTICIPANTS+1):
+      PK_i = G.Identity()
+      for j in range(0, MIN_PARTICIPANTS):
+        PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
+      participant_public_keys.append(PK_i)
+    return PK, participant_public_keys
 ~~~
 
 # Random Scalar Generation {#random-scalar}
