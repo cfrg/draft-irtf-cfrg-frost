@@ -611,7 +611,11 @@ key generation mechanism by a trusted dealer in {{dep-dealer}} for reference.
 FROST requires two rounds to complete. In the first round, participants generate
 and publish one-time-use commitments to be used in the second round. In the second
 round, each participant produces a share of the signature over the Coordinator-chosen
-message and the other participant commitments. This complete interaction is shown in {{fig-frost}}.
+message and the other participant commitments. After the second round completes, the
+Coordinator aggregates the signatures to produce a final signature. The Coordinator
+aborts if the signature is invalid; see {{abort}} for more information about dealing
+with invalid signatures and misbehaving participants. This complete interaction,
+without abort, is shown in {{fig-frost}}.
 
 ~~~
         (group info)            (group info,     (group info,
@@ -662,9 +666,9 @@ respectively, as these functions perform the necessary input validation steps.
 FROST assumes reliable message delivery between the Coordinator and participants in
 order for the protocol to complete. An attacker masquerading as another participant
 will result only in an invalid signature; see {{sec-considerations}}. However, in order
-to identify any participant which has misbehaved (resulting in the protocol aborting)
-to take actions such as excluding them from future signing operations, we assume that
-the network channel is additionally authenticated; confidentiality is not required.
+to identify misbehaving participants that contribute to produce an invalid signature,
+we assume that the network channel is additionally authenticated; confidentiality is
+not required.
 
 ## Round One - Commitment {#frost-round-one}
 
@@ -826,17 +830,16 @@ Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
 
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
-ciphersuite; see {{ciphersuites}} for details.
-
-The aggregate signature will verify successfully if and only if all signature shares are valid.
-In other words, if there exists an invalid signature share, then the resulting aggregate
-signature will not verify successfully against the group public key. Moreover, subsets of
-valid signature shares will themselves not yield a valid aggregate signature.
+ciphersuite; see {{ciphersuites}} for details. The aggregate signature will verify successfully
+if and only if all signature shares are valid. In other words, if there exists an invalid
+signature share, then the resulting aggregate signature will not verify successfully against
+the group public key. Moreover, subsets of valid signature shares will themselves not yield
+a valid aggregate signature.
 
 If the aggregate signature verification fails, the Coordinator can verify each signature
 share individually to identify and act on misbehaving participants. The mechanism for acting on
-a misbehaving participant is out of scope for this specification. However, a reasonable approach
-would be to remove the participant from the set of allowed participants in future runs of FROST.
+a misbehaving participant is out of scope for this specification; see {{abort}} for more information
+about dealing with invalid signatures and misbehaving participants.
 
 The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 Recall that the Coordinator is configured with "group info" which contains
@@ -895,6 +898,18 @@ The Coordinator can verify each signature share before first aggregating and ver
 signature under the group public key. However, since the aggregate signature is valid if
 and only if all signature shares are valid, this order of operations is more expensive
 if the signature is valid.
+
+## Identifiable Abort {#abort}
+
+FROST does not provide robustness. As such, a misbehaving participant can cause a denial-of-service
+on the signing protocol if it is allowed to contribute to the signing protocol.
+Preventing this type of attack requires the Coordinator to identify the misbehaving
+participant such that applications can take corrective action to prevent denial-of-service.
+For example, one approach would be to remove the participant from the set of allowed
+participants in future runs of FROST. FROST assumes the network channel is authenticated
+to allow for this identification. Beyond identifying the misbehaving participant, the
+Coordinator SHOULD abort when the signing protocol yields an invalid signature. See
+{{sec-considerations}} for more information about FROST's security properties and the threat model.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1166,13 +1181,16 @@ that performs key generation (see {{dep-vss}}) or through a distributed key gene
 
 Note that the Coordinator is not trusted with any private information and communication
 at the time of signing can be performed over a public but reliable channel. Moreover, the
-Coordinator is trusted to not perform a denial of service attack.
+Coordinator is trusted to not perform a denial of service attack. To prevent denial-of-service
+attacks, the Coordinator is trusted to identify misbehaving participants and ideally abort
+the protocol in the event of an invalid signature.
 
 FROST does not aim to achieve the following goals:
 
-* Post-quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
-* Robustness. In the case of failure, FROST requires aborting the protocol. See {{ROAST}} as a wrapper protocol around
-  FROST that provides robustness.
+* Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
+* Robustness. Preventing denial-of-service attacks against misbehaving participants requires the Coordinator
+  to identify and act on miebehaving participants; see {{abort}} for more information. While FROST
+  does not provide robustness, {{ROAST}} is as a wrapper protocol around FROST that does.
 * Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
