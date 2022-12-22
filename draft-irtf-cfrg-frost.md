@@ -812,6 +812,8 @@ Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
 ciphersuite; see {{ciphersuites}} for details.
+Recall that the Coordinator is configured with "group info" which contains
+the group public key `PK` and public keys `PK_i` for each participant.
 
 The aggregate signature will verify successfully if and only if all signature shares are valid.
 In other words, if there exists an invalid signature share, then the resulting aggregate
