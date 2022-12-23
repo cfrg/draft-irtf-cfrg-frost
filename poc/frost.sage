@@ -250,7 +250,10 @@ class SignerParticipant(object):
         return sig_share
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-aggregate
-    def aggregate(self, group_comm, sig_shares, public_key_shares, commitment_list, msg):
+    def aggregate(self, sig_shares, public_key_shares, commitment_list, msg):
+        binding_factors, _ = compute_binding_factors(self.G, self.H, commitment_list, msg)
+        group_comm = compute_group_commitment(self.G, commitment_list, binding_factors)
+
         participant_list = participants_from_commitment_list(commitment_list)
         for identifier in participant_list:
             assert(verify_signature_share(self.G, self.H, identifier, public_key_shares[identifier], sig_shares[identifier], commitment_list, self.pk, msg))
@@ -339,7 +342,6 @@ for (fname, name, G, H) in ciphersuites:
         commitment_list.append((identifier, comm_i[0], comm_i[1]))
 
     binding_factors, rho_inputs = compute_binding_factors(G, H, commitment_list, message)
-    group_commitment = compute_group_commitment(G, commitment_list, binding_factors)
 
     round_one_outputs = {
         "participant_list": ",".join([str(i) for i in PARTICIPANT_LIST]),
@@ -371,7 +373,7 @@ for (fname, name, G, H) in ciphersuites:
         round_two_outputs["participants"][str(identifier)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[identifier]))
 
     # Final step: aggregate
-    sig = participants[1].aggregate(group_commitment, sig_shares, participant_public_keys, commitment_list, message)
+    sig = participants[1].aggregate(sig_shares, participant_public_keys, commitment_list, message)
     final_output = {
         "sig": to_hex(sig.encode())
     }
