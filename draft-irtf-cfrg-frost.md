@@ -812,8 +812,6 @@ Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
 ciphersuite; see {{ciphersuites}} for details.
-Recall that the Coordinator is configured with "group info" which contains
-the group public key `PK` and public keys `PK_i` for each participant.
 
 The aggregate signature will verify successfully if and only if all signature shares are valid.
 In other words, if there exists an invalid signature share, then the resulting aggregate
@@ -824,6 +822,9 @@ If the aggregate signature verification fails, the Coordinator can verify each s
 share individually to identify and act on misbehaving participants. The mechanism for acting on
 a misbehaving participant is out of scope for this specification. However, a reasonable approach
 would be to remove the participant from the set of allowed participants in future runs of FROST.
+
+Recall that the Coordinator is configured with "group info" which contains
+the group public key `PK` and public keys `PK_i` for each participant.
 
 The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 
