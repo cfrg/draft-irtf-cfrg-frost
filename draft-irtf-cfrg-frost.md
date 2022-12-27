@@ -823,10 +823,9 @@ share individually to identify and act on misbehaving participants. The mechanis
 a misbehaving participant is out of scope for this specification. However, a reasonable approach
 would be to remove the participant from the set of allowed participants in future runs of FROST.
 
+The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 Recall that the Coordinator is configured with "group info" which contains
 the group public key `PK` and public keys `PK_i` for each participant.
-
-The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 
 ~~~
   Inputs:
