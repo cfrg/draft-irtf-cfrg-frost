@@ -902,7 +902,7 @@ if the signature is valid.
 ## Identifiable Abort {#abort}
 
 FROST does not provide robustness; i.e, all participants are required to complete the protocol honestly in order to generate a valid signature. As such, a misbehaving participant can cause a denial-of-service
-on the signing protocol if it is allowed to contribute to the signing protocol.
+on the signing protocol, such as by contributing malformed signature shares or refusing to participate. 
 Preventing this type of attack requires the Coordinator to identify the misbehaving
 participant such that applications can take corrective action to prevent denial-of-service.
 For example, one approach would be to remove the participant from the set of allowed
