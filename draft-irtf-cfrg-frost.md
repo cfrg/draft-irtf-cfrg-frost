@@ -905,7 +905,7 @@ FROST does not provide robustness; i.e, all participants are required to complet
 on the signing protocol, such as by contributing malformed signature shares or refusing to participate. 
 Preventing this type of attack requires the Coordinator to identify the misbehaving
 participant such that applications can take corrective action to prevent denial-of-service.
-For example, one approach would be to remove the participant from the set of allowed
+For example, one approach would be to remove the misbehaving participant from the set of allowed
 participants in future runs of FROST. FROST assumes the network channel is authenticated
 to allow for this identification. Beyond identifying the misbehaving participant, the
 Coordinator SHOULD abort when the signing protocol yields an invalid signature. See
