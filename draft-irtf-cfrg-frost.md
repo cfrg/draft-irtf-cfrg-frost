@@ -99,8 +99,8 @@ compute a signature, allowing for improved distribution of trust and
 redundancy with respect to a secret key. FROST depends only on a prime-order group and cryptographic
 hash function. This document specifies a number of ciphersuites to instantiate FROST using different
 prime-order groups and hash functions. One such ciphersuite can be used to produce signatures
-that can be verified with an RFC8032 compliant verifier. However, unlike RFC8032, the
-signatures produced by FROST are not deterministic.
+that can be verified with an Edwards-Curve Digital Signature Algorithm (EdDSA, as defined in RFC8032)
+compliant verifier. However, unlike EdDSA, the signatures produced by FROST are not deterministic.
 This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF.
 
 --- middle
@@ -125,11 +125,11 @@ two rounds to compute a signature. Single-round signing variants based on {{FROS
 
 FROST depends only on a prime-order group and cryptographic hash function. This document specifies
 a number of ciphersuites to instantiate FROST using different prime-order groups and hash functions.
-Two ciphersuites can be used to produce signatures that are compatible with Ed25519 and Ed448 as
-specified in {{!RFC8032}}, i.e., the signatures can be verified with an {{!RFC8032}} compliant
-verifier. However, unlike {{!RFC8032}}, the signatures produced by FROST are not deterministic,
-since deriving nonces deterministically allows for a complete key-recovery attack in multi-party
-discrete logarithm-based signatures.
+Two ciphersuites can be used to produce signatures that are compatible with Edwards-Curve Digital
+Signature Algorithm (EdDSA) variants Ed25519 and Ed448 as specified in {{!RFC8032}}, i.e., the
+signatures can be verified with an {{!RFC8032}} compliant verifier. However, unlike EdDSA, the
+signatures produced by FROST are not deterministic, since deriving nonces deterministically allows
+for a complete key-recovery attack in multi-party discrete logarithm-based signatures.
 
 Key generation for FROST signing is out of scope for this document. However, for completeness,
 key generation with a trusted dealer is specified in {{dep-dealer}}.
@@ -242,7 +242,7 @@ The following notation is used throughout the document.
 * `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG).
 * `count(i, L)`: Outputs the number of times the element `i` is represented in the list `L`.
-* `len(l)`: Outputs the length of input list `l`, e.g., `len([1,2,3]) = 3)`.
+* `len(l)`: Outputs the length of list `l`, e.g., `len([1,2,3]) = 3`.
 * `reverse(l)`: Outputs the list `l` in reverse order, e.g., `reverse([1,2,3]) = [3,2,1]`.
 * `range(a, b)`: Outputs a list of integers from `a` to `b-1` in ascending order, e.g., `range(1, 4) = [1,2,3]`.
 * `pow(a, b)`: Outputs the integer result of `a` to the power of `b`, e.g., `pow(2, 3) = 8`.
@@ -276,11 +276,11 @@ scalars form a finite field. Scalar multiplication is equivalent to the repeated
 application of the group operation on an element `A` with itself `r-1` times, denoted as
 `ScalarMult(A, r)`. We denote the sum, difference, and product of two scalars using the `+`, `-`,
 and `*` operators, respectively. (Note that this means `+` may refer to group element addition or
-scalar addition, depending on types of the operands.) For any element `A`, `ScalarMult(A, p) = I`.
+scalar addition, depending on the type of the operands.) For any element `A`, `ScalarMult(A, p) = I`.
 We denote `B` as a fixed generator of the group. Scalar base multiplication is equivalent to the repeated application
-of the group operation `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
+of the group operation on `B` with itself `r-1` times, this is denoted as `ScalarBaseMult(r)`. The set of
 scalars corresponds to `GF(p)`, which we refer to as the scalar field. It is assumed that
-group element addition, negation, and equality comparisons can be efficiently computed for
+group element addition, negation, and equality comparison can be efficiently computed for
 arbitrary group elements.
 
 This document uses types `Element` and `Scalar` to denote elements of the group `G` and
@@ -292,17 +292,17 @@ as `==` and assignment of values by `=`.
 
 We now detail a number of member functions that can be invoked on `G`.
 
-- Order(): Outputs the order of `G` (i.e. `p`).
-- Identity(): Outputs the identity `Element` of the group (i.e. `I`).
+- Order(): Outputs the order of `G` (i.e., `p`).
+- Identity(): Outputs the identity `Element` of the group (i.e., `I`).
 - RandomScalar(): Outputs a random `Scalar` element in GF(p), i.e., a random scalar in \[0, p - 1\].
-- ScalarMult(A, k): Output the scalar multiplication between Element `A` and Scalar `k`.
-- ScalarBaseMult(k): Output the scalar multiplication between Scalar `k` and the group generator `B`.
+- ScalarMult(A, k): Outputs the scalar multiplication between Element `A` and Scalar `k`.
+- ScalarBaseMult(k): Outputs the scalar multiplication between Scalar `k` and the group generator `B`.
 - SerializeElement(A): Maps an `Element` `A` to a canonical byte array `buf` of fixed length `Ne`. This
   function can raise an error if `A` is the identity element of the group.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not the valid canonical byte representation of an element of
   the group. This function can raise an error if deserialization fails
-  or `A` is the identity element of the group; see {{ciphersuites}} for group-specific
+  or if `A` is the identity element of the group; see {{ciphersuites}} for group-specific
   input validation steps.
 - SerializeScalar(s): Maps a Scalar `s` to a canonical byte array `buf` of fixed length `Ns`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
@@ -312,12 +312,12 @@ We now detail a number of member functions that can be invoked on `G`.
 ## Cryptographic Hash Function {#dep-hash}
 
 FROST requires the use of a cryptographically secure hash function, generically
-written as H, which functions effectively as a random oracle. For concrete
-recommendations on hash functions which SHOULD be used in practice, see
-{{ciphersuites}}. Using H, we introduce separate domain-separated hashes,
-H1, H2, H3, H4, and H5:
+written as H, which is modeled as a random oracle in security proofs for the protocol
+(see {{FROST20}} and {{StrongerSec22}}). For concrete recommendations on hash functions
+which SHOULD be used in practice, see {{ciphersuites}}. Using H, we introduce distinct
+domain-separated hashes, H1, H2, H3, H4, and H5:
 
-- H1, H2, and H3 map arbitrary byte strings to Scalar elements of the prime-order group scalar field.
+- H1, H2, and H3 map arbitrary byte strings to Scalar elements associated with the prime-order group.
 - H4 and H5 are aliases for H with distinct domain separators.
 
 The details of H1, H2, H3, H4, and H5 vary based on ciphersuite. See {{ciphersuites}}
@@ -331,9 +331,11 @@ following helper operations:
 - Nonce generation, {{dep-nonces}};
 - Polynomials, {{dep-polynomial}};
 - Encoding operations, {{dep-encoding}};
-- Signature binding {{dep-binding-factor}}, group commitment {{dep-group-commit}}, and challenge computation {{dep-sig-challenge}}.
+- Signature binding computation {{dep-binding-factor}};
+- Group commitment computation {{dep-group-commit}}; and
+- Signature challenge computation {{dep-sig-challenge}}.
 
-These sections describe these operations in more detail.
+The following sections describe these operations in more detail.
 
 ## Nonce generation {#dep-nonces}
 
@@ -415,7 +417,7 @@ cannot equal 0.
 
 This section describes helper functions that work on lists of values produced
 during the FROST protocol. The following function encodes a list of participant
-commitments into a bytestring for use in the FROST protocol.
+commitments into a byte string for use in the FROST protocol.
 
 ~~~
   Inputs:
@@ -575,15 +577,17 @@ use a signing key share. The Coordinator is an entity with the following respons
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
 3. Aggregating signature shares output by each participant, and publishing the resulting signature.
 
-FROST assumes that the Coordinator and the set of signer participants, are chosen
+FROST assumes that the Coordinator and the set of signer participants are chosen
 externally to the protocol. Note that it is possible to deploy the protocol without
 a distinguished Coordinator; see {{no-coordinator}} for more information.
 
 FROST produces signatures that can be verified as if they were produced from a single signer
 using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
 value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
-key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participant and used to produce signatures. In particular,
-FROST assumes each participant is configured with the following information:
+key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participant
+and used to produce signatures; see {{?ShamirSecretSharing=DOI.10.1145/359168.359176}} for
+more information about Shamir secret sharing. In particular, FROST assumes each participant
+is configured with the following information:
 
 - An identifier, which is a NonZeroScalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
   and MUST be distinct from the identifier of every other participant.
@@ -711,8 +715,7 @@ MUST validate the inputs before processing the Coordinator's request. In particu
 the Signer MUST validate commitment_list, deserializing each group Element in the
 list using DeserializeElement from {{dep-pog}}. If deserialization fails, the Signer
 MUST abort the protocol. Moreover, each participant MUST ensure that
-their identifier appears in commitment_list along with
-their commitment from the first round.
+its identifier and commitments (from the first round) appear in commitment_list.
 Applications which require that participants not process arbitrary
 input messages are also required to perform relevant application-layer input
 validation checks; see {{message-validation}} for more details.
@@ -842,12 +845,12 @@ the group public key `PK` and public keys `PK_i` for each participant.
 ~~~
   Inputs:
   - identifier, identifier i of the participant, a NonZeroScalar.
-  - PK_i, the public key for the ith participant, where PK_i = G.ScalarBaseMult(sk_i),
+  - PK_i, the public key for the i-th participant, where PK_i = G.ScalarBaseMult(sk_i),
     an Element.
   - comm_i, pair of Element values in G (hiding_nonce_commitment, binding_nonce_commitment)
-    generated in round one from the ith participant.
+    generated in round one from the i-th participant.
   - sig_share_i, a Scalar value indicating the signature share as produced in
-    round two from the ith participant.
+    round two from the i-th participant.
   - commitment_list =
       [(j, hiding_nonce_commitment_j, binding_nonce_commitment_j), ...], a
     list of commitments issued in Round 1 by each participant, where each element
@@ -901,14 +904,14 @@ e.g., (ristretto255, SHA-512). This section contains some ciphersuites.
 Each ciphersuite also includes a context string, denoted `contextString`,
 which is an ASCII string literal (with no NULL terminating character).
 
-The RECOMMENDED ciphersuite is (ristretto255, SHA-512) {{recommended-suite}}.
+The RECOMMENDED ciphersuite is (ristretto255, SHA-512) as described in {{recommended-suite}}.
 The (Ed25519, SHA-512) and (Ed448, SHAKE256) ciphersuites are included
-for compatibility with {{!RFC8032}}.
+for compatibility with Ed25519 and Ed448 as defined in {{!RFC8032}}.
 
 The DeserializeElement and DeserializeScalar functions instantiated for a
 particular prime-order group corresponding to a ciphersuite MUST adhere
 to the description in {{dep-pog}}. Validation steps for these functions
-are described for each the ciphersuites below. Future ciphersuites MUST
+are described for each of the ciphersuites below. Future ciphersuites MUST
 describe how input validation is done for DeserializeElement and DeserializeScalar.
 
 Each ciphersuite includes explicit instructions for verifying signatures produced
@@ -921,7 +924,7 @@ ciphersuites MUST also adhere to these requirements.
 ## FROST(Ed25519, SHA-512)
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
-meant to produce Ed25519-compliant signatures as specified in {{!RFC8032}}.
+meant to produce Ed25519-compliant signatures as specified in {{Section 5.1 of !RFC8032}}.
 The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
 
 - Group: edwards25519 {{!RFC8032}}
@@ -1005,9 +1008,10 @@ Signature verification is as specified in {{prime-order-verify}}.
 ## FROST(Ed448, SHAKE256)
 
 This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash function `H`
-meant to produce Ed448-compliant signatures as specified in {{!RFC8032}}. Note that this
+meant to produce Ed448-compliant signatures as specified in {{Section 5.2 of RFC8032}}. Note that this
 ciphersuite does not allow applications to specify a context string as is allowed for Ed448
-in {{RFC8032}}, and always sets the {{RFC8032}} context string to the empty string. The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHAKE256-v11".
+in {{RFC8032}}, and always sets the {{RFC8032}} context string to the empty string.
+The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHAKE256-v11".
 
 - Group: edwards448 {{!RFC8032}}
   - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
@@ -1166,15 +1170,15 @@ is *not* trusted with any private information and communication at the time of s
 can be performed over a public but reliable channel.
 
 Under this threat model, FROST aims to achieve signature unforgeability assuming at most
-`(MIN_PARTICIPANTS-1)` corrupted participants. In particular, so long as an adversary corrupts
+`MIN_PARTICIPANTS-1` corrupted participants. In particular, so long as an adversary corrupts
 fewer than `MIN_PARTICIPANTS` participants, the scheme remains secure against Existential
-Unforgeability Under Chosen Message Attack (EUF-CMA) attacks, as defined in {{BonehShoup}},
+Unforgeability Under Chosen Message Attack (EUF-CMA), as defined in {{BonehShoup}},
 Definition 13.2. Satisfying this requirement requires the ciphersuite to adhere to the
 requirements in {{ciphersuite-reqs}}.
 
 FROST does not aim to achieve the following goals:
 
-* Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
+* Post-quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. In the case of failure, FROST requires aborting the protocol. See {{ROAST}} as a wrapper protocol around
   FROST that provides robustness.
 * Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
@@ -1343,7 +1347,7 @@ Specifically, it assumes that signature R component and public key belong to the
 One possible key generation mechanism is to depend on a trusted dealer, wherein the
 dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
 Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
-shares of s, denoted `s_i` for `i = 0, ..., MAX_PARTICIPANTS`, to be sent to all `MAX_PARTICIPANTS` participants.
+shares of s, denoted `s_i` for `i = 1, ..., MAX_PARTICIPANTS`, to be sent to all `MAX_PARTICIPANTS` participants.
 This operation is specified in the `trusted_dealer_keygen` algorithm. The mathematical relation
 between the secret key `s` and the `MAX_SIGNER` secret shares is formalized in the `secret_share_combine(shares)`
 algorithm, defined in {{dep-shamir}}.
@@ -1388,7 +1392,7 @@ and integrity. Mutually authenticated TLS is one possible deployment option.
 ## Shamir Secret Sharing {#dep-shamir}
 
 In Shamir secret sharing, a dealer distributes a secret `Scalar` `s` to `n` participants
-in such a way that any cooperating subset of `MIN_PARTICIPANTS` participants can recover the
+in such a way that any cooperating subset of at least `MIN_PARTICIPANTS` participants can recover the
 secret. There are two basic steps in this scheme: (1) splitting a secret into
 multiple shares, and (2) combining shares to reveal the resulting secret.
 
@@ -1514,8 +1518,8 @@ The function `polynomial_interpolate_constant` is defined as follows.
 
 ## Verifiable Secret Sharing {#dep-vss}
 
-Feldman's Verifiable Secret Sharing (VSS) builds upon Shamir secret sharing,
-adding a verification step to demonstrate the consistency of a participant's
+Feldman's Verifiable Secret Sharing (VSS) {{?FeldmanSecretSharing=DOI.10.1109/SFCS.1987.4}}
+builds upon Shamir secret sharing, adding a verification step to demonstrate the consistency of a participant's
 share with a public commitment to the polynomial `f` for which the secret `s`
 is the constant term. This check ensures that all participants have a point
 (their share) on the same polynomial, ensuring that they can later reconstruct
