@@ -901,15 +901,24 @@ if the signature is valid.
 
 ## Identifiable Abort {#abort}
 
-FROST does not provide robustness; i.e, all participants are required to complete the protocol honestly in order to generate a valid signature. As such, a misbehaving participant can cause a denial-of-service
-on the signing protocol, such as by contributing malformed signature shares or refusing to participate. 
-Preventing this type of attack requires the Coordinator to identify the misbehaving
-participant such that applications can take corrective action to prevent denial-of-service.
-For example, one approach would be to remove the misbehaving participant from the set of allowed
-participants in future runs of FROST. FROST assumes the network channel is authenticated
-to allow for this identification. Beyond identifying the misbehaving participant, the
-Coordinator SHOULD abort when the signing protocol yields an invalid signature. See
-{{sec-considerations}} for more information about FROST's security properties and the threat model.
+FROST does not provide robustness; i.e, all participants are required to complete the
+protocol honestly in order to generate a valid signature. When the signing protocol
+does not produce a valid signature, the Coordinator SHOULD abort; see {{sec-considerations}}
+for more information about FROST's security properties and the threat model.
+
+As a result of this property, a misbehaving participant can cause a denial-of-service on
+the signing protocol by contributing malformed signature shares or refusing to participate.
+FROST assumes the network channel is authenticated to allow for this identification.
+FROST allows for identifying misbehaving participants that produce invalid signature shares
+as described in {{frost-aggregation}}. FROST does not provide accommodations for identifying
+participants that refuse to participate, though applications are assumed to detect when participants
+fail to engage in the signing protocol.
+
+In both cases, preventing this type of attack requires the Coordinator to identify
+misbehaving participants such that applications can take corrective action. The mechanism
+for acting on misbehaving participants is out of scope for this specification. However,
+one approach reasonable would be to remove the misbehaving participant from the set of allowed
+participants in future runs of FROST.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1183,7 +1192,8 @@ Note that the Coordinator is not trusted with any private information and commun
 at the time of signing can be performed over a public but reliable channel. Moreover, the
 Coordinator is trusted to not perform a denial of service attack. To prevent denial-of-service
 attacks, the Coordinator is trusted to identify misbehaving participants and ideally abort
-the protocol in the event of an invalid signature.
+the protocol in the event of an invalid signature. Aborting the protocol ensures that invalid
+signatures are not produced as output.
 
 FROST does not aim to achieve the following goals:
 
