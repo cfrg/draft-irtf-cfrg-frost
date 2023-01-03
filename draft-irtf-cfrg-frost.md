@@ -584,7 +584,7 @@ a distinguished Coordinator; see {{no-coordinator}} for more information.
 FROST produces signatures that can be verified as if they were produced from a single signer
 using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
 value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
-key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participant
+key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participants
 and used to produce signatures; see {{?ShamirSecretSharing=DOI.10.1145/359168.359176}} for
 more information about Shamir secret sharing. In particular, FROST assumes each participant
 is configured with the following information:
