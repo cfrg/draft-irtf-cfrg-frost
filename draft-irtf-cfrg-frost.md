@@ -1199,7 +1199,7 @@ FROST does not aim to achieve the following goals:
 
 * Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. Preventing denial-of-service attacks against misbehaving participants requires the Coordinator
-  to identify and act on miebehaving participants; see {{abort}} for more information. While FROST
+  to identify and act on misbehaving participants; see {{abort}} for more information. While FROST
   does not provide robustness, {{ROAST}} is as a wrapper protocol around FROST that does.
 * Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
