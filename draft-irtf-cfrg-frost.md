@@ -1186,7 +1186,7 @@ as the following assumptions to hold.
 
 * The signer key shares are generated and distributed securely, e.g., via a trusted dealer
 that performs key generation (see {{dep-vss}}) or through a distributed key generation protocol.
-* The Coordinator and at most `(MIN_PARTICIPANTS-1)` participants are corrupted.
+* The Coordinator and at most `(MIN_PARTICIPANTS-1)` participants may be corrupted.
 
 Note that the Coordinator is not trusted with any private information and communication
 at the time of signing can be performed over a public but reliable channel. Moreover, the
