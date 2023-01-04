@@ -245,7 +245,7 @@ using a cryptographically secure pseudorandom number generator (CSPRNG).
 * `len(l)`: Outputs the length of input list `l`, e.g., `len([1,2,3]) = 3)`.
 * `reverse(l)`: Outputs the list `l` in reverse order, e.g., `reverse([1,2,3]) = [3,2,1]`.
 * `range(a, b)`: Outputs a list of integers from `a` to `b-1` in ascending order, e.g., `range(1, 4) = [1,2,3]`.
-* `pow(a, b)`: Outputs the integer result of `a` to the power of `b`, e.g., `pow(2, 3) = 8`.
+* `pow(a, b)`: Outputs the result, a Scalar, of `a` to the power of `b`, e.g., `pow(2, 3) = 8` modulo the relevant group order `p`.
 * \|\| denotes concatenation of byte strings, i.e., `x || y` denotes the byte string `x`, immediately followed by
   the byte string `y`, with no extra separator, yielding `xy`.
 * nil denotes an empty byte string.
@@ -802,9 +802,9 @@ signature using the following procedure.
     group_commitment = compute_group_commitment(commitment_list, binding_factor_list)
 
     # Compute aggregated signature
-    z = 0
+    z = Scalar(0)
     for z_i in sig_shares:
-      z = z + z_i
+      z += z_i
     return (group_commitment, z)
 ~~~
 
@@ -1430,7 +1430,7 @@ The algorithm `polynomial_evaluate` is defined in {{dep-extended-polynomial-oper
     for x_i in range(1, MAX_PARTICIPANTS + 1):
       y_i = polynomial_evaluate(Scalar(x_i), coefficients)
       secret_key_share_i = (x_i, y_i)
-      secret_key_share.append(secret_key_share_i)
+      secret_key_shares.append(secret_key_share_i)
     return secret_key_shares, coefficients
 ~~~
 
@@ -1482,7 +1482,7 @@ The function `polynomial_evaluate` is defined as follows.
   Outputs: Scalar result of the polynomial evaluated at input x
 
   def polynomial_evaluate(x, coeffs):
-    value = 0
+    value = Scalar(0)
     for coeff in reverse(coeffs):
       value *= x
       value += coeff
@@ -1507,7 +1507,7 @@ The function `polynomial_interpolate_constant` is defined as follows.
     f_zero = Scalar(0)
     for (x, y) in points:
       delta = y * derive_interpolating_value(x, x_coords)
-      f_zero = f_zero + delta
+      f_zero += delta
 
     return f_zero
 ~~~
