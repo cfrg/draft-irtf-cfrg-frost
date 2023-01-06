@@ -917,7 +917,7 @@ fail to engage in the signing protocol.
 In both cases, preventing this type of attack requires the Coordinator to identify
 misbehaving participants such that applications can take corrective action. The mechanism
 for acting on misbehaving participants is out of scope for this specification. However,
-one approach reasonable would be to remove the misbehaving participant from the set of allowed
+one reasonable approach would be to remove the misbehaving participant from the set of allowed
 participants in future runs of FROST.
 
 # Ciphersuites {#ciphersuites}
