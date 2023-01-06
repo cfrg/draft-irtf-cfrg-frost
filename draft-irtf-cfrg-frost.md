@@ -1189,11 +1189,14 @@ that performs key generation (see {{dep-vss}}) or through a distributed key gene
 * The Coordinator and at most `(MIN_PARTICIPANTS-1)` participants may be corrupted.
 
 Note that the Coordinator is not trusted with any private information and communication
-at the time of signing can be performed over a public but reliable channel. Moreover, the
-Coordinator is trusted to not perform a denial of service attack. To prevent denial-of-service
-attacks, the Coordinator is trusted to identify misbehaving participants and ideally abort
-the protocol in the event of an invalid signature. Aborting the protocol ensures that invalid
-signatures are not produced as output.
+at the time of signing can be performed over a public but reliable channel.
+
+FROST provides security against denial of service attacks under the following assumptions:
+
+* The Coordinator does not perform a denial of service attack.
+* The Coordinator identifies misbehaving participants such that they can be removed from
+  future invocations of FROST. The Coordinator may also abort upon detecting a misbehaving
+  participant to ensure that invalid signatures are not produced.
 
 FROST does not aim to achieve the following goals:
 
