@@ -613,7 +613,7 @@ and publish one-time-use commitments to be used in the second round. In the seco
 round, each participant produces a share of the signature over the Coordinator-chosen
 message and the other participant commitments. After the second round completes, the
 Coordinator aggregates the signatures to produce a final signature. The Coordinator
-aborts if the signature is invalid; see {{abort}} for more information about dealing
+SHOULD abort if the signature is invalid; see {{abort}} for more information about dealing
 with invalid signatures and misbehaving participants. This complete interaction,
 without abort, is shown in {{fig-frost}}.
 
