@@ -666,7 +666,7 @@ respectively, as these functions perform the necessary input validation steps.
 FROST assumes reliable message delivery between the Coordinator and participants in
 order for the protocol to complete. An attacker masquerading as another participant
 will result only in an invalid signature; see {{sec-considerations}}. However, in order
-to identify misbehaving participants that contribute to produce an invalid signature,
+to identify misbehaving participants,
 we assume that the network channel is additionally authenticated; confidentiality is
 not required.
 
