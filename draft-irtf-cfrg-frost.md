@@ -804,7 +804,7 @@ signature using the following procedure.
     # Compute aggregated signature
     z = Scalar(0)
     for z_i in sig_shares:
-      z += z_i
+      z = z + z_i
     return (group_commitment, z)
 ~~~
 
