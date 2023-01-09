@@ -1349,7 +1349,7 @@ dealer generates a group secret `s` uniformly at random and uses Shamir and Veri
 Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
 shares of s, denoted `s_i` for `i = 1, ..., MAX_PARTICIPANTS`, to be sent to all `MAX_PARTICIPANTS` participants.
 This operation is specified in the `trusted_dealer_keygen` algorithm. The mathematical relation
-between the secret key `s` and the `MAX_SIGNER` secret shares is formalized in the `secret_share_combine(shares)`
+between the secret key `s` and the `MAX_PARTICIPANTS` secret shares is formalized in the `secret_share_combine(shares)`
 algorithm, defined in {{dep-shamir}}.
 
 The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good randomness, and 2) delete secret values after distributing shares to each participant, and 3) keep secret values confidential.
