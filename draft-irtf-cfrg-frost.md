@@ -611,7 +611,11 @@ key generation mechanism by a trusted dealer in {{dep-dealer}} for reference.
 FROST requires two rounds to complete. In the first round, participants generate
 and publish one-time-use commitments to be used in the second round. In the second
 round, each participant produces a share of the signature over the Coordinator-chosen
-message and the other participant commitments. This complete interaction is shown in {{fig-frost}}.
+message and the other participant commitments. After the second round completes, the
+Coordinator aggregates the signatures to produce a final signature. The Coordinator
+SHOULD abort if the signature is invalid; see {{abort}} for more information about dealing
+with invalid signatures and misbehaving participants. This complete interaction,
+without abort, is shown in {{fig-frost}}.
 
 ~~~
         (group info)            (group info,     (group info,
@@ -662,9 +666,9 @@ respectively, as these functions perform the necessary input validation steps.
 FROST assumes reliable message delivery between the Coordinator and participants in
 order for the protocol to complete. An attacker masquerading as another participant
 will result only in an invalid signature; see {{sec-considerations}}. However, in order
-to identify any participant which has misbehaved (resulting in the protocol aborting)
-to take actions such as excluding them from future signing operations, we assume that
-the network channel is additionally authenticated; confidentiality is not required.
+to identify misbehaving participants,
+we assume that the network channel is additionally authenticated; confidentiality is
+not required.
 
 ## Round One - Commitment {#frost-round-one}
 
@@ -826,17 +830,16 @@ Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
 
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
-ciphersuite; see {{ciphersuites}} for details.
-
-The aggregate signature will verify successfully if and only if all signature shares are valid.
-In other words, if there exists an invalid signature share, then the resulting aggregate
-signature will not verify successfully against the group public key. Moreover, subsets of
-valid signature shares will themselves not yield a valid aggregate signature.
+ciphersuite; see {{ciphersuites}} for details. The aggregate signature will verify successfully
+if and only if all signature shares are valid. In other words, if there exists an invalid
+signature share, then the resulting aggregate signature will not verify successfully against
+the group public key. Moreover, subsets of valid signature shares will themselves not yield
+a valid aggregate signature.
 
 If the aggregate signature verification fails, the Coordinator can verify each signature
 share individually to identify and act on misbehaving participants. The mechanism for acting on
-a misbehaving participant is out of scope for this specification. However, a reasonable approach
-would be to remove the participant from the set of allowed participants in future runs of FROST.
+a misbehaving participant is out of scope for this specification; see {{abort}} for more information
+about dealing with invalid signatures and misbehaving participants.
 
 The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 Recall that the Coordinator is configured with "group info" which contains
@@ -895,6 +898,27 @@ The Coordinator can verify each signature share before first aggregating and ver
 signature under the group public key. However, since the aggregate signature is valid if
 and only if all signature shares are valid, this order of operations is more expensive
 if the signature is valid.
+
+## Identifiable Abort {#abort}
+
+FROST does not provide robustness; i.e, all participants are required to complete the
+protocol honestly in order to generate a valid signature. When the signing protocol
+does not produce a valid signature, the Coordinator SHOULD abort; see {{sec-considerations}}
+for more information about FROST's security properties and the threat model.
+
+As a result of this property, a misbehaving participant can cause a denial-of-service on
+the signing protocol by contributing malformed signature shares or refusing to participate.
+FROST assumes the network channel is authenticated to identify which signer misbehaved.
+FROST allows for identifying misbehaving participants that produce invalid signature shares
+as described in {{frost-aggregation}}. FROST does not provide accommodations for identifying
+participants that refuse to participate, though applications are assumed to detect when participants
+fail to engage in the signing protocol.
+
+In both cases, preventing this type of attack requires the Coordinator to identify
+misbehaving participants such that applications can take corrective action. The mechanism
+for acting on misbehaving participants is out of scope for this specification. However,
+one reasonable approach would be to remove the misbehaving participant from the set of allowed
+participants in future runs of FROST.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1154,33 +1178,32 @@ the following requirements.
 
 # Security Considerations {#sec-considerations}
 
-A security analysis of FROST exists in {{FROST20}} and {{StrongerSec22}}. The protocol as specified
-in this document assumes the following threat model.
+A security analysis of FROST exists in {{FROST20}} and {{StrongerSec22}}. At a high
+level, FROST provides security against Existential Unforgeability Under Chosen Message
+Attack (EUF-CMA) attacks, as defined in {{StrongerSec22}}. Satisfying this requirement
+requires the ciphersuite to adhere to the requirements in {{ciphersuite-reqs}}, as well
+as the following assumptions to hold.
 
-* Secure key distribution. The signer key shares are generated and distributed securely, i.e.,
-via a trusted dealer that performs key generation (see {{dep-vss}}) or through a distributed
-key generation protocol.
+* The signer key shares are generated and distributed securely, e.g., via a trusted dealer
+that performs key generation (see {{dep-vss}}) or through a distributed key generation protocol.
+* The Coordinator and at most `(MIN_PARTICIPANTS-1)` participants may be corrupted.
 
-* Honest-but-curious coordinator. We assume an honest-but-curious Coordinator which, at the
-time of signing, does not perform a denial of service attack. A denial of service would include
-any action which either prevents the protocol from completing or causing the resulting signature
-to be invalid. Such actions for the latter include sending inconsistent values to participants,
-such as messages or the set of individual commitments. Note that the Coordinator
-is *not* trusted with any private information and communication at the time of signing
-can be performed over a public but reliable channel.
+Note that the Coordinator is not trusted with any private information and communication
+at the time of signing can be performed over a public but reliable channel.
 
-Under this threat model, FROST aims to achieve signature unforgeability assuming at most
-`MIN_PARTICIPANTS-1` corrupted participants. In particular, so long as an adversary corrupts
-fewer than `MIN_PARTICIPANTS` participants, the scheme remains secure against Existential
-Unforgeability Under Chosen Message Attack (EUF-CMA), as defined in {{BonehShoup}},
-Definition 13.2. Satisfying this requirement requires the ciphersuite to adhere to the
-requirements in {{ciphersuite-reqs}}.
+FROST provides security against denial of service attacks under the following assumptions:
+
+* The Coordinator does not perform a denial of service attack.
+* The Coordinator identifies misbehaving participants such that they can be removed from
+  future invocations of FROST. The Coordinator may also abort upon detecting a misbehaving
+  participant to ensure that invalid signatures are not produced.
 
 FROST does not aim to achieve the following goals:
 
-* Post-quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
-* Robustness. In the case of failure, FROST requires aborting the protocol. See {{ROAST}} as a wrapper protocol around
-  FROST that provides robustness.
+* Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
+* Robustness. Preventing denial-of-service attacks against misbehaving participants requires the Coordinator
+  to identify and act on misbehaving participants; see {{abort}} for more information. While FROST
+  does not provide robustness, {{ROAST}} is as a wrapper protocol around FROST that does.
 * Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.
 * Metadata protection. If protection for metadata is desired, a higher-level communication
 channel can be used to facilitate key generation and signing.
