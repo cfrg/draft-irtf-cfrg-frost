@@ -824,9 +824,7 @@ Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
 ciphersuite; see {{ciphersuites}} for details. The aggregate signature will verify successfully
-if all signature shares are valid. In other words, if there exists an invalid
-signature share, then the resulting aggregate signature will not verify successfully against
-the group public key. Moreover, subsets of valid signature shares will themselves not yield
+if all signature shares are valid. Moreover, subsets of valid signature shares will themselves not yield
 a valid aggregate signature.
 
 If the aggregate signature verification fails, the Coordinator can verify each signature
