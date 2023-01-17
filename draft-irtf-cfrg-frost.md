@@ -1388,7 +1388,7 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
     coefficients = []
     for i in range(0, MIN_PARTICIPANTS - 1):
       coefficients.append(G.RandomScalar())
-    participant_private_keys, coefficients = secret_share_shard(secret_key, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS)
+    participant_private_keys, coefficients = secret_share_shard(secret_key, coefficients, MAX_PARTICIPANTS)
     vss_commitment = vss_commit(coefficients):
     return participant_private_keys, vss_commitment[0], vss_commitment
 ~~~
@@ -1417,7 +1417,7 @@ The procedure for splitting a secret into shares is as follows.
 The algorithm `polynomial_evaluate` is defined in {{dep-extended-polynomial-operations}}.
 
 ~~~
-  secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
+  secret_share_shard(s, coefficients, MAX_PARTICIPANTS):
 
   Inputs:
   - s, secret value to be shared, a Scalar.
