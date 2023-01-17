@@ -834,7 +834,8 @@ about dealing with invalid signatures and misbehaving participants.
 
 The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 Recall that the Coordinator is configured with "group info" which contains
-the group public key `PK` and public keys `PK_i` for each participant.
+the group public key `PK` and public keys `PK_i` for each participant, so the `group_public_key` and
+`PK_i` function arguments should come from that previously stored group info.
 
 ~~~
   Inputs:
