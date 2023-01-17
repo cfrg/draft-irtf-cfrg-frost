@@ -64,7 +64,7 @@ def secret_share_combine(G, t, shares):
     return s
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-shamir-secret-sharing
-def secret_share_shard(G, s, coeffs, n, t):
+def secret_share_shard(G, s, coeffs, n):
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-evaluation-of-a-polynomial
     def polynomial_evaluate(G, x, coeffs):
         value = 0
@@ -72,9 +72,6 @@ def secret_share_shard(G, s, coeffs, n, t):
             value = (value * x) % G.order()
             value = (value + coeff) % G.order()
         return value
-
-    if t > n:
-        raise Exception("invalid parameters")
 
     # Generate random coefficients for the polynomial
     coefficients = [s] + coeffs
@@ -93,7 +90,7 @@ def trusted_dealer_keygen(G, secret_key, n, t, coeffs=None):
         coeffs = []
         for _ in range(t - 1):
             coeffs.append(G.random_scalar())
-    participant_private_keys, coefficients = secret_share_shard(G, secret_key, coeffs, n, t)
+    participant_private_keys, coefficients = secret_share_shard(G, secret_key, coeffs, n)
     vss_commitment = vss_commit(G, coefficients)
     recovered_key = secret_share_combine(G, t, participant_private_keys)
     assert(secret_key == recovered_key)

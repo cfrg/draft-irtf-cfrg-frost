@@ -562,7 +562,7 @@ This section describes the two-round FROST signing protocol for producing Schnor
 The protocol is configured to run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
 `NUM_PARTICIPANTS` is a positive integer at least `MIN_PARTICIPANTS` but no larger than
 `MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS <= MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
-integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
+non-zero integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
 A signer participant, or simply participant, is an entity that is trusted to hold and
 use a signing key share. The Coordinator is an entity with the following responsibilities:
 
@@ -1425,22 +1425,13 @@ The algorithm `polynomial_evaluate` is defined in {{dep-extended-polynomial-oper
   - coefficients, an array of size MIN_PARTICIPANTS - 1 with randomly generated
     Scalars, not including the 0th coefficient of the polynomial.
   - MAX_PARTICIPANTS, the number of shares to generate, an integer less than 2^16.
-  - MIN_PARTICIPANTS, the threshold of the secret sharing scheme, an integer greater than 0.
 
   Outputs:
   - secret_key_shares, A list of MAX_PARTICIPANTS number of secret shares, each a tuple
     consisting of the participant identifier (a NonZeroScalar) and the key share (a Scalar).
   - coefficients, a vector of MIN_PARTICIPANTS coefficients which uniquely determine a polynomial f.
 
-  Errors:
-  - "invalid parameters", if MIN_PARTICIPANTS > MAX_PARTICIPANTS or if MIN_PARTICIPANTS is less than 1
-
-  def secret_share_shard(s, coefficients, MAX_PARTICIPANTS, MIN_PARTICIPANTS):
-    if MIN_PARTICIPANTS > MAX_PARTICIPANTS:
-      raise "invalid parameters"
-    if MIN_PARTICIPANTS < 2:
-      raise "invalid parameters"
-
+  def secret_share_shard(s, coefficients, MAX_PARTICIPANTS):
     # Prepend the secret to the coefficients
     coefficients = [s] + coefficients
 
