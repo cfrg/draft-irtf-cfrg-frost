@@ -774,7 +774,7 @@ can compute it once and store it for reuse across signing sessions.
 
 After participants perform round two and send their signature shares to the Coordinator,
 the Coordinator can aggregate each share to produce a final signature. Before aggregating,
-the Coordinator MUST validate each signature share using DeserializeElement. If validation
+the Coordinator MUST validate each signature share using DeserializeScalar. If validation
 fails, the Coordinator MUST abort the protocol as the resulting signature will be invalid.
 If all signature shares are valid, the Coordinator then aggregates them to produce the final
 signature using the following procedure.
