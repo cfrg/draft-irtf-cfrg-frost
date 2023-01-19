@@ -1202,6 +1202,16 @@ channel can be used to facilitate key generation and signing.
 
 The rest of this section documents issues particular to implementations or deployments.
 
+## Side-channel mitigations
+
+Several routines process secret values (nonces, signing keys / shares), and depending 
+on the implementation and deployment environment, mitigating side-channels may be
+pertinent. Mitigating these side-channels requires implementing `G.ScalarMult()`, `G.ScalarBaseMult()`, 
+`G.SerializeScalar()`, and `G.DeserializeScalar()` in constant (value-independent) time.
+The various ciphersuites lend themselves differently to specific implementation techniques 
+and ease of achieving side-channel resistance, though ultimately avoiding value-dependent
+computation or branching is the goal.
+
 ## Optimizations
 
 {{StrongerSec22}} presented an optimization to FROST that reduces the total number of scalar multiplications
