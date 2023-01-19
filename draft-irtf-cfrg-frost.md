@@ -1209,8 +1209,8 @@ on the implementation and deployment environment, mitigating side-channels may b
 pertinent. Mitigating these side-channels requires implementing `G.ScalarMult()`, `G.ScalarBaseMult()`, 
 `G.SerializeScalar()`, and `G.DeserializeScalar()` in constant (value-independent) time.
 The various ciphersuites lend themselves differently to specific implementation techniques 
-and ease of achieving side-channel resistance, but can be implemented using complete 
-formulas and value-independent branching to mitigate side-channels.
+and ease of achieving side-channel resistance, though ultimately avoiding value-dependent
+computation or branching is the goal.
 
 ## Optimizations
 
