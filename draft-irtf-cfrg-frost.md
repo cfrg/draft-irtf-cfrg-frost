@@ -1175,7 +1175,8 @@ that performs key generation (see {{dep-vss}}) or through a distributed key gene
 * The Coordinator and at most `(MIN_PARTICIPANTS-1)` participants may be corrupted.
 
 Note that the Coordinator is not trusted with any private information and communication
-at the time of signing can be performed over an authenticated, public, and reliable channel.
+at the time of signing can be performed over a public channel, as long as it it
+authenticated and reliable.
 
 FROST provides security against denial of service attacks under the following assumptions:
 
