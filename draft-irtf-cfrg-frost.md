@@ -281,7 +281,8 @@ its set of scalars, respectively. We denote Scalar(x) as the conversion of integ
 to the corresponding Scalar value with the same numeric value. For example, Scalar(1) yields
 a Scalar representing the value 1. Moreover, we use the type `NonZeroScalar` to denote a `Scalar`
 value that is not equal to zero, i.e., Scalar(0). We denote equality comparison of these types
-as `==` and assignment of values by `=`.
+as `==` and assignment of values by `=`. When comparing Scalar values, e.g., for the purposes
+of sorting lists of Scalar values, the least nonnegative representation mod `p` is used.
 
 We now detail a number of member functions that can be invoked on `G`.
 
@@ -291,15 +292,15 @@ We now detail a number of member functions that can be invoked on `G`.
 - ScalarMult(A, k): Outputs the scalar multiplication between Element `A` and Scalar `k`.
 - ScalarBaseMult(k): Outputs the scalar multiplication between Scalar `k` and the group generator `B`.
 - SerializeElement(A): Maps an `Element` `A` to a canonical byte array `buf` of fixed length `Ne`. This
-  function can raise an error if `A` is the identity element of the group.
+  function raises an error if `A` is the identity element of the group.
 - DeserializeElement(buf): Attempts to map a byte array `buf` to an `Element` `A`,
   and fails if the input is not the valid canonical byte representation of an element of
-  the group. This function can raise an error if deserialization fails
+  the group. This function raises an error if deserialization fails
   or if `A` is the identity element of the group; see {{ciphersuites}} for group-specific
   input validation steps.
 - SerializeScalar(s): Maps a Scalar `s` to a canonical byte array `buf` of fixed length `Ns`.
 - DeserializeScalar(buf): Attempts to map a byte array `buf` to a `Scalar` `s`.
-  This function can raise an error if deserialization fails; see
+  This function raises an error if deserialization fails; see
   {{ciphersuites}} for group-specific input validation steps.
 
 ## Cryptographic Hash Function {#dep-hash}
@@ -363,7 +364,7 @@ A polynomial of maximum degree t is represented as a list of t+1 coefficients,
 where the constant term of the polynomial is in the first position and the
 highest-degree coefficient is in the last position. For example, the polynomial
 `x^2 + 2x + 3` has degree 2 and is represented as a list of 3 coefficients `[3, 2, 1]`.
-A point on the polynomial is a tuple (x, y), where `y = f(x)`.
+A point on the polynomial `f` is a tuple (x, y), where `y = f(x)`.
 
 The function `derive_interpolating_value` derives a value used for polynomial
 interpolation. It is provided a list of x-coordinates as input, each of which
@@ -373,22 +374,17 @@ cannot equal 0.
   derive_interpolating_value(x_i, L):
 
   Inputs:
-  - x_i, an x-coordinate contained in L, a Scalar.
-  - L, the set of x-coordinates, each a Scalar.
+  - x_i, an x-coordinate contained in L, a NonZeroScalar.
+  - L, the set of x-coordinates, each a NonZeroScalar.
 
   Outputs:
   - value, a Scalar.
 
   Errors:
-  - "invalid parameters", if 1) any x-coordinate is equal to 0, 2) if x_i
-    is not in L, or if 3) any x-coordinate is represented more than once in L.
+  - "invalid parameters", if 1) x_i is not in L, or if 2) any
+    x-coordinate is represented more than once in L.
 
   def derive_interpolating_value(x_i, L):
-    if x_i == 0:
-      raise "invalid parameters"
-    for x_j in L:
-      if x_j == 0:
-        raise "invalid parameters"
     if x_i not in L:
       raise "invalid parameters"
     for x_j in L:
@@ -541,7 +537,7 @@ This section describes the subroutine for creating the per-message challenge.
 ~~~
   Inputs:
   - group_commitment, the group commitment, an Element.
-  - group_public_key, public key corresponding to the group signing key, an
+  - group_public_key, the public key corresponding to the group signing key, an
     Element.
   - msg, the message to be signed, a byte string.
 
@@ -585,8 +581,9 @@ is configured with the following information:
 - An identifier, which is a NonZeroScalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
   and MUST be distinct from the identifier of every other participant.
 - A signing key `sk_i`, which is a Scalar value representing the i-th Shamir secret share
-  of the group signing key `s`. In particular, `sk_i` is the value `f(i)` on a secret polynomial `f`, where `s` is `f(0)`.
-  The public key corresponding to this signing key share is `PK_i = G.ScalarBaseMult(sk_i)`.
+  of the group signing key `s`. In particular, `sk_i` is the value `f(i)` on a secret
+  polynomial `f` of degree `(MIN_PARTICIPANTS - 1)`, where `s` is `f(0)`. The public key
+  corresponding to this signing key share is `PK_i = G.ScalarBaseMult(sk_i)`.
 
 The Coordinator and each participant are additionally configured with common group
 information, denoted "group info," which consists of the following:
@@ -605,7 +602,7 @@ FROST requires two rounds to complete. In the first round, participants generate
 and publish one-time-use commitments to be used in the second round. In the second
 round, each participant produces a share of the signature over the Coordinator-chosen
 message and the other participant commitments. After the second round completes, the
-Coordinator aggregates the signatures to produce a final signature. The Coordinator
+Coordinator aggregates the signature shares to produce a final signature. The Coordinator
 SHOULD abort if the signature is invalid; see {{abort}} for more information about dealing
 with invalid signatures and misbehaving participants. This complete interaction,
 without abort, is shown in {{fig-frost}}.
@@ -697,8 +694,6 @@ the public output `comm` is sent to the Coordinator. The nonce values produced b
 function MUST NOT be used in more than one invocation of `sign`, and the nonces MUST be generated
 from a source of secure randomness.
 
-<!-- The Coordinator must not get confused about which commitments come from which signers, do we need to say more about how this is done? -->
-
 ## Round Two - Signature Share Generation {#frost-round-two}
 
 In round two, the Coordinator is responsible for sending the message to be signed, and
@@ -773,7 +768,7 @@ can compute it once and store it for reuse across signing sessions.
 ## Signature Share Aggregation {#frost-aggregation}
 
 After participants perform round two and send their signature shares to the Coordinator,
-the Coordinator can aggregate each share to produce a final signature. Before aggregating,
+the Coordinator aggregates each share to produce a final signature. Before aggregating,
 the Coordinator MUST validate each signature share using DeserializeScalar. If validation
 fails, the Coordinator MUST abort the protocol as the resulting signature will be invalid.
 If all signature shares are valid, the Coordinator then aggregates them to produce the final
@@ -819,7 +814,8 @@ The output signature (R, z) from the aggregation step MUST be encoded as follows
 ~~~
 
 Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
-`G.SerializeScalar(z)`.
+`G.SerializeScalar(z)`. This signature encoding is the same for all FROST ciphersuites
+specified in {{ciphersuites}}.
 
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
@@ -888,8 +884,8 @@ the group public key `PK` and public keys `PK_i` for each participant, so the `g
 
 The Coordinator can verify each signature share before first aggregating and verifying the
 signature under the group public key. However, since the aggregate signature is valid if
-and only if all signature shares are valid, this order of operations is more expensive
-if the signature is valid.
+all signature shares are valid, this order of operations is more expensive if the
+signature is valid.
 
 ## Identifiable Abort {#abort}
 
@@ -984,7 +980,6 @@ Normally H2 would also include a domain separator, but for compatibility with {{
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation `[8][z]B = [8]R + [8][c]PK`
 (changed to use the notation in this document).
-The alternative check `[z]B = R + [c]PK` is not interoperable in practice.
 
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
@@ -1068,7 +1063,6 @@ Normally H2 would also include a domain separator, but for compatibility with {{
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation `[4][z]B = [4]R + [4][c]PK`
 (changed to use the notation in this document).
-The alternative check `[z]B = R + [c]PK` is not interoperable in practice.
 
 ## FROST(P-256, SHA-256)
 
@@ -1181,7 +1175,8 @@ that performs key generation (see {{dep-vss}}) or through a distributed key gene
 * The Coordinator and at most `(MIN_PARTICIPANTS-1)` participants may be corrupted.
 
 Note that the Coordinator is not trusted with any private information and communication
-at the time of signing can be performed over a public but reliable channel.
+at the time of signing can be performed over a public channel, as long as it is
+authenticated and reliable.
 
 FROST provides security against denial of service attacks under the following assumptions:
 
@@ -1192,7 +1187,7 @@ FROST provides security against denial of service attacks under the following as
 
 FROST does not aim to achieve the following goals:
 
-* Post quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
+* Post-quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.
 * Robustness. Preventing denial-of-service attacks against misbehaving participants requires the Coordinator
   to identify and act on misbehaving participants; see {{abort}} for more information. While FROST
   does not provide robustness, {{ROAST}} is as a wrapper protocol around FROST that does.
@@ -1204,11 +1199,11 @@ The rest of this section documents issues particular to implementations or deplo
 
 ## Side-channel mitigations
 
-Several routines process secret values (nonces, signing keys / shares), and depending 
+Several routines process secret values (nonces, signing keys / shares), and depending
 on the implementation and deployment environment, mitigating side-channels may be
-pertinent. Mitigating these side-channels requires implementing `G.ScalarMult()`, `G.ScalarBaseMult()`, 
+pertinent. Mitigating these side-channels requires implementing `G.ScalarMult()`, `G.ScalarBaseMult()`,
 `G.SerializeScalar()`, and `G.DeserializeScalar()` in constant (value-independent) time.
-The various ciphersuites lend themselves differently to specific implementation techniques 
+The various ciphersuites lend themselves differently to specific implementation techniques
 and ease of achieving side-channel resistance, though ultimately avoiding value-dependent
 computation or branching is the goal.
 
@@ -1471,7 +1466,7 @@ secret `s` is as follows; the algorithm `polynomial_interpolate_constant` is def
     where i and f(i) are Scalars.
 
   Outputs:
-  - s, the resulting secret s that was previously split into shares, a Scalar.
+  - s, the resulting secret that was previously split into shares, a Scalar.
 
   Errors:
   - "invalid parameters", if fewer than MIN_PARTICIPANTS input shares are provided.
@@ -1581,7 +1576,7 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
   vss_verify(share_i, vss_commitment)
     (i, sk_i) = share_i
-    S_i = ScalarBaseMult(sk_i)
+    S_i = G.ScalarBaseMult(sk_i)
     S_i' = G.Identity()
     for j in range(0, MIN_PARTICIPANTS):
       S_i' += G.ScalarMult(vss_commitment[j], pow(i, j))
