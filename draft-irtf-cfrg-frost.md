@@ -132,6 +132,12 @@ Group (CFRG). It is not an IETF product and is not a standard.
 
 ## Change Log
 
+draft-12
+
+- Address RGLC feedback (#399, #396, #395, #394, #393, #384, #382, #397, #378, #376, #375, #374, #373, #371, #370, #369, #368, #367, #366, #364, #363, #362, #361, #359, #358, #357, #356, #354, #353, #352, #350, #349, #348, #347, #314)
+- Fix bug in signature share serialization (#397)
+- Fix various editorial issues (#385)
+
 draft-11
 
 - Update version string constant (#307)
