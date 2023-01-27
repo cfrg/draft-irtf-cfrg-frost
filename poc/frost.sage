@@ -373,7 +373,7 @@ for (fname, name, G, H) in ciphersuites:
     def create_sig_shares_vectors(G, identifier):
         return {
             "identifier": int(identifier),
-            "sig_share": to_hex(G.serialize_scalar(participants[identifier].sk))
+            "sig_share": to_hex(G.serialize_scalar(sig_shares[identifier]))
         }
 
     round_two_outputs = {
