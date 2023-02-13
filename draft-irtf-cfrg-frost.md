@@ -1299,6 +1299,10 @@ that varies based on the use case and threat model. However, it is RECOMMENDED
 that applications take additional precautions and validate inputs so that
 participants do not operate as signing oracles for arbitrary messages.
 
+# IANA Considerations
+
+This document makes no IANA requests.
+
 --- back
 
 # Acknowledgments
