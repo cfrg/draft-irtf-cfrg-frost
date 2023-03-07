@@ -28,7 +28,7 @@ def random_bytes(n):
     return os.urandom(n)
 
 # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-lagrange-coefficients
-def derive_interpolating_value(G, i, L):
+def derive_interpolating_value(G, L, i):
     assert(i != 0)
     for j in L:
       assert(j != 0)
@@ -54,7 +54,7 @@ def secret_share_combine(G, t, shares):
         L = [x for (x, _) in points]
         constant = 0
         for (x, y) in points:
-            delta = (y * derive_interpolating_value(G, x, L)) % G.order()
+            delta = (y * derive_interpolating_value(G, L, x)) % G.order()
             constant = (constant + delta) % G.order()
         return constant
 
@@ -191,7 +191,7 @@ def verify_signature_share(G, H, identifier, public_key_share, sig_share, commit
 
     # Compute the interpolating value
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_interpolating_value(G, identifier, participant_list)
+    lambda_i = derive_interpolating_value(G, participant_list, identifier)
 
     # Compute relation values
     l = sig_share * G.generator()
@@ -236,7 +236,7 @@ class SignerParticipant(object):
 
         # Compute the interpolating value
         participant_list = participants_from_commitment_list(commitment_list)
-        lambda_i = derive_interpolating_value(self.G, self.identifier, participant_list)
+        lambda_i = derive_interpolating_value(self.G, participant_list, self.identifier)
 
         # Compute the per-message challenge
         challenge = compute_challenge(self.H, group_comm, self.pk, msg)
