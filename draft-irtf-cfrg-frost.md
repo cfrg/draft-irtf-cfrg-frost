@@ -903,6 +903,8 @@ for more information about FROST's security properties and the threat model.
 
 As a result of this property, a misbehaving participant can cause a denial-of-service on
 the signing protocol by contributing malformed signature shares or refusing to participate.
+Identifying misbehaving participants that produce invalid shares can be done by checking
+signature shares from each participant using `verify_signature_share` as described in {{frost-aggregation}}.
 FROST assumes the network channel is authenticated to identify which signer misbehaved.
 FROST allows for identifying misbehaving participants that produce invalid signature shares
 as described in {{frost-aggregation}}. FROST does not provide accommodations for identifying
