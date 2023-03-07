@@ -238,7 +238,7 @@ draft-00
 
 The following notation is used throughout the document.
 
-* Byte: A sequence of eight bits.
+* byte: A sequence of eight bits.
 * `random_bytes(n)`: Outputs `n` bytes, sampled uniformly at random
 using a cryptographically secure pseudorandom number generator (CSPRNG).
 * `count(i, L)`: Outputs the number of times the element `i` is represented in the list `L`.
