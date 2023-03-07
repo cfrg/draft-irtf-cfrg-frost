@@ -377,11 +377,11 @@ interpolation. It is provided a list of x-coordinates as input, each of which
 cannot equal 0.
 
 ~~~
-  derive_interpolating_value(x_i, L):
+  derive_interpolating_value(L, x_i):
 
   Inputs:
+  - L, the list of x-coordinates, each a NonZeroScalar.
   - x_i, an x-coordinate contained in L, a NonZeroScalar.
-  - L, the set of x-coordinates, each a NonZeroScalar.
 
   Outputs:
   - value, a Scalar.
@@ -390,7 +390,7 @@ cannot equal 0.
   - "invalid parameters", if 1) x_i is not in L, or if 2) any
     x-coordinate is represented more than once in L.
 
-  def derive_interpolating_value(x_i, L):
+  def derive_interpolating_value(L, x_i):
     if x_i not in L:
       raise "invalid parameters"
     for x_j in L:
@@ -750,7 +750,7 @@ procedure to produce its own signature share.
 
     # Compute the interpolating value
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_interpolating_value(identifier, participant_list)
+    lambda_i = derive_interpolating_value(participant_list, identifier)
 
     # Compute the per-message challenge
     challenge = compute_challenge(group_commitment, group_public_key, msg)
@@ -879,7 +879,7 @@ the group public key `PK` and public keys `PK_i` for each participant, so the `g
 
     # Compute the interpolating value
     participant_list = participants_from_commitment_list(commitment_list)
-    lambda_i = derive_interpolating_value(identifier, participant_list)
+    lambda_i = derive_interpolating_value(x_list, identifier)
 
     # Compute relation values
     l = G.ScalarBaseMult(sig_share_i)
@@ -1531,7 +1531,7 @@ The function `polynomial_interpolate_constant` is defined as follows.
 
     f_zero = Scalar(0)
     for (x, y) in points:
-      delta = y * derive_interpolating_value(x, x_coords)
+      delta = y * derive_interpolating_value(x_coords, x)
       f_zero += delta
 
     return f_zero
