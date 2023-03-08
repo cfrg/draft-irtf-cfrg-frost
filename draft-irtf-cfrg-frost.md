@@ -948,7 +948,7 @@ This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash functi
 meant to produce Ed25519-compliant signatures as specified in {{Section 5.1 of !RFC8032}}.
 The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
 
-- Group: edwards25519 {{!RFC8032}}
+- Group: edwards25519 {{!RFC8032}}, where Ne = 32 and Ns = 32.
   - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}}).
   - Identity(): As defined in {{RFC7748}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -995,7 +995,8 @@ constraint that implementations MUST check the group equation `[8][z]B = [8]R + 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
 The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
 
-- Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}}
+- Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}},
+  where Ne = 32 and Ns = 32.
   - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{RISTRETTO}}).
   - Identity(): As defined in {{RISTRETTO}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -1033,7 +1034,7 @@ ciphersuite does not allow applications to specify a context string as is allowe
 in {{RFC8032}}, and always sets the {{RFC8032}} context string to the empty string.
 The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHAKE256-v11".
 
-- Group: edwards448 {{!RFC8032}}
+- Group: edwards448 {{!RFC8032}}, where Ne = 57 and Ns = 57.
   - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
   - Identity(): As defined in {{RFC7748}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -1078,7 +1079,7 @@ constraint that implementations MUST check the group equation `[4][z]B = [4]R + 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256-v11".
 
-- Group: P-256 (secp256r1) {{x9.62}}
+- Group: P-256 (secp256r1) {{x9.62}}, where Ne = 33 and Ns = 32.
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
   - Identity(): As defined in {{x9.62}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
@@ -1120,7 +1121,7 @@ Signature verification is as specified in {{prime-order-verify}}.
 This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
 
-- Group: secp256k1 {{SEC2}}
+- Group: secp256k1 {{SEC2}}, where Ne = 33 and Ns = 32.
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
   - Identity(): As defined in {{SEC2}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
