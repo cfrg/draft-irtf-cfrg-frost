@@ -581,9 +581,8 @@ FROST produces signatures that can be verified as if they were produced from a s
 using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
 value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
 key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participants
-and used to produce signatures; see {{?ShamirSecretSharing=DOI.10.1145/359168.359176}} for
-more information about Shamir secret sharing. In particular, FROST assumes each participant
-is configured with the following information:
+and used to produce signatures; see {#dep-dealer} for more information about Shamir secret sharing.
+In particular, FROST assumes each participant is configured with the following information:
 
 - An identifier, which is a NonZeroScalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
   and MUST be distinct from the identifier of every other participant.
@@ -1380,7 +1379,7 @@ Specifically, it assumes that signature R component and public key belong to the
 
 One possible key generation mechanism is to depend on a trusted dealer, wherein the
 dealer generates a group secret `s` uniformly at random and uses Shamir and Verifiable
-Secret Sharing as described in {{dep-shamir}} and {{dep-vss}} to create secret
+Secret Sharing {{?ShamirSecretSharing=DOI.10.1145/359168.359176}}, as described in {{dep-shamir}} and {{dep-vss}} to create secret
 shares of s, denoted `s_i` for `i = 1, ..., MAX_PARTICIPANTS`, to be sent to all `MAX_PARTICIPANTS` participants.
 This operation is specified in the `trusted_dealer_keygen` algorithm. The mathematical relation
 between the secret key `s` and the `MAX_PARTICIPANTS` secret shares is formalized in the `secret_share_combine(shares)`
