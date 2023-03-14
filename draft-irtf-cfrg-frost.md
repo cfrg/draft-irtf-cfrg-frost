@@ -657,7 +657,9 @@ Aggregation step is described in {{frost-aggregation}}.
 FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
 of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
-respectively, as these functions perform the necessary input validation steps.
+respectively, as these functions perform the necessary input validation steps, and that all
+messages sent over the wire are encoded appropriately, e.g., that Scalars and Elements are
+encoded using their respective functions.
 
 FROST assumes reliable message delivery between the Coordinator and participants in
 order for the protocol to complete. An attacker masquerading as another participant
