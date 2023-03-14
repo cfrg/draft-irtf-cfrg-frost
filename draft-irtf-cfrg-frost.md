@@ -1416,7 +1416,7 @@ The dealer that performs `trusted_dealer_keygen` is trusted to 1) generate good 
 It is assumed the dealer then sends one secret key share to each of the `NUM_PARTICIPANTS` participants, along with `vss_commitment`.
 After receiving their secret key share and `vss_commitment`, participants MUST abort if they do not have the same view of `vss_commitment`.
 The dealer can use a secure broadcast channel to ensure each participant has a consistent view of this commitment.
-Otherwise, each participant MUST perform `vss_verify(secret_key_share_i, vss_commitment)`, and abort if the check fails.
+Furthermore, each participant MUST perform `vss_verify(secret_key_share_i, vss_commitment)`, and abort if the check fails.
 The trusted dealer MUST delete the secret_key and secret_key_shares upon completion.
 
 Use of this method for key generation requires a mutually authenticated secure channel
