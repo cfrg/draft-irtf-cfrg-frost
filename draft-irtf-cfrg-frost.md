@@ -432,16 +432,14 @@ Outputs:
 def encode_group_commitment_list(commitment_list):
   encoded_group_commitment = nil
   for (identifier, hiding_nonce_commitment,
-      binding_nonce_commitment) in commitment_list:
-  encoded_commitment = (
-      G.SerializeScalar(identifier) ||
-      G.SerializeElement(hiding_nonce_commitment) ||
-      G.SerializeElement(binding_nonce_commitment)
-  )
-  encoded_group_commitment = (
-      encoded_group_commitment ||
-      encoded_commitment
-  )
+       binding_nonce_commitment) in commitment_list:
+    encoded_commitment = (
+        G.SerializeScalar(identifier) ||
+        G.SerializeElement(hiding_nonce_commitment) ||
+        G.SerializeElement(binding_nonce_commitment))
+    encoded_group_commitment = (
+        encoded_group_commitment ||
+        encoded_commitment)
   return encoded_group_commitment
 ~~~
 
@@ -550,12 +548,13 @@ def compute_group_commitment(commitment_list, binding_factor_list):
        binding_nonce_commitment) in commitment_list:
     binding_factor = binding_factor_for_participant(
         binding_factor_list, identifier)
+    binding_nonce = G.ScalarMult(
+        binding_nonce_commitment,
+        binding_factor)
     group_commitment = (
         group_commitment +
         hiding_nonce_commitment +
-        G.ScalarMult(
-            binding_nonce_commitment,
-            binding_factor))
+        binding_nonce)
   return group_commitment
 ~~~
 
