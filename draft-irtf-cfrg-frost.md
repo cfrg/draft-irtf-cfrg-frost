@@ -3,7 +3,7 @@ title: "Two-Round Threshold Schnorr Signatures with FROST"
 abbrev: "FROST"
 docname: draft-irtf-cfrg-frost-latest
 category: info
-submissiontype: IETF
+submissiontype: IRTF
 
 ipr: trust200902
 area: General
