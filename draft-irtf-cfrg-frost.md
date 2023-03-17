@@ -811,19 +811,8 @@ signature using the following procedure.
     return (group_commitment, z)
 ~~~
 
-The output signature (R, z) from the aggregation step MUST be encoded as follows
-(using notation from {{Section 3 of TLS}}):
-
-~~~
-  struct {
-    opaque R_encoded[Ne];
-    opaque z_encoded[Ns];
-  } Signature;
-~~~
-
-Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
-`G.SerializeScalar(z)`. This signature encoding is the same for all FROST ciphersuites
-specified in {{ciphersuites}}.
+The output from the aggregation step is the output signature (R, z). This signature encoding
+is the same for all FROST ciphersuites specified in {{ciphersuites}}.
 
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
@@ -1319,6 +1308,21 @@ Alden Torres,
 T. Wilson-Brown,
 and Conrado Gouvea
 for their inputs and contributions.
+
+# Schnorr Signature Encoding
+
+The output signature (R, z) MUST be encoded as follows (using notation from {{Section 3 of TLS}}):
+
+~~~
+  struct {
+    opaque R_encoded[Ne];
+    opaque z_encoded[Ns];
+  } Signature;
+~~~
+
+Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
+`G.SerializeScalar(z)` and `G` is determined by ciphersuite. This signature
+encoding is the same for all FROST ciphersuites specified in {{ciphersuites}}.
 
 # Schnorr Signature Generation and Verification for Prime-Order Groups {#prime-order-verify}
 
