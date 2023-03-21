@@ -1309,7 +1309,7 @@ T. Wilson-Brown,
 and Conrado Gouvea
 for their inputs and contributions.
 
-# Schnorr Signature Encoding
+# Schnorr Signature Encoding {#sig-encoding}
 
 The output signature (R, z) MUST be encoded as follows (using notation from {{Section 3 of TLS}}):
 
