@@ -1311,7 +1311,8 @@ for their inputs and contributions.
 
 # Schnorr Signature Encoding {#sig-encoding}
 
-The output signature (R, z) MUST be encoded as follows (using notation from {{Section 3 of TLS}}):
+This section describes one possible encoding of FROST signatures. Using notation
+from {{Section 3 of TLS}}, the encoding of a FROST signature (R, z) is as follows:
 
 ~~~
   struct {
