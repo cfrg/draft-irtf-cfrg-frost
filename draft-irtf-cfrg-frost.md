@@ -1322,8 +1322,7 @@ from {{Section 3 of TLS}}, the encoding of a FROST signature (R, z) is as follow
 ~~~
 
 Where Signature.R_encoded is `G.SerializeElement(R)` and Signature.z_encoded is
-`G.SerializeScalar(z)` and `G` is determined by ciphersuite. This signature
-encoding is the same for all FROST ciphersuites specified in {{ciphersuites}}.
+`G.SerializeScalar(z)` and `G` is determined by ciphersuite.
 
 # Schnorr Signature Generation and Verification for Prime-Order Groups {#prime-order-verify}
 
