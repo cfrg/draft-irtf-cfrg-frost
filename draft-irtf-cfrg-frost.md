@@ -811,8 +811,8 @@ signature using the following procedure.
     return (group_commitment, z)
 ~~~
 
-The output from the aggregation step is the output signature (R, z). This signature encoding
-is the same for all FROST ciphersuites specified in {{ciphersuites}}.
+The output from the aggregation step is the output signature (R, z). For every FROST ciphersuite
+specified in {{ciphersuites}}, this signature is encoded using the format in {{sig-encoding}}.
 
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
