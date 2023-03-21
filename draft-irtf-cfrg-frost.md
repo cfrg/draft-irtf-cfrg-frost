@@ -509,8 +509,8 @@ Outputs:
 
 def compute_binding_factors(commitment_list, msg):
   msg_hash = H4(msg)
-  encoded_commitment_hash = H5(
-      encode_group_commitment_list(commitment_list))
+  encoded_commitment_hash =
+      H5(encode_group_commitment_list(commitment_list))
   rho_input_prefix = msg_hash || encoded_commitment_hash
 
   binding_factor_list = []
@@ -786,8 +786,8 @@ def sign(identifier, sk_i, group_public_key,
 
   # Compute the signature share
   (hiding_nonce, binding_nonce) = nonce_i
-  sig_share = hiding_nonce + (binding_nonce * binding_factor) + (
-      lambda_i * sk_i * challenge)
+  sig_share = hiding_nonce + (binding_nonce * binding_factor) +
+      (lambda_i * sk_i * challenge)
 
   return sig_share
 ~~~
