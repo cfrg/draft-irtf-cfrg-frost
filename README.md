@@ -17,7 +17,7 @@ This is the working area for the individual Internet-Draft, "Two-Round Threshold
 | [ecc](https://github.com/aldenml/ecc)                                      | C        | FROST(ristretto255, SHA-512)   | main |
 | [modular-frost](https://github.com/serai-dex/serai/tree/develop/crypto/frost) | Rust     | All   | 11 |
 | [crrl](https://github.com/pornin/crrl/blob/main/src/frost.rs)               | Rust     | All except FROST(Ed448, SHAKE256)    | 08 |
-| [frost](https://github.com/bytemare/frost)                                 | Go       | FROST(ristretto255, SHA-512), FROST(P-256, SHA-256) | main |
+| [frost](https://github.com/bytemare/frost)                                 | Go       | FROST(ristretto255, SHA-512),<br>FROST(P-256, SHA-256), FROST(Secp256k1, SHA-256) | main |
 
 ## Contributing
 
