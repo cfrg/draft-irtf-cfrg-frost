@@ -1161,7 +1161,7 @@ This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function 
 The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
 
 - Group: secp256k1 {{SEC2}}, where Ne = 33 and Ns = 32.
-  - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
+  - Order(): Return 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141.
   - Identity(): As defined in {{SEC2}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
