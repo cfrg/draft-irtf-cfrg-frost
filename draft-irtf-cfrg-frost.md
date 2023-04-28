@@ -712,9 +712,9 @@ def commit(sk_i):
   binding_nonce = nonce_generate(sk_i)
   hiding_nonce_commitment = G.ScalarBaseMult(hiding_nonce)
   binding_nonce_commitment = G.ScalarBaseMult(binding_nonce)
-  nonce = (hiding_nonce, binding_nonce)
-  comm = (hiding_nonce_commitment, binding_nonce_commitment)
-  return (nonce, comm)
+  nonces = (hiding_nonce, binding_nonce)
+  comms = (hiding_nonce_commitment, binding_nonce_commitment)
+  return (nonces, comms)
 ~~~
 
 The outputs `nonce` and `comm` from participant `P_i` should both be stored locally and
