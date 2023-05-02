@@ -1206,7 +1206,7 @@ the following requirements.
   (indistinguishable from) the uniform distribution.
 2. All hash functions MUST be domain separated with a per-suite context
   string. Note that the FROST(Ed25519, SHA-512) ciphersuite does not
-  adhere to this requirement for H2 alone for to maintain compatibility
+  adhere to this requirement for H2 alone to maintain compatibility
   with {{RFC8032}}.
 3. The group MUST be of prime-order, and all deserialization functions MUST
   output elements that belong to their respective sets of Elements or Scalars,
