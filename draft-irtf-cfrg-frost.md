@@ -351,8 +351,6 @@ as long as no more than 2<sup>64</sup> signatures are computed by a given
 signing participant.
 
 ~~~
-nonce_generate(secret):
-
 Inputs:
 - secret, a Scalar.
 
@@ -379,8 +377,6 @@ interpolation. It is provided a list of x-coordinates as input, each of which
 cannot equal 0.
 
 ~~~
-derive_interpolating_value(L, x_i):
-
 Inputs:
 - L, the list of x-coordinates, each a NonZeroScalar.
 - x_i, an x-coordinate contained in L, a NonZeroScalar.
@@ -1370,8 +1366,6 @@ The function `prime_order_sign` produces a Schnorr signature over a message give
 key as input (as opposed to a key share.)
 
 ~~~
-prime_order_sign(msg, sk):
-
 Inputs:
 - msg, message to sign, a byte string.
 - sk, secret key, a Scalar.
@@ -1396,8 +1390,6 @@ The function `prime_order_verify` verifies Schnorr signatures with validated inp
 Specifically, it assumes that signature R component and public key belong to the prime-order group.
 
 ~~~
-prime_order_verify(msg, sig, PK):
-
 Inputs:
 - msg, signed message, a byte string.
 - sig, a tuple (R, z) output from signature generation.
@@ -1483,8 +1475,6 @@ The procedure for splitting a secret into shares is as follows.
 The algorithm `polynomial_evaluate` is defined in {{dep-extended-polynomial-operations}}.
 
 ~~~
-secret_share_shard(s, coefficients, MAX_PARTICIPANTS):
-
 Inputs:
 - s, secret value to be shared, a Scalar.
 - coefficients, an array of size MIN_PARTICIPANTS - 1 with randomly
@@ -1523,8 +1513,6 @@ The procedure for combining a `shares` list of length `MIN_PARTICIPANTS` to reco
 secret `s` is as follows; the algorithm `polynomial_interpolate_constant` is defined in {{dep-extended-polynomial-operations}}.
 
 ~~~
-secret_share_combine(shares):
-
 Inputs:
 - shares, a list of at minimum MIN_PARTICIPANTS secret shares, each a
   tuple (i, f(i)) where i and f(i) are Scalars.
@@ -1554,8 +1542,6 @@ recovering the constant term of an interpolating polynomial defined by a set of 
 The function `polynomial_evaluate` is defined as follows.
 
 ~~~
-polynomial_evaluate(x, coeffs):
-
 Inputs:
 - x, input at which to evaluate the polynomial, a Scalar
 - coeffs, the polynomial coefficients, a list of Scalars
@@ -1606,8 +1592,6 @@ the correct secret.
 The procedure for committing to a polynomial `f` of degree at most `MIN_PARTICIPANTS-1` is as follows.
 
 ~~~
-vss_commit(coeffs):
-
 Inputs:
 - coeffs, a vector of the MIN_PARTICIPANTS coefficients which
   uniquely determine a polynomial f.
@@ -1628,8 +1612,6 @@ The procedure for verification of a participant's share is as follows.
 If `vss_verify` fails, the participant MUST abort the protocol, and failure should be investigated out of band.
 
 ~~~
-vss_verify(share_i, vss_commitment):
-
 Inputs:
 - share_i: A tuple of the form (i, sk_i), where i indicates the
   participant identifier (a NonZeroScalar), and sk_i the
@@ -1642,7 +1624,7 @@ Inputs:
 Outputs:
 - True if sk_i is valid, and False otherwise.
 
-vss_verify(share_i, vss_commitment)
+def vss_verify(share_i, vss_commitment)
   (i, sk_i) = share_i
   S_i = G.ScalarBaseMult(sk_i)
   S_i' = G.Identity()
@@ -1655,9 +1637,6 @@ We now define how the Coordinator and participants can derive group info,
 which is an input into the FROST signing protocol.
 
 ~~~
-derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS,
-  vss_commitment):
-
 Inputs:
 - MAX_PARTICIPANTS, the number of shares to generate, an integer.
 - MIN_PARTICIPANTS, the threshold of the secret sharing scheme,
@@ -1672,7 +1651,7 @@ Outputs:
   PK_i for i=1,...,MAX_PARTICIPANTS, where each PK_i is the public
   key, an Element, for participant i.
 
-derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
+def derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
   PK = vss_commitment[0]
   participant_public_keys = []
   for i in range(1, MAX_PARTICIPANTS+1):
