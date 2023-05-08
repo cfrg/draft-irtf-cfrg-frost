@@ -811,8 +811,8 @@ signature using the following procedure.
     return (group_commitment, z)
 ~~~
 
-The output from the aggregation step is the output signature (R, z). For every FROST ciphersuite
-specified in {{ciphersuites}}, this signature is encoded using the format in {{sig-encoding}}.
+The output from the aggregation step is the output signature (R, z). The canonical encoding
+of this signature is specified in {{ciphersuites}}.
 
 The Coordinator SHOULD verify this signature using the group public key before publishing or
 releasing the signature. Signature verification is as specified for the corresponding
@@ -980,6 +980,8 @@ Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation `[8][z]B = [8]R + [8][c]PK`
 (changed to use the notation in this document).
 
+Canonical signature encoding is as specified in {{sig-encoding}}.
+
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
@@ -1015,6 +1017,8 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
+
+Canonical signature encoding is as specified in {{sig-encoding}}.
 
 ## FROST(Ed448, SHAKE256)
 
@@ -1064,6 +1068,8 @@ Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
 constraint that implementations MUST check the group equation `[4][z]B = [4]R + [4][c]PK`
 (changed to use the notation in this document).
 
+Canonical signature encoding is as specified in {{sig-encoding}}.
+
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
@@ -1105,6 +1111,8 @@ The value of the contextString parameter is "FROST-P256-SHA256-v11".
   - H5(m): Implemented by computing H(contextString \|\| "com" \|\| m).
 
 Signature verification is as specified in {{prime-order-verify}}.
+
+Canonical signature encoding is as specified in {{sig-encoding}}.
 
 ## FROST(secp256k1, SHA-256)
 
@@ -1148,6 +1156,8 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
 
 Signature verification is as specified in {{prime-order-verify}}.
 
+Canonical signature encoding is as specified in {{sig-encoding}}.
+
 ## Ciphersuite Requirements {#ciphersuite-reqs}
 
 Future documents that introduce new ciphersuites MUST adhere to
@@ -1161,6 +1171,7 @@ the following requirements.
 3. The group MUST be of prime-order, and all deserialization functions MUST
   output elements that belong to their respective sets of Elements or Scalars,
   or failure when deserialization fails.
+4. The canonical signature encoding details are clearly specified.
 
 # Security Considerations {#sec-considerations}
 
@@ -1311,7 +1322,7 @@ for their inputs and contributions.
 
 # Schnorr Signature Encoding {#sig-encoding}
 
-This section describes one possible encoding of FROST signatures. Using notation
+This section describes one possible canonical encoding of FROST signatures. Using notation
 from {{Section 3 of TLS}}, the encoding of a FROST signature (R, z) is as follows:
 
 ~~~
