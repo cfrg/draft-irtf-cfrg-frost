@@ -8,7 +8,6 @@ config_keys = [
 ]
 
 input_keys = [
-    # "participant_list",
     "group_secret_key",
     "group_public_key",
     "message",
@@ -56,7 +55,7 @@ def format_vector_config(name, vector):
 def format_vector_inputs(name, vector):
     print("// Group input parameters")
     print("participant_list: ", end="")
-    print(*vector["inputs"]["participant_list"])
+    print(",".join(list(map(lambda i : str(i), vector["inputs"]["participant_list"]))))
     for key in input_keys:
         for input_key in vector["inputs"]:
             if key == input_key:
@@ -76,7 +75,6 @@ def format_vector_inputs(name, vector):
     print("")
 
 def format_vector_round_one(name, vector):
-    print("")
     print("// Signer round one outputs")
     for signer in vector["round_one_outputs"]["outputs"]:
         for round_one_signer_key in round_one_outputs_keys:
