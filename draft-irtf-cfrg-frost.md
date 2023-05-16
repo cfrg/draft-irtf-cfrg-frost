@@ -1726,13 +1726,13 @@ Each test vector consists of the following information.
 - Signer input parameters. This lists the signing key share for each of the
   NUM_PARTICIPANTS participants.
 - Round one parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
-  in the protocol, identified by their integer identifier, and for each participant:
+  in the protocol, identified by their NonZeroScalar identifier, and for each participant:
   the hiding and binding commitment values produced in {{frost-round-one}}; the randomness
   values used to derive the commitment nonces in `nonce_generate`; the resulting group
   binding factor input computed in part from the group commitment list encoded as
   described in {{dep-encoding}}; and group binding factor as computed in {{frost-round-two}}).
 - Round two parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
-  in the protocol, identified by their integer identifier, along with their corresponding
+  in the protocol, identified by their NonZeroScalar identifier, along with their corresponding
   output signature share as produced in {{frost-round-two}}.
 - Final output. This lists the aggregate signature as produced in {{frost-aggregation}}.
 
