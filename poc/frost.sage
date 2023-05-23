@@ -313,16 +313,20 @@ for (fname, name, G, H) in ciphersuites:
         identifier = participant_private_key[0]
         participants[identifier] = SignerParticipant(G, H, participant_private_key, group_public_key)
 
+    def create_participant_share_vector(G, identifier):
+        return {
+            "identifier": int(identifier),
+            "participant_share": to_hex(G.serialize_scalar(participants[identifier].sk))
+        }
+
     inputs = {
+        "participant_list": [int(i) for i in PARTICIPANT_LIST],
         "group_secret_key": to_hex(G.serialize_scalar(group_secret_key)),
         "group_public_key": to_hex(G.serialize(group_public_key)),
         "message": to_hex(message),
         "share_polynomial_coefficients": [to_hex(G.serialize_scalar(c)) for c in coeffs],
-        "participants": {}
+        "participant_shares": [create_participant_share_vector(G, identifier) for identifier in participants]
     }
-    for identifier in participants:
-        inputs["participants"][str(identifier)] = {}
-        inputs["participants"][str(identifier)]["participant_share"] = to_hex(G.serialize_scalar(participants[identifier].sk))
 
     # Round one: commitment
     nonces = {}
@@ -340,20 +344,22 @@ for (fname, name, G, H) in ciphersuites:
 
     binding_factors, rho_inputs = compute_binding_factors(G, H, commitment_list, message)
 
-    round_one_outputs = {
-        "participant_list": ",".join([str(i) for i in PARTICIPANT_LIST]),
-        "participants": {}
+    def create_participant_output_vectors(G, identifier):
+        return {
+        "identifier": int(identifier),
+        "hiding_nonce_randomness": to_hex(nonce_randomness[identifier][0]),
+        "binding_nonce_randomness": to_hex(nonce_randomness[identifier][1]),
+        "hiding_nonce": to_hex(G.serialize_scalar(nonces[identifier][0])),
+        "binding_nonce": to_hex(G.serialize_scalar(nonces[identifier][1])),
+        "hiding_nonce_commitment": to_hex(G.serialize(comms[identifier][0])),
+        "binding_nonce_commitment": to_hex(G.serialize(comms[identifier][1])),
+        "binding_factor_input": to_hex(rho_inputs[identifier]),
+        "binding_factor": to_hex(G.serialize_scalar(binding_factors[identifier]))
     }
-    for identifier in PARTICIPANT_LIST:
-        round_one_outputs["participants"][str(identifier)] = {}
-        round_one_outputs["participants"][str(identifier)]["hiding_nonce_randomness"] = to_hex(nonce_randomness[identifier][0])
-        round_one_outputs["participants"][str(identifier)]["binding_nonce_randomness"] = to_hex(nonce_randomness[identifier][1])
-        round_one_outputs["participants"][str(identifier)]["hiding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][0]))
-        round_one_outputs["participants"][str(identifier)]["binding_nonce"] = to_hex(G.serialize_scalar(nonces[identifier][1]))
-        round_one_outputs["participants"][str(identifier)]["hiding_nonce_commitment"] = to_hex(G.serialize(comms[identifier][0]))
-        round_one_outputs["participants"][str(identifier)]["binding_nonce_commitment"] = to_hex(G.serialize(comms[identifier][1]))
-        round_one_outputs["participants"][str(identifier)]["binding_factor_input"] = to_hex(rho_inputs[identifier])
-        round_one_outputs["participants"][str(identifier)]["binding_factor"] = to_hex(G.serialize_scalar(binding_factors[identifier]))
+
+    round_one_outputs = {
+        "outputs": [create_participant_output_vectors(G, identifier) for identifier in PARTICIPANT_LIST]
+    }
 
     # Round two: sign
     sig_shares = {}
@@ -361,13 +367,15 @@ for (fname, name, G, H) in ciphersuites:
         sig_share = participants[identifier].sign(nonces[identifier], message, commitment_list)
         sig_shares[identifier] = sig_share
 
+    def create_sig_shares_vectors(G, identifier):
+        return {
+            "identifier": int(identifier),
+            "sig_share": to_hex(G.serialize_scalar(sig_shares[identifier]))
+        }
+
     round_two_outputs = {
-        "participant_list": ",".join([str(i) for i in PARTICIPANT_LIST]),
-        "participants": {}
+        "outputs": [create_sig_shares_vectors(G, identifier) for identifier in PARTICIPANT_LIST]
     }
-    for identifier in PARTICIPANT_LIST:
-        round_two_outputs["participants"][str(identifier)] = {}
-        round_two_outputs["participants"][str(identifier)]["sig_share"] = to_hex(G.serialize_scalar(sig_shares[identifier]))
 
     # Final step: aggregate
     sig = participants[1].aggregate(sig_shares, participant_public_keys, commitment_list, message)

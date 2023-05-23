@@ -18,10 +18,6 @@ input_signer_keys = [
     "participant_share",
 ]
 
-round_one_keys = [
-    "participant_list",
-]
-
 round_one_outputs_keys = [
     "hiding_nonce_randomness",
     "binding_nonce_randomness",
@@ -31,10 +27,6 @@ round_one_outputs_keys = [
     "binding_nonce_commitment",
     "binding_factor_input",
     "binding_factor",
-]
-
-round_two_keys = [
-    "participant_list",
 ]
 
 round_two_outputs_keys = [
@@ -62,6 +54,8 @@ def format_vector_config(name, vector):
 
 def format_vector_inputs(name, vector):
     print("// Group input parameters")
+    print("participant_list: ", end="")
+    print(",".join(list(map(lambda i : str(i), vector["inputs"]["participant_list"]))))
     for key in input_keys:
         for input_key in vector["inputs"]:
             if key == input_key:
@@ -75,41 +69,23 @@ def format_vector_inputs(name, vector):
 
     print("")
     print("// Signer input parameters")
-    for signer in vector["inputs"]["participants"]:
+    for signer in vector["inputs"]["participant_shares"]:
         for signer_key in input_signer_keys:
-            for signer_input_key in vector["inputs"]["participants"][signer]:
-                if signer_key == signer_input_key:
-                    wrap_print("P" + signer + " " + signer_key + ":", vector["inputs"]["participants"][signer][signer_key])
+            wrap_print("P" + str(signer["identifier"]) + " " + signer_key + ":", signer["participant_share"])
     print("")
 
 def format_vector_round_one(name, vector):
-    print("// Round one parameters")
-    for key in round_one_keys:
-        for round_one_key in vector["round_one_outputs"]:
-            if key == round_one_key:
-                wrap_print(key + ":", vector["round_one_outputs"][key])
-    print("")
     print("// Signer round one outputs")
-    for signer in vector["round_one_outputs"]["participants"]:
+    for signer in vector["round_one_outputs"]["outputs"]:
         for round_one_signer_key in round_one_outputs_keys:
-            for signer_output_key in vector["round_one_outputs"]["participants"][signer]:
-                if round_one_signer_key == signer_output_key:
-                    wrap_print("P" + signer + " " + round_one_signer_key + ":", vector["round_one_outputs"]["participants"][signer][round_one_signer_key])
+            wrap_print("P" + str(signer["identifier"]) + " " + round_one_signer_key + ":", signer[round_one_signer_key])
     print("")
 
 def format_vector_round_two(name, vector):
-    print("// Round two parameters")
-    for key in round_two_keys:
-        for round_two_key in vector["round_two_outputs"]:
-            if key == round_two_key:
-                wrap_print(key + ":", vector["round_two_outputs"][key])
-    print("")
     print("// Signer round two outputs")
-    for signer in vector["round_two_outputs"]["participants"]:
+    for signer in vector["round_two_outputs"]["outputs"]:
         for round_two_signer_key in round_two_outputs_keys:
-            for signer_output_key in vector["round_two_outputs"]["participants"][signer]:
-                if round_two_signer_key == signer_output_key:
-                    wrap_print("P" + signer + " " + round_two_signer_key + ":", vector["round_two_outputs"]["participants"][signer][round_two_signer_key])
+            wrap_print("P" + str(signer["identifier"]) + " " + round_two_signer_key + ":", signer[round_two_signer_key])
     print("")
 
 def format_vector_final_output(name, vector):
