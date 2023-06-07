@@ -143,10 +143,10 @@ def encode_group_commitment_list(G, commitment_list):
     return B_e
 
 def compute_binding_factors(G, H, group_public_key, commitment_list, msg):
-    group_comm_enc = G.serialize(group_commitment)
+    group_public_key_enc = G.serialize(group_public_key)
     msg_hash = H.H4(msg)
     encoded_commitment_hash = H.H5(encode_group_commitment_list(G, commitment_list))
-    rho_input_prefix = group_comm_enc + msg_hash + encoded_commitment_hash
+    rho_input_prefix = group_public_key_enc + msg_hash + encoded_commitment_hash
 
     binding_factors = {}
     rho_inputs = {}
