@@ -506,7 +506,7 @@ Outputs:
   representing the binding factors.
 
 def compute_binding_factors(group_public_key, commitment_list, msg):
-  group_public_key_enc = G.serializeelement(group_public_key)
+  group_public_key_enc = G.SerializeElement(group_public_key)
   msg_hash = H4(msg)
   encoded_commitment_hash =
       H5(encode_group_commitment_list(commitment_list))
