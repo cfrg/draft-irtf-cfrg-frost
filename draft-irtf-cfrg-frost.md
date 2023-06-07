@@ -573,7 +573,7 @@ Outputs:
 
 def compute_challenge(group_commitment, group_public_key, msg):
   group_comm_enc = G.SerializeElement(group_commitment)
-  group_public_key_enc = g.serializeelement(group_public_key)
+  group_public_key_enc = G.SerializeElement(group_public_key)
   challenge_input = group_comm_enc || group_public_key_enc || msg
   challenge = H2(challenge_input)
   return challenge
