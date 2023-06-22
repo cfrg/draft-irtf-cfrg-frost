@@ -507,9 +507,12 @@ Outputs:
 
 def compute_binding_factors(group_public_key, commitment_list, msg):
   group_public_key_enc = G.SerializeElement(group_public_key)
+  // Hashed to a fixed-length.
   msg_hash = H4(msg)
+  // Hashed to a fixed-length.
   encoded_commitment_hash =
       H5(encode_group_commitment_list(commitment_list))
+  // The encoding of the group public key is a fixed length within a ciphersuite.
   rho_input_prefix = group_public_key_enc || msg_hash || encoded_commitment_hash
 
   binding_factor_list = []
