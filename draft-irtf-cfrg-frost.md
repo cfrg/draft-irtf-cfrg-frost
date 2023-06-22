@@ -487,7 +487,7 @@ def binding_factor_for_participant(binding_factor_list, identifier):
 ## Binding Factors Computation {#dep-binding-factor}
 
 This section describes the subroutine for computing binding factors based
-on the participant commitment list and message to be signed.
+on the participant commitment list, message to be signed, and group public key.
 
 ~~~
 Inputs:
