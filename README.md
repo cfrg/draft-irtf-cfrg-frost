@@ -12,8 +12,11 @@ This is the working area for the individual Internet-Draft, "Two-Round Threshold
 | Implementation                                                             | Language | Ciphersuites                   | Version |
 | -------------------------------------------------------------------------- | :------- | :------------------------------| :------ |
 | [Reference](https://github.com/cfrg/draft-irtf-cfrg-frost/tree/master/poc) | Sage     | All                            | main    |
-| [frost-ristretto255](https://github.com/ZcashFoundation/frost/tree/main/frost-ristretto255) | Rust     | FROST(ristretto255, SHA-512)                            | 04   |
-| [frost-p256](https://github.com/ZcashFoundation/frost/tree/main/frost-p256) | Rust     | FROST(P-256, SHA-256)                            | 04   |
+| [frost-ristretto255](https://github.com/ZcashFoundation/frost/tree/main/frost-ristretto255) | Rust     | FROST(ristretto255, SHA-512)                            | 11   |
+| [frost-p256](https://github.com/ZcashFoundation/frost/tree/main/frost-p256) | Rust     | FROST(P-256, SHA-256)                            | 11   |
+| [frost-ed25519](https://github.com/ZcashFoundation/frost/tree/main/frost-ed25519) | Rust     | FROST(Ed25519, SHA-512)                            | 11   |
+| [frost-ed448](https://github.com/ZcashFoundation/frost/tree/main/frost-ed448) | Rust     | FROST(Ed448, SHAKE256)                            | 11   |
+| [frost-secp256k1](https://github.com/ZcashFoundation/frost/tree/main/frost-secp256k1) | Rust     | FROST(secp256k1, SHA-256)                            | 11   |
 | [ecc](https://github.com/aldenml/ecc)                                      | C        | FROST(ristretto255, SHA-512)   | main |
 | [modular-frost](https://github.com/serai-dex/serai/tree/develop/crypto/frost) | Rust     | All   | 11 |
 | [crrl](https://github.com/pornin/crrl/blob/main/src/frost.rs)               | Rust     | All except FROST(Ed448, SHAKE256)    | 08 |
