@@ -136,7 +136,7 @@ Group (CFRG). It is not an IETF product and is not a standard.
 draft-13
 
 - Hash group public key into binding computation (#439)
-- Finalize test vectors (#)
+- Finalize test vectors (#442)
 
 draft-12
 
