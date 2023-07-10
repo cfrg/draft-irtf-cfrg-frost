@@ -983,7 +983,7 @@ ciphersuites MUST also adhere to these requirements.
 
 This ciphersuite uses edwards25519 for the Group and SHA-512 for the Hash function `H`
 meant to produce Ed25519-compliant signatures as specified in {{Section 5.1 of !RFC8032}}.
-The value of the contextString parameter is "FROST-ED25519-SHA512-v11".
+The value of the contextString parameter is "FROST-ED25519-SHA512-v1".
 
 - Group: edwards25519 {{!RFC8032}}, where Ne = 32 and Ns = 32.
   - Order(): Return 2^252 + 27742317777372353535851937790883648493 (see {{?RFC7748}}).
@@ -1032,7 +1032,7 @@ Canonical signature encoding is as specified in {{sig-encoding}}.
 ## FROST(ristretto255, SHA-512) {#recommended-suite}
 
 This ciphersuite uses ristretto255 for the Group and SHA-512 for the Hash function `H`.
-The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v11".
+The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v1".
 
 - Group: ristretto255 {{!RISTRETTO=I-D.irtf-cfrg-ristretto255-decaf448}},
   where Ne = 32 and Ns = 32.
@@ -1073,7 +1073,7 @@ This ciphersuite uses edwards448 for the Group and SHAKE256 for the Hash functio
 meant to produce Ed448-compliant signatures as specified in {{Section 5.2 of RFC8032}}. Note that this
 ciphersuite does not allow applications to specify a context string as is allowed for Ed448
 in {{RFC8032}}, and always sets the {{RFC8032}} context string to the empty string.
-The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHAKE256-v11".
+The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHAKE256-v1".
 
 - Group: edwards448 {{!RFC8032}}, where Ne = 57 and Ns = 57.
   - Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.
@@ -1120,7 +1120,7 @@ Canonical signature encoding is as specified in {{sig-encoding}}.
 ## FROST(P-256, SHA-256)
 
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-P256-SHA256-v11".
+The value of the contextString parameter is "FROST-P256-SHA256-v1".
 
 - Group: P-256 (secp256r1) {{x9.62}}, where Ne = 33 and Ns = 32.
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
@@ -1164,7 +1164,7 @@ Canonical signature encoding is as specified in {{sig-encoding}}.
 ## FROST(secp256k1, SHA-256)
 
 This ciphersuite uses secp256k1 for the Group and SHA-256 for the Hash function `H`.
-The value of the contextString parameter is "FROST-secp256k1-SHA256-v11".
+The value of the contextString parameter is "FROST-secp256k1-SHA256-v1".
 
 - Group: secp256k1 {{SEC2}}, where Ne = 33 and Ns = 32.
   - Order(): Return 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141.
