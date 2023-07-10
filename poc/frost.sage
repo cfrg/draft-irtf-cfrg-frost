@@ -142,10 +142,11 @@ def encode_group_commitment_list(G, commitment_list):
             B_e = B_e + v
     return B_e
 
-def compute_binding_factors(G, H, commitment_list, msg):
+def compute_binding_factors(G, H, group_public_key, commitment_list, msg):
+    group_public_key_enc = G.serialize(group_public_key)
     msg_hash = H.H4(msg)
     encoded_commitment_hash = H.H5(encode_group_commitment_list(G, commitment_list))
-    rho_input_prefix = msg_hash + encoded_commitment_hash
+    rho_input_prefix = group_public_key_enc + msg_hash + encoded_commitment_hash
 
     binding_factors = {}
     rho_inputs = {}
@@ -171,7 +172,7 @@ def compute_challenge(H, group_commitment, group_public_key, msg):
 
 def verify_signature_share(G, H, identifier, public_key_share, sig_share, commitment_list, group_public_key, msg):
     # Compute the binding factors
-    binding_factors, _ = compute_binding_factors(G, H, commitment_list, msg)
+    binding_factors, _ = compute_binding_factors(G, H, group_public_key, commitment_list, msg)
     binding_factor = binding_factors[identifier]
 
     # Compute the group commitment
@@ -226,9 +227,9 @@ class SignerParticipant(object):
         return nonces, comms
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-round-two
-    def sign(self, nonce, msg, commitment_list):
+    def sign(self, nonce, msg, group_public_key, commitment_list):
         # Compute the binding factors
-        binding_factors, _ = compute_binding_factors(self.G, self.H, commitment_list, msg)
+        binding_factors, _ = compute_binding_factors(self.G, self.H, group_public_key, commitment_list, msg)
         binding_factor = binding_factors[self.identifier]
 
         # Compute the group commitment
@@ -247,13 +248,14 @@ class SignerParticipant(object):
         return sig_share
 
     # https://cfrg.github.io/draft-irtf-cfrg-frost/draft-irtf-cfrg-frost.html#name-aggregate
-    def aggregate(self, sig_shares, public_key_shares, commitment_list, msg):
-        binding_factors, _ = compute_binding_factors(self.G, self.H, commitment_list, msg)
+    def aggregate(self, commitment_list, msg, group_public_key, sig_shares, public_key_shares):
+        binding_factors, _ = compute_binding_factors(self.G, self.H, group_public_key, commitment_list, msg)
         group_comm = compute_group_commitment(self.G, commitment_list, binding_factors)
 
+        # does not match spec any more
         participant_list = participants_from_commitment_list(commitment_list)
         for identifier in participant_list:
-            assert(verify_signature_share(self.G, self.H, identifier, public_key_shares[identifier], sig_shares[identifier], commitment_list, self.pk, msg))
+           assert(verify_signature_share(self.G, self.H, identifier, public_key_shares[identifier], sig_shares[identifier], commitment_list, self.pk, msg))
 
         z = 0
         for z_i in sig_shares.values():
@@ -342,7 +344,7 @@ for (fname, name, G, H) in ciphersuites:
         nonce_randomness[identifier] = (hiding_nonce_randomness, binding_nonce_randomness)
         commitment_list.append((identifier, comm_i[0], comm_i[1]))
 
-    binding_factors, rho_inputs = compute_binding_factors(G, H, commitment_list, message)
+    binding_factors, rho_inputs = compute_binding_factors(G, H, group_public_key, commitment_list, message)
 
     def create_participant_output_vectors(G, identifier):
         return {
@@ -364,7 +366,7 @@ for (fname, name, G, H) in ciphersuites:
     # Round two: sign
     sig_shares = {}
     for identifier in PARTICIPANT_LIST:
-        sig_share = participants[identifier].sign(nonces[identifier], message, commitment_list)
+        sig_share = participants[identifier].sign(nonces[identifier], message, group_public_key, commitment_list)
         sig_shares[identifier] = sig_share
 
     def create_sig_shares_vectors(G, identifier):
@@ -378,7 +380,7 @@ for (fname, name, G, H) in ciphersuites:
     }
 
     # Final step: aggregate
-    sig = participants[1].aggregate(sig_shares, participant_public_keys, commitment_list, message)
+    sig = participants[1].aggregate(commitment_list, message, group_public_key, sig_shares, participant_public_keys)
     final_output = {
         "sig": to_hex(sig.encode())
     }

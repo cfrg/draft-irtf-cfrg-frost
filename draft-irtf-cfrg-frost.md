@@ -487,10 +487,12 @@ def binding_factor_for_participant(binding_factor_list, identifier):
 ## Binding Factors Computation {#dep-binding-factor}
 
 This section describes the subroutine for computing binding factors based
-on the participant commitment list and message to be signed.
+on the participant commitment list, message to be signed, and group public key.
 
 ~~~
 Inputs:
+- group_public_key, the public key corresponding to the group signing
+  key, an Element.
 - commitment_list = [(i, hiding_nonce_commitment_i,
   binding_nonce_commitment_i), ...], a list of commitments issued by
   each participant, where each element in the list indicates a
@@ -503,11 +505,15 @@ Outputs:
 - binding_factor_list, a list of (NonZeroScalar, Scalar) tuples
   representing the binding factors.
 
-def compute_binding_factors(commitment_list, msg):
+def compute_binding_factors(group_public_key, commitment_list, msg):
+  group_public_key_enc = G.SerializeElement(group_public_key)
+  // Hashed to a fixed-length.
   msg_hash = H4(msg)
+  // Hashed to a fixed-length.
   encoded_commitment_hash =
       H5(encode_group_commitment_list(commitment_list))
-  rho_input_prefix = msg_hash || encoded_commitment_hash
+  // The encoding of the group public key is a fixed length within a ciphersuite.
+  rho_input_prefix = group_public_key_enc || msg_hash || encoded_commitment_hash
 
   binding_factor_list = []
   for (identifier, hiding_nonce_commitment,
@@ -763,7 +769,7 @@ Outputs:
 def sign(identifier, sk_i, group_public_key,
          nonce_i, msg, commitment_list):
   # Compute the binding factor(s)
-  binding_factor_list = compute_binding_factors(commitment_list, msg)
+  binding_factor_list = compute_binding_factors(group_public_key, commitment_list, msg)
   binding_factor = binding_factor_for_participant(
       binding_factor_list, identifier)
 
@@ -803,7 +809,7 @@ After participants perform round two and send their signature shares to the Coor
 the Coordinator aggregates each share to produce a final signature. Before aggregating,
 the Coordinator MUST validate each signature share using DeserializeScalar. If validation
 fails, the Coordinator MUST abort the protocol as the resulting signature will be invalid.
-If all signature shares are valid, the Coordinator then aggregates them to produce the final
+If all signature shares are valid, the Coordinator aggregates them to produce the final
 signature using the following procedure.
 
 ~~~
@@ -815,6 +821,8 @@ Inputs:
   (hiding_nonce_commitment_i, binding_nonce_commitment_i). This list
   MUST be sorted in ascending order by identifier.
 - msg, the message to be signed, a byte string.
+- group_public_key, public key corresponding to the group signing
+  key, an Element.
 - sig_shares, a set of signature shares z_i, Scalar values, for each
   participant, of length NUM_PARTICIPANTS, where
   MIN_PARTICIPANTS <= NUM_PARTICIPANTS <= MAX_PARTICIPANTS.
@@ -823,9 +831,9 @@ Outputs:
 - (R, z), a Schnorr signature consisting of an Element R and
   Scalar z.
 
-def aggregate(commitment_list, msg, sig_shares):
+def aggregate(commitment_list, msg, group_public_key, sig_shares):
   # Compute the binding factors
-  binding_factor_list = compute_binding_factors(commitment_list, msg)
+  binding_factor_list = compute_binding_factors(group_public_key, commitment_list, msg)
 
   # Compute the group commitment
   group_commitment = compute_group_commitment(
@@ -884,7 +892,7 @@ def verify_signature_share(
         identifier, PK_i, comm_i, sig_share_i, commitment_list,
         group_public_key, msg):
   # Compute the binding factors
-  binding_factor_list = compute_binding_factors(commitment_list, msg)
+  binding_factor_list = compute_binding_factors(group_public_key, commitment_list, msg)
   binding_factor = binding_factor_for_participant(
       binding_factor_list, identifier)
 
