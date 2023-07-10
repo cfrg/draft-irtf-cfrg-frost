@@ -133,7 +133,7 @@ Group (CFRG). It is not an IETF product and is not a standard.
 
 ## Change Log
 
-draft-13
+draft-13 and draft-14
 
 - Hash group public key into binding computation (#439)
 - Finalize test vectors (#442)
