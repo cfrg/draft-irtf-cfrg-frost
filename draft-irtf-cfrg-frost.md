@@ -1272,7 +1272,7 @@ computation or branching is the goal.
 from linear in the number of signing participants to a constant. However, as described in {{StrongerSec22}},
 this optimization removes the guarantee that the set of signer participants that started round one of
 the protocol is the same set of signing participants that produced the signature output by round two.
-As such, the optimization is NOT RECOMENDED, and it is not covered in this document.
+As such, the optimization is NOT RECOMMENDED, and it is not covered in this document.
 
 ## Nonce Reuse Attacks
 
