@@ -917,7 +917,7 @@ def verify_signature_share(
   # Compute the interpolating value
   participant_list = participants_from_commitment_list(
       commitment_list)
-  lambda_i = derive_interpolating_value(x_list, identifier)
+  lambda_i = derive_interpolating_value(participant_list, identifier)
 
   # Compute relation values
   l = G.ScalarBaseMult(sig_share_i)
