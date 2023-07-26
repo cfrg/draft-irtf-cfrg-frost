@@ -591,11 +591,11 @@ def compute_challenge(group_commitment, group_public_key, msg):
 
 This section describes the two-round FROST signing protocol for producing Schnorr signatures.
 The protocol is configured to run with a selection of `NUM_PARTICIPANTS` signer participants and a Coordinator.
-`NUM_PARTICIPANTS` is a positive integer at least `MIN_PARTICIPANTS` but no larger than
-`MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS <= MAX_PARTICIPANTS`, `MIN_PARTICIPANTS` is a positive
-non-zero integer and `MAX_PARTICIPANTS` is a positive integer less than the group order.
-A signer participant, or simply participant, is an entity that is trusted to hold and
-use a signing key share. The Coordinator is an entity with the following responsibilities:
+`NUM_PARTICIPANTS` is a positive non-zero integer which MUST be at least `MIN_PARTICIPANTS` but
+MUST NOT be larger than `MAX_PARTICIPANTS`, where `MIN_PARTICIPANTS <= MAX_PARTICIPANTS`,
+`MIN_PARTICIPANTS` is a positive non-zero integer and `MAX_PARTICIPANTS` MUST be a positive integer
+less than the group order. A signer participant, or simply participant, is an entity that is trusted
+to hold and use a signing key share. The Coordinator is an entity with the following responsibilities:
 
 1. Determining which participants will participate (at least MIN_PARTICIPANTS in number);
 2. Coordinating rounds (receiving and forwarding inputs among participants); and
@@ -684,10 +684,10 @@ Aggregation step is described in {{frost-aggregation}}.
 
 FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
-of type Element or Scalar is deserialized using DeserializeElement and DeserializeScalar,
-respectively, as these functions perform the necessary input validation steps, and that all
-messages sent over the wire are encoded appropriately, e.g., that Scalars and Elements are
-encoded using their respective functions.
+of type Element or Scalar received over the network MUST be deserialized using DeserializeElement
+and DeserializeScalar, respectively, as these functions perform the necessary input validation steps,
+and that all messages sent over the wire MUST be encoded appropriately, e.g., that Scalars and Elements are
+encoded using their respective functions SerializeScalar and SerializeElement.
 
 FROST assumes reliable message delivery between the Coordinator and participants in
 order for the protocol to complete. An attacker masquerading as another participant
@@ -724,7 +724,7 @@ def commit(sk_i):
   return (nonces, comms)
 ~~~
 
-The outputs `nonce` and `comm` from participant `P_i` should both be stored locally and
+The outputs `nonce` and `comm` from participant `P_i` SHOULD both be stored locally and
 kept for use in the second round. The `nonce` value is secret and MUST NOT be shared, whereas
 the public output `comm` is sent to the Coordinator. The nonce values produced by this
 function MUST NOT be used in more than one invocation of `sign`, and the nonces MUST be generated
@@ -860,7 +860,7 @@ ciphersuite; see {{ciphersuites}} for details. The aggregate signature will veri
 if all signature shares are valid. Moreover, subsets of valid signature shares will themselves not yield
 a valid aggregate signature.
 
-If the aggregate signature verification fails, the Coordinator can verify each signature
+If the aggregate signature verification fails, the Coordinator MAY verify each signature
 share individually to identify and act on misbehaving participants. The mechanism for acting on
 a misbehaving participant is out of scope for this specification; see {{abort}} for more information
 about dealing with invalid signatures and misbehaving participants.
