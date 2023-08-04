@@ -19,7 +19,7 @@ This is the working area for the individual Internet-Draft, "Two-Round Threshold
 | [frost-secp256k1](https://github.com/ZcashFoundation/frost/tree/main/frost-secp256k1) | Rust     | FROST(secp256k1, SHA-256)                            | 11   |
 | [ecc](https://github.com/aldenml/ecc)                                      | C        | FROST(ristretto255, SHA-512)   | main |
 | [modular-frost](https://github.com/serai-dex/serai/tree/develop/crypto/frost) | Rust     | All   | 14 |
-| [crrl](https://github.com/pornin/crrl/blob/main/src/frost.rs)               | Rust     | All except FROST(Ed448, SHAKE256)    | 08 |
+| [crrl](https://github.com/pornin/crrl/blob/main/src/frost.rs)               | Rust     | All     | 14 |
 | [frost](https://github.com/bytemare/frost)                                 | Go       | All except FROST(Ed448, SHAKE256) | main |
 
 ## Contributing
