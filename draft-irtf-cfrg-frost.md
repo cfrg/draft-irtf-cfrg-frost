@@ -1509,7 +1509,7 @@ Inputs:
   generated Scalars, not including the 0th coefficient of the
   polynomial.
 - MAX_PARTICIPANTS, the number of shares to generate, an integer less
-  than 2^16.
+  than the group order.
 
 Outputs:
 - secret_key_shares, A list of MAX_PARTICIPANTS number of secret
