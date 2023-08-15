@@ -84,6 +84,12 @@ informative:
       - name: Jonas Schneider-Bensch
       - name: Dominique Schröder
     date: 2022-09-18
+  MultExp:
+    target: https://zfnd.org/speeding-up-frost-with-multi-scalar-multiplication/
+    title: "Speeding up FROST with multi-scalar multiplication"
+    author:
+      - name: Deirdre Connolly
+      - name: Conrado Gouvea
 
 --- abstract
 
@@ -564,6 +570,12 @@ def compute_group_commitment(commitment_list, binding_factor_list):
         binding_nonce)
   return group_commitment
 ~~~
+
+Note that the performance of this algorithm is defined
+naively and scales linearly relative to the number of signers. For improved
+performance, the group commitment can be computed using multi-exponentation
+techniques such as Pippinger's algorithm; see {{MultExp}} for more details.
+
 
 ## Signature Challenge Computation {#dep-sig-challenge}
 
