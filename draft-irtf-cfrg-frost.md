@@ -137,7 +137,10 @@ key generation with a trusted dealer is specified in {{dep-dealer}}.
 This document represents the consensus of the Crypto Forum Research
 Group (CFRG). It is not an IETF product and is not a standard.
 
+RFC EDITOR: PLEASE REMOVE THE FOLLOWING SUB-SECTION
+
 ## Change Log
+
 
 draft-13 and draft-14
 
@@ -615,7 +618,7 @@ to hold and use a signing key share. The Coordinator is an entity with the follo
 
 FROST assumes that the Coordinator and the set of signer participants are chosen
 externally to the protocol. Note that it is possible to deploy the protocol without
-a distinguished Coordinator; see {{no-coordinator}} for more information.
+designating a single Coordinator; see {{no-coordinator}} for more information.
 
 FROST produces signatures that can be verified as if they were produced from a single signer
 using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
@@ -736,7 +739,7 @@ def commit(sk_i):
   return (nonces, comms)
 ~~~
 
-The outputs `nonce` and `comm` from participant `P_i` SHOULD both be stored locally and
+The outputs `nonce` and `comm` from participant `P_i` are both stored locally and
 kept for use in the second round. The `nonce` value is secret and MUST NOT be shared, whereas
 the public output `comm` is sent to the Coordinator. The nonce values produced by this
 function MUST NOT be used in more than one invocation of `sign`, and the nonces MUST be generated
@@ -880,7 +883,7 @@ about dealing with invalid signatures and misbehaving participants.
 The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 Recall that the Coordinator is configured with "group info" which contains
 the group public key `PK` and public keys `PK_i` for each participant, so the `group_public_key` and
-`PK_i` function arguments should come from that previously stored group info.
+`PK_i` function arguments MUST come from that previously stored group info.
 
 ~~~
 Inputs:
