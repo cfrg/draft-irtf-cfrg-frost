@@ -621,24 +621,24 @@ externally to the protocol. Note that it is possible to deploy the protocol with
 designating a single Coordinator; see {{no-coordinator}} for more information.
 
 FROST produces signatures that can be verified as if they were produced from a single signer
-using a signing key `s` with corresponding public key `PK`, where `s` is a Scalar
-value and `PK = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
+using a signing key `s` with corresponding public key `group_public_key`, where `s` is a Scalar
+value and `group_public_key = G.ScalarBaseMult(s)`. As a threshold signing protocol, the group signing
 key `s` is Shamir secret-shared amongst each of the `MAX_PARTICIPANTS` participants
 and used to produce signatures; see {{dep-shamir}} for more information about Shamir secret sharing.
 In particular, FROST assumes each participant is configured with the following information:
 
 - An identifier, which is a NonZeroScalar value denoted `i` in the range `[1, MAX_PARTICIPANTS]`
   and MUST be distinct from the identifier of every other participant.
-- A signing key `sk_i`, which is a Scalar value representing the i-th Shamir secret share
-  of the group signing key `s`. In particular, `sk_i` is the value `f(i)` on a secret
+- A signing key `secret_key_i`, which is a Scalar value representing the i-th Shamir secret share
+  of the group signing key `s`. In particular, `secret_key_i` is the value `f(i)` on a secret
   polynomial `f` of degree `(MIN_PARTICIPANTS - 1)`, where `s` is `f(0)`. The public key
-  corresponding to this signing key share is `PK_i = G.ScalarBaseMult(sk_i)`.
+  corresponding to this signing key share is `public_key_i = G.ScalarBaseMult(secret_key_i)`.
 
 The Coordinator and each participant are additionally configured with common group
 information, denoted "group info," which consists of the following:
 
-- Group public key, which is an `Element` in `G` denoted `PK`.
-- Public keys `PK_i` for each participant, which are `Element` values in `G` denoted `PK_i`
+- Group public key, which is an `Element` in `G` denoted `group_public_key`.
+- Public keys `public_key_i` for each participant, which are `Element` values in `G` denoted `public_key_i`
   for each `i` in `[1, MAX_PARTICIPANTS]`.
 
 This document does not specify how this information, including the signing key shares,
@@ -722,16 +722,16 @@ a pair of secret nonces `(hiding_nonce, binding_nonce)` and their corresponding 
 
 ~~~
 Inputs:
-- sk_i, the secret key share, a Scalar.
+- secret_key_i, the secret key share, a Scalar.
 
 Outputs:
 - (nonce, comm), a tuple of nonce and nonce commitment pairs,
   where each value in the nonce pair is a Scalar and each value in
   the nonce commitment pair is an Element.
 
-def commit(sk_i):
-  hiding_nonce = nonce_generate(sk_i)
-  binding_nonce = nonce_generate(sk_i)
+def commit(secret_key_i):
+  hiding_nonce = nonce_generate(secret_key_i)
+  binding_nonce = nonce_generate(secret_key_i)
   hiding_nonce_commitment = G.ScalarBaseMult(hiding_nonce)
   binding_nonce_commitment = G.ScalarBaseMult(binding_nonce)
   nonces = (hiding_nonce, binding_nonce)
@@ -769,7 +769,7 @@ procedure to produce its own signature share.
 ~~~
 Inputs:
 - identifier, identifier i of the participant, a NonZeroScalar.
-- sk_i, Signer secret key share, a Scalar.
+- secret_key_i, Signer secret key share, a Scalar.
 - group_public_key, public key corresponding to the group signing
   key, an Element.
 - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce)
@@ -786,7 +786,7 @@ Inputs:
 Outputs:
 - sig_share, a signature share, a Scalar.
 
-def sign(identifier, sk_i, group_public_key,
+def sign(identifier, secret_key_i, group_public_key,
          nonce_i, msg, commitment_list):
   # Compute the binding factor(s)
   binding_factor_list = compute_binding_factors(group_public_key, commitment_list, msg)
@@ -809,7 +809,7 @@ def sign(identifier, sk_i, group_public_key,
   # Compute the signature share
   (hiding_nonce, binding_nonce) = nonce_i
   sig_share = hiding_nonce + (binding_nonce * binding_factor) +
-      (lambda_i * sk_i * challenge)
+      (lambda_i * secret_key_i * challenge)
 
   return sig_share
 ~~~
@@ -882,14 +882,13 @@ about dealing with invalid signatures and misbehaving participants.
 
 The function for verifying a signature share, denoted `verify_signature_share`, is described below.
 Recall that the Coordinator is configured with "group info" which contains
-the group public key `PK` and public keys `PK_i` for each participant, so the `group_public_key` and
-`PK_i` function arguments MUST come from that previously stored group info.
+the group public key `group_public_key` and public keys `public_key_i` for each participant.
 
 ~~~
 Inputs:
 - identifier, identifier i of the participant, a NonZeroScalar.
-- PK_i, the public key for the i-th participant, where
-  PK_i = G.ScalarBaseMult(sk_i), an Element.
+- public_key_i, the public key for the i-th participant, where
+  public_key_i = G.ScalarBaseMult(secret_key_i), an Element.
 - comm_i, pair of Element values in G
   (hiding_nonce_commitment, binding_nonce_commitment) generated in
   round one from the i-th participant.
@@ -909,7 +908,7 @@ Outputs:
 - True if the signature share is valid, and False otherwise.
 
 def verify_signature_share(
-        identifier, PK_i, comm_i, sig_share_i, commitment_list,
+        identifier, public_key_i, comm_i, sig_share_i, commitment_list,
         group_public_key, msg):
   # Compute the binding factors
   binding_factor_list = compute_binding_factors(group_public_key, commitment_list, msg)
@@ -936,7 +935,7 @@ def verify_signature_share(
 
   # Compute relation values
   l = G.ScalarBaseMult(sig_share_i)
-  r = comm_share + G.ScalarMult(PK_i, challenge * lambda_i)
+  r = comm_share + G.ScalarMult(public_key_i, challenge * lambda_i)
 
   return l == r
 ~~~
@@ -1039,8 +1038,8 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v1".
 Normally H2 would also include a domain separator, but for compatibility with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.1.7 of RFC8032}} with the
-constraint that implementations MUST check the group equation `[8][z]B = [8]R + [8][c]PK`
-(changed to use the notation in this document).
+constraint that implementations MUST check the group equation `[8][z]B = [8]R + [8][c]PK`,
+where `PK = group_public_key` (changed to use the notation in this document).
 
 Canonical signature encoding is as specified in {{sig-encoding}}.
 
@@ -1127,8 +1126,8 @@ The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHA
 Normally H2 would also include a domain separator, but for compatibility with {{!RFC8032}}, it is omitted.
 
 Signature verification is as specified in {{Section 5.2.7 of RFC8032}} with the
-constraint that implementations MUST check the group equation `[4][z]B = [4]R + [4][c]PK`
-(changed to use the notation in this document).
+constraint that implementations MUST check the group equation `[4][z]B = [4]R + [4][c]PK`,
+where `PK = group_public_key` (changed to use the notation in this document).
 
 Canonical signature encoding is as specified in {{sig-encoding}}.
 
@@ -1411,21 +1410,21 @@ key as input (as opposed to a key share.)
 ~~~
 Inputs:
 - msg, message to sign, a byte string.
-- sk, secret key, a Scalar.
+- secret_key, secret key, a Scalar.
 
 Outputs:
 - (R, z), a Schnorr signature consisting of an Element R and
   Scalar z.
 
-def prime_order_sign(msg, sk):
+def prime_order_sign(msg, secret_key):
   r = G.RandomScalar()
   R = G.ScalarBaseMult(r)
-  PK = G.ScalarBaseMult(sk)
+  public_key = G.ScalarBaseMult(secret_key)
   comm_enc = G.SerializeElement(R)
-  pk_enc = G.SerializeElement(PK)
-  challenge_input = comm_enc || pk_enc || msg
+  public_key_enc = G.SerializeElement(public_key)
+  challenge_input = comm_enc || public_key_enc || msg
   c = H2(challenge_input)
-  z = r + (c * sk) // Scalar addition and multiplication
+  z = r + (c * secret_key) // Scalar addition and multiplication
   return (R, z)
 ~~~
 
@@ -1436,19 +1435,19 @@ Specifically, it assumes that signature R component and public key belong to the
 Inputs:
 - msg, signed message, a byte string.
 - sig, a tuple (R, z) output from signature generation.
-- PK, public key, an Element.
+- public_key, public key, an Element.
 
 Outputs:
 - True if signature is valid, and False otherwise.
 
-def prime_order_verify(msg, sig = (R, z), PK):
+def prime_order_verify(msg, sig = (R, z), public_key):
   comm_enc = G.SerializeElement(R)
-  pk_enc = G.SerializeElement(PK)
-  challenge_input = comm_enc || pk_enc || msg
+  public_key_enc = G.SerializeElement(public_key)
+  challenge_input = comm_enc || public_key_enc || msg
   c = H2(challenge_input)
 
   l = G.ScalarBaseMult(z)
-  r = R + G.ScalarMult(PK, c)
+  r = R + G.ScalarMult(public_key, c)
   return l == r
 ~~~
 
@@ -1656,20 +1655,20 @@ If `vss_verify` fails, the participant MUST abort the protocol, and failure shou
 
 ~~~
 Inputs:
-- share_i: A tuple of the form (i, sk_i), where i indicates the
-  participant identifier (a NonZeroScalar), and sk_i the
+- share_i: A tuple of the form (i, secret_key_i), where i indicates the
+  participant identifier (a NonZeroScalar), and secret_key_i the
   participant's secret key, a secret share of the constant term of f,
-  where sk_i is a Scalar.
+  where secret_key_i is a Scalar.
 - vss_commitment, a VSS commitment to a secret polynomial f, a vector
   commitment to each of the coefficients in coeffs, where each
   element of the vector commitment is an Element.
 
 Outputs:
-- True if sk_i is valid, and False otherwise.
+- True if secret_key_i is valid, and False otherwise.
 
 def vss_verify(share_i, vss_commitment)
-  (i, sk_i) = share_i
-  S_i = G.ScalarBaseMult(sk_i)
+  (i, secret_key_i) = share_i
+  S_i = G.ScalarBaseMult(secret_key_i)
   S_i' = G.Identity()
   for j in range(0, MIN_PARTICIPANTS):
     S_i' += G.ScalarMult(vss_commitment[j], pow(i, j))
@@ -1689,20 +1688,20 @@ Inputs:
   element of the vector commitment is an Element.
 
 Outputs:
-- PK, the public key representing the group, an Element.
+- group_public_key, the public key representing the group, an Element.
 - participant_public_keys, a list of MAX_PARTICIPANTS public keys
-  PK_i for i=1,...,MAX_PARTICIPANTS, where each PK_i is the public
+  public_key_i for i=1,...,MAX_PARTICIPANTS, where each public_key_i is the public
   key, an Element, for participant i.
 
 def derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
-  PK = vss_commitment[0]
+  group_public_key = vss_commitment[0]
   participant_public_keys = []
   for i in range(1, MAX_PARTICIPANTS+1):
-    PK_i = G.Identity()
+    public_key_i = G.Identity()
     for j in range(0, MIN_PARTICIPANTS):
-      PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
-    participant_public_keys.append(PK_i)
-  return PK, participant_public_keys
+      public_key_i += G.ScalarMult(vss_commitment[j], pow(i, j))
+    participant_public_keys.append(public_key_i)
+  return group_public_key, participant_public_keys
 ~~~
 
 # Random Scalar Generation {#random-scalar}
