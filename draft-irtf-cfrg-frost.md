@@ -1315,12 +1315,16 @@ message to be signed prior to performing the protocol.
 
 Every participant begins by performing `commit()` as is done in the setting
 where a Coordinator is used. However, instead of sending the commitment
-to the Coordinator, every participant instead will publish
-this commitment to every other participant. Then, in the second round, participants will already have
-sufficient information to perform signing. They will directly perform `sign()`.
-All participants will then publish their signature shares to one another. After having
-received all signature shares from all other participants, each participant will then perform
-`verify_signature_share` and then `aggregate` directly.
+to the Coordinator, every participant instead MUST publish this commitment to
+every other participant. Then, in the second round, participants will already have
+sufficient information to perform signing. They MUST directly perform `sign()`.
+All participants MUST publish their signature shares to one another. After having
+received all signature shares from all other participants, each participant MUST perform
+`aggregate` directly, then SHOULD verify this signature using the group public key.
+
+If the aggregate signature verification fails, each participant MAY verify each signature
+share individually to identify and act on misbehaving participants; see {{abort}} for more
+information about dealing with invalid signatures and misbehaving participants.
 
 The requirements for the underlying network channel remain the same in the setting
 where all participants play the role of the Coordinator, in that all messages that
