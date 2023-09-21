@@ -1317,10 +1317,13 @@ Every participant begins by performing `commit()` as is done in the setting
 where a Coordinator is used. However, instead of sending the commitment
 to the Coordinator, every participant instead will publish
 this commitment to every other participant. Then, in the second round, participants will already have
-sufficient information to perform signing. They will directly perform `sign()`.
-All participants will then publish their signature shares to one another. After having
-received all signature shares from all other participants, each participant will then perform
-`verify_signature_share` and then `aggregate` directly.
+sufficient information to perform signing. After invoking `sign()`,
+each participant then publishes its signature share to the other participants. After having
+received all signature shares from all other participants, each participant then
+aggregates them using `aggregate()` and then verifies the signature using the
+group public key. If aggregate signature verification fails, each participant can
+verify each signature share individually to identify and act on misbehaving participants;
+see {{abort}} for more information about dealing with invalid signatures and misbehaving participants.
 
 The requirements for the underlying network channel remain the same in the setting
 where all participants play the role of the Coordinator, in that all messages that
