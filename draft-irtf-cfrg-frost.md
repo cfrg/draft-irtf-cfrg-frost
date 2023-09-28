@@ -1250,7 +1250,8 @@ that performs key generation (see {{dep-vss}}) or through a distributed key gene
 Note that the Coordinator is not trusted with any private information and communication
 at the time of signing can be performed over a public channel, as long as it is
 reliable. To give the guarantee of identifying misbehaving
-signers, the network channel should be additionally authenticated.
+signers, the network channel should be additionally authenticated;
+see {{abort}} for more discussion.
 
 FROST provides security against denial of service attacks under the following assumptions:
 
