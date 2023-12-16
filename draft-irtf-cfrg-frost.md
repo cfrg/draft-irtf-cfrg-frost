@@ -725,7 +725,7 @@ Inputs:
 - secret_key_i, the secret key share, a Scalar.
 
 Outputs:
-- (nonce, comm), a tuple of nonce and nonce commitment pairs,
+- (nonces, comms), a tuple of nonce and nonce commitment pairs,
   where each value in the nonce pair is a Scalar and each value in
   the nonce commitment pair is an Element.
 
