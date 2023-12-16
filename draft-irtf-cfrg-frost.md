@@ -1313,7 +1313,8 @@ Doing so does not change the security implications of FROST, but instead simply
 requires each participant to communicate with all other participants. We loosely
 describe how to perform FROST signing among participants without this coordinator role.
 We assume that every participant receives as input from an external source the
-message to be signed prior to performing the protocol.
+message to be signed prior to performing the protocol, or between rounds one and two
+of the protocol.
 
 Every participant begins by performing `commit()` as is done in the setting
 where a Coordinator is used. However, instead of sending the commitment
