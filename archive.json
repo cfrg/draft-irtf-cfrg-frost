@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-21T00:39:53.016118+00:00",
+  "timestamp": "2023-12-24T00:42:46.540249+00:00",
   "repo": "cfrg/draft-irtf-cfrg-frost",
   "labels": [
     {
@@ -28677,9 +28677,9 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "This change proposes an alternative Coordinator-less scenario:\r\n\r\n1. Participants commit()\r\n2. Participants receive message to be signed\r\n3. Participants sign() and aggregate()\r\n\r\nThis is in particular relevant when the last participant in round one is the one who gets to decide the message to be signed. I don\u2019t yet see a security disadvantage to this.",
+      "body": "This change proposes an alternative Coordinator-less scenario:\r\n\r\n1. Participants commit()\r\n2. Participants receive message to be signed\r\n3. Participants sign() and aggregate()\r\n\r\nI don\u2019t yet see a security disadvantage to this.",
       "createdAt": "2023-12-16T11:11:54Z",
-      "updatedAt": "2023-12-16T11:11:55Z",
+      "updatedAt": "2023-12-22T18:40:08Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-frost",
       "baseRefName": "master",
       "baseRefOid": "127452b93acb3094a6f659d059550df5618c2714",
