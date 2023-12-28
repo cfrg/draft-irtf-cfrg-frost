@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-26T00:38:56.757068+00:00",
+  "timestamp": "2023-12-28T00:38:37.192885+00:00",
   "repo": "cfrg/draft-irtf-cfrg-frost",
   "labels": [
     {
@@ -25586,7 +25586,7 @@
       "labels": [],
       "body": "As discussed with @chris-wood offline, this reformats the vector structures, mainly to include the participant identifier as a json struct value and not a key. This allows test code ingesting the json vectors to not depend on the identifiers as struct keys, and hence be more adaptable.",
       "createdAt": "2023-01-08T23:43:56Z",
-      "updatedAt": "2023-05-23T11:25:47Z",
+      "updatedAt": "2023-12-26T03:04:26Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-frost",
       "baseRefName": "master",
       "baseRefOid": "4f6e9708a95df0c0c32172039fe56e86540f4e1f",
