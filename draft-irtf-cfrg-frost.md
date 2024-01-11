@@ -699,6 +699,10 @@ are described in {{frost-round-two}}. Note that each participant persists some s
 the two rounds, and this state is deleted as described in {{frost-round-two}}. The final
 Aggregation step is described in {{frost-aggregation}}.
 
+Note that applications MAY send the message in the first round, to optimize
+when the message is checked for validity and allow for early termination in the
+case the participant decides the message is invalid.
+
 FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
 of type Element or Scalar received over the network MUST be deserialized using DeserializeElement
