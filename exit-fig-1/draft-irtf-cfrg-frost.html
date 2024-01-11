@@ -20,24 +20,24 @@ that can be verified with an Edwards-Curve Digital Signature Algorithm (EdDSA, a
 compliant verifier. However, unlike EdDSA, the signatures produced by FROST are not deterministic.
 This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF. 
     " name="description">
-<meta content="xml2rfc 3.18.0" name="generator">
+<meta content="xml2rfc 3.19.0" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-irtf-cfrg-frost-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.18.0
-    Python 3.11.5
-    ConfigArgParse 1.5.3
+  xml2rfc 3.19.0
+    Python 3.11.6
+    ConfigArgParse 1.7
     google-i18n-address 3.1.0
     intervaltree 3.1.0
     Jinja2 3.1.2
     lxml 4.9.3
-    platformdirs 3.10.0
+    platformdirs 4.1.0
     pycountry 22.3.5
-    PyYAML 6.0
+    PyYAML 6.0.1
     requests 2.31.0
-    setuptools 67.7.2
+    setuptools 68.2.2
     six 1.16.0
-    wcwidth 0.2.6
+    wcwidth 0.2.12
 -->
 <link href="draft-irtf-cfrg-frost.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -660,7 +660,7 @@ sub, sup {
 }
 #toc nav li {
   line-height: 1.3em;
-  margin: 0.75em 0;
+  margin: 2px 0;
   padding-left: 1.2em;
   text-indent: -1.2em;
 }
@@ -753,7 +753,7 @@ hr.addr {
     z-index: 2;
     top: 0;
     right: 0;
-    padding: 0;
+    padding: 1px 0 0 0;
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
@@ -877,16 +877,13 @@ hr.addr {
     border-top: none;
     padding-top: 0;
   }
-  figure, pre {
+  figure, pre, .vcard {
     page-break-inside: avoid;
-  }
-  figure {
-    overflow: scroll;
   }
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
   }
-  h2+*, h3+*, h4+*, h5+*, h6+* {
+  :is(h2, h3, h4, h5, h6)+*, dd {
     page-break-before: avoid;
   }
   pre {
@@ -899,6 +896,9 @@ hr.addr {
   }
   td {
     border-top: 1px solid #ddd;
+  }
+  .toplink {
+    display: none;
   }
 }
 
@@ -1000,28 +1000,6 @@ address div.right {
   text-align: right;
 }
 
-/* Give the table caption label the same styling as the figcaption */
-
-@media print {
-  .toplink {
-    display: none;
-  }
-
-  /* avoid overwriting the top border line with the ToC header */
-  #toc {
-    padding-top: 1px;
-  }
-
-  /* Avoid page breaks inside dl and author address entries */
-  dd {
-    page-break-before: avoid;
-  }
-  .vcard {
-    page-break-inside: avoid;
-  }
-
-}
-
 /* Dark mode. */
 @media (prefers-color-scheme: dark) {
 :root {
@@ -1058,11 +1036,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">FROST</td>
-<td class="right">September 2023</td>
+<td class="right">January 2024</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Connolly, et al.</td>
-<td class="center">Expires 22 March 2024</td>
+<td class="center">Expires 14 July 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1075,12 +1053,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-irtf-cfrg-frost-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-09-19" class="published">19 September 2023</time>
+<time datetime="2024-01-11" class="published">11 January 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-03-22">22 March 2024</time></dd>
+<dd class="expires"><time datetime="2024-07-14">14 July 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1145,7 +1123,7 @@ This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 March 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 July 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1154,7 +1132,7 @@ This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF
 <a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
         </h2>
 <p id="section-boilerplate.2-1">
-            Copyright (c) 2023 IETF Trust and the persons identified as the
+            Copyright (c) 2024 IETF Trust and the persons identified as the
             document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.2-2">
             This document is subject to BCP 78 and the IETF Trust's Legal
@@ -1396,170 +1374,233 @@ Group (CFRG). It is not an IETF product and is not a standard.<a href="#section-
         </h3>
 <p id="section-1.1-1">draft-13 and draft-14<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-2.1">Hash group public key into binding computation (#439)<a href="#section-1.1-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-2.1">
+            <p id="section-1.1-2.1.1">Hash group public key into binding computation (#439)<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-2.2">Finalize test vectors (#442)<a href="#section-1.1-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-2.2">
+            <p id="section-1.1-2.2.1">Finalize test vectors (#442)<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-3">draft-12<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-4.1">Address RGLC feedback (#399, #396, #395, #394, #393, #384, #382, #397, #378, #376, #375, #374, #373, #371, #370, #369, #368, #367, #366, #364, #363, #362, #361, #359, #358, #357, #356, #354, #353, #352, #350, #349, #348, #347, #314)<a href="#section-1.1-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-4.1">
+            <p id="section-1.1-4.1.1">Address RGLC feedback (#399, #396, #395, #394, #393, #384, #382, #397, #378, #376, #375, #374, #373, #371, #370, #369, #368, #367, #366, #364, #363, #362, #361, #359, #358, #357, #356, #354, #353, #352, #350, #349, #348, #347, #314)<a href="#section-1.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-4.2">Fix bug in signature share serialization (#397)<a href="#section-1.1-4.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-4.2">
+            <p id="section-1.1-4.2.1">Fix bug in signature share serialization (#397)<a href="#section-1.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-4.3">Fix various editorial issues (#385)<a href="#section-1.1-4.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-4.3">
+            <p id="section-1.1-4.3.1">Fix various editorial issues (#385)<a href="#section-1.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-5">draft-11<a href="#section-1.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-6.1">Update version string constant (#307)<a href="#section-1.1-6.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-6.1">
+            <p id="section-1.1-6.1.1">Update version string constant (#307)<a href="#section-1.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-6.2">Make SerializeElement reject the identity element (#306)<a href="#section-1.1-6.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-6.2">
+            <p id="section-1.1-6.2.1">Make SerializeElement reject the identity element (#306)<a href="#section-1.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-6.3">Make ciphersuite requirements explicit (#302)<a href="#section-1.1-6.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-6.3">
+            <p id="section-1.1-6.3.1">Make ciphersuite requirements explicit (#302)<a href="#section-1.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-6.4">Fix various editorial issues (#303, #301, #299, #297)<a href="#section-1.1-6.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-6.4">
+            <p id="section-1.1-6.4.1">Fix various editorial issues (#303, #301, #299, #297)<a href="#section-1.1-6.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-7">draft-10<a href="#section-1.1-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-8.1">Update version string constant (#296)<a href="#section-1.1-8.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-8.1">
+            <p id="section-1.1-8.1.1">Update version string constant (#296)<a href="#section-1.1-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-8.2">Fix some editorial issues from Ian Goldberg (#295)<a href="#section-1.1-8.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-8.2">
+            <p id="section-1.1-8.2.1">Fix some editorial issues from Ian Goldberg (#295)<a href="#section-1.1-8.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-9">draft-09<a href="#section-1.1-9" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-10.1">Add single-signer signature generation to complement RFC8032 functions (#293)<a href="#section-1.1-10.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-10.1">
+            <p id="section-1.1-10.1.1">Add single-signer signature generation to complement RFC8032 functions (#293)<a href="#section-1.1-10.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-10.2">Address Thomas Pornin review comments from https://mailarchive.ietf.org/arch/msg/crypto-panel/bPyYzwtHlCj00g8YF1tjj-iYP2c/ (#292, #291, #290, #289, #287, #286, #285, #282, #281, #280, #279, #278, #277, #276, #275, #273, #272, #267)<a href="#section-1.1-10.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-10.2">
+            <p id="section-1.1-10.2.1">Address Thomas Pornin review comments from https://mailarchive.ietf.org/arch/msg/crypto-panel/bPyYzwtHlCj00g8YF1tjj-iYP2c/ (#292, #291, #290, #289, #287, #286, #285, #282, #281, #280, #279, #278, #277, #276, #275, #273, #272, #267)<a href="#section-1.1-10.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-10.3">Correct Ed448 ciphersuite (#246)<a href="#section-1.1-10.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-10.3">
+            <p id="section-1.1-10.3.1">Correct Ed448 ciphersuite (#246)<a href="#section-1.1-10.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-10.4">Various editorial changes (#241, #240)<a href="#section-1.1-10.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-10.4">
+            <p id="section-1.1-10.4.1">Various editorial changes (#241, #240)<a href="#section-1.1-10.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-11">draft-08<a href="#section-1.1-11" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-12.1">Add notation for Scalar multiplication (#237)<a href="#section-1.1-12.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-12.1">
+            <p id="section-1.1-12.1.1">Add notation for Scalar multiplication (#237)<a href="#section-1.1-12.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-12.2">Add secp2561k1 ciphersuite (#223)<a href="#section-1.1-12.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-12.2">
+            <p id="section-1.1-12.2.1">Add secp2561k1 ciphersuite (#223)<a href="#section-1.1-12.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-12.3">Remove RandomScalar implementation details (#231)<a href="#section-1.1-12.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-12.3">
+            <p id="section-1.1-12.3.1">Remove RandomScalar implementation details (#231)<a href="#section-1.1-12.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-12.4">Add domain separation for message and commitment digests (#228)<a href="#section-1.1-12.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-12.4">
+            <p id="section-1.1-12.4.1">Add domain separation for message and commitment digests (#228)<a href="#section-1.1-12.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-13">draft-07<a href="#section-1.1-13" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-14.1">Fix bug in per-rho signer computation (#222)<a href="#section-1.1-14.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-14.1">
+            <p id="section-1.1-14.1.1">Fix bug in per-rho signer computation (#222)<a href="#section-1.1-14.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-15">draft-06<a href="#section-1.1-15" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-16.1">Make verification a per-ciphersuite functionality (#219)<a href="#section-1.1-16.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-16.1">
+            <p id="section-1.1-16.1.1">Make verification a per-ciphersuite functionality (#219)<a href="#section-1.1-16.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-16.2">Use per-signer values of rho to mitigate protocol malleability (#217)<a href="#section-1.1-16.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-16.2">
+            <p id="section-1.1-16.2.1">Use per-signer values of rho to mitigate protocol malleability (#217)<a href="#section-1.1-16.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-16.3">Correct prime-order subgroup checks (#215, #211)<a href="#section-1.1-16.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-16.3">
+            <p id="section-1.1-16.3.1">Correct prime-order subgroup checks (#215, #211)<a href="#section-1.1-16.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-16.4">Fix bug in ed25519 ciphersuite description (#205)<a href="#section-1.1-16.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-16.4">
+            <p id="section-1.1-16.4.1">Fix bug in ed25519 ciphersuite description (#205)<a href="#section-1.1-16.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-16.5">Various editorial improvements (#208, #209, #210, #218)<a href="#section-1.1-16.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-16.5">
+            <p id="section-1.1-16.5.1">Various editorial improvements (#208, #209, #210, #218)<a href="#section-1.1-16.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-17">draft-05<a href="#section-1.1-17" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-18.1">Update test vectors to include version string (#202, #203)<a href="#section-1.1-18.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-18.1">
+            <p id="section-1.1-18.1.1">Update test vectors to include version string (#202, #203)<a href="#section-1.1-18.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.2">Rename THRESHOLD_LIMIT to MIN_PARTICIPANTS (#192)<a href="#section-1.1-18.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.2">
+            <p id="section-1.1-18.2.1">Rename THRESHOLD_LIMIT to MIN_PARTICIPANTS (#192)<a href="#section-1.1-18.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.3">Use non-contiguous signers for the test vectors (#187)<a href="#section-1.1-18.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.3">
+            <p id="section-1.1-18.3.1">Use non-contiguous signers for the test vectors (#187)<a href="#section-1.1-18.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.4">Add more reasoning why the coordinator MUST abort (#183)<a href="#section-1.1-18.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.4">
+            <p id="section-1.1-18.4.1">Add more reasoning why the coordinator MUST abort (#183)<a href="#section-1.1-18.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.5">Add a function to generate nonces (#182)<a href="#section-1.1-18.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.5">
+            <p id="section-1.1-18.5.1">Add a function to generate nonces (#182)<a href="#section-1.1-18.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.6">Add MUST that all participants have the same view of VSS commitment (#174)<a href="#section-1.1-18.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.6">
+            <p id="section-1.1-18.6.1">Add MUST that all participants have the same view of VSS commitment (#174)<a href="#section-1.1-18.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.7">Use THRESHOLD_LIMIT instead of t and MAX_PARTICIPANTS instead of n (#171)<a href="#section-1.1-18.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.7">
+            <p id="section-1.1-18.7.1">Use THRESHOLD_LIMIT instead of t and MAX_PARTICIPANTS instead of n (#171)<a href="#section-1.1-18.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.8">Specify what the dealer is trusted to do (#166)<a href="#section-1.1-18.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.8">
+            <p id="section-1.1-18.8.1">Specify what the dealer is trusted to do (#166)<a href="#section-1.1-18.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.9">Clarify types of NUM_PARTICIPANTS and THRESHOLD_LIMIT (#165)<a href="#section-1.1-18.9" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.9">
+            <p id="section-1.1-18.9.1">Clarify types of NUM_PARTICIPANTS and THRESHOLD_LIMIT (#165)<a href="#section-1.1-18.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.10">Assert that the network channel used for signing should be authenticated (#163)<a href="#section-1.1-18.10" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.10">
+            <p id="section-1.1-18.10.1">Assert that the network channel used for signing should be authenticated (#163)<a href="#section-1.1-18.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.11">Remove wire format section (#156)<a href="#section-1.1-18.11" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.11">
+            <p id="section-1.1-18.11.1">Remove wire format section (#156)<a href="#section-1.1-18.11.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.12">Update group commitment derivation to have a single scalarmul (#150)<a href="#section-1.1-18.12" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.12">
+            <p id="section-1.1-18.12.1">Update group commitment derivation to have a single scalarmul (#150)<a href="#section-1.1-18.12.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.13">Use RandomNonzeroScalar for single-party Schnorr example (#148)<a href="#section-1.1-18.13" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.13">
+            <p id="section-1.1-18.13.1">Use RandomNonzeroScalar for single-party Schnorr example (#148)<a href="#section-1.1-18.13.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.14">Fix group notation and clarify member functions (#145)<a href="#section-1.1-18.14" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.14">
+            <p id="section-1.1-18.14.1">Fix group notation and clarify member functions (#145)<a href="#section-1.1-18.14.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.15">Update existing implementations table (#136)<a href="#section-1.1-18.15" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.15">
+            <p id="section-1.1-18.15.1">Update existing implementations table (#136)<a href="#section-1.1-18.15.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-18.16">Various editorial improvements (#135, #143, #147, #149, #153, #158, #162, #167, #168, #169, #170, #175, #176, #177, #178, #184, #186, #193, #198, #199)<a href="#section-1.1-18.16" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-18.16">
+            <p id="section-1.1-18.16.1">Various editorial improvements (#135, #143, #147, #149, #153, #158, #162, #167, #168, #169, #170, #175, #176, #177, #178, #184, #186, #193, #198, #199)<a href="#section-1.1-18.16.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-19">draft-04<a href="#section-1.1-19" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-20.1">Added methods to verify VSS commitments and derive group info (#126, #132).<a href="#section-1.1-20.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-20.1">
+            <p id="section-1.1-20.1.1">Added methods to verify VSS commitments and derive group info (#126, #132).<a href="#section-1.1-20.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.2">Changed check for participants to consider only nonnegative numbers (#133).<a href="#section-1.1-20.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.2">
+            <p id="section-1.1-20.2.1">Changed check for participants to consider only nonnegative numbers (#133).<a href="#section-1.1-20.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.3">Changed sampling for secrets and coefficients to allow the zero element (#130).<a href="#section-1.1-20.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.3">
+            <p id="section-1.1-20.3.1">Changed sampling for secrets and coefficients to allow the zero element (#130).<a href="#section-1.1-20.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.4">Split test vectors into separate files (#129)<a href="#section-1.1-20.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.4">
+            <p id="section-1.1-20.4.1">Split test vectors into separate files (#129)<a href="#section-1.1-20.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.5">Update wire structs to remove commitment shares where not necessary (#128)<a href="#section-1.1-20.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.5">
+            <p id="section-1.1-20.5.1">Update wire structs to remove commitment shares where not necessary (#128)<a href="#section-1.1-20.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.6">Add failure checks (#127)<a href="#section-1.1-20.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.6">
+            <p id="section-1.1-20.6.1">Add failure checks (#127)<a href="#section-1.1-20.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.7">Update group info to include each participant's key and clarify how public key material is obtained (#120, #121).<a href="#section-1.1-20.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.7">
+            <p id="section-1.1-20.7.1">Update group info to include each participant's key and clarify how public key material is obtained (#120, #121).<a href="#section-1.1-20.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.8">Define cofactor checks for verification (#118)<a href="#section-1.1-20.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.8">
+            <p id="section-1.1-20.8.1">Define cofactor checks for verification (#118)<a href="#section-1.1-20.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-20.9">Various editorial improvements and add contributors (#124, #123, #119, #116, #113, #109)<a href="#section-1.1-20.9" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-20.9">
+            <p id="section-1.1-20.9.1">Various editorial improvements and add contributors (#124, #123, #119, #116, #113, #109)<a href="#section-1.1-20.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-21">draft-03<a href="#section-1.1-21" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-22.1">Refactor the second round to use state from the first round (#94).<a href="#section-1.1-22.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-22.1">
+            <p id="section-1.1-22.1.1">Refactor the second round to use state from the first round (#94).<a href="#section-1.1-22.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-22.2">Ensure that verification of signature shares from the second round uses commitments from the first round (#94).<a href="#section-1.1-22.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-22.2">
+            <p id="section-1.1-22.2.1">Ensure that verification of signature shares from the second round uses commitments from the first round (#94).<a href="#section-1.1-22.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-22.3">Clarify RFC8032 interoperability based on PureEdDSA (#86).<a href="#section-1.1-22.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-22.3">
+            <p id="section-1.1-22.3.1">Clarify RFC8032 interoperability based on PureEdDSA (#86).<a href="#section-1.1-22.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-22.4">Specify signature serialization based on element and scalar serialization (#85).<a href="#section-1.1-22.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-22.4">
+            <p id="section-1.1-22.4.1">Specify signature serialization based on element and scalar serialization (#85).<a href="#section-1.1-22.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-22.5">Fix hash function domain separation formatting (#83).<a href="#section-1.1-22.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-22.5">
+            <p id="section-1.1-22.5.1">Fix hash function domain separation formatting (#83).<a href="#section-1.1-22.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-22.6">Make trusted dealer key generation deterministic (#104).<a href="#section-1.1-22.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-22.6">
+            <p id="section-1.1-22.6.1">Make trusted dealer key generation deterministic (#104).<a href="#section-1.1-22.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-22.7">Add additional constraints on participant indexes and nonce usage (#105, #103, #98, #97).<a href="#section-1.1-22.7" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-22.7">
+            <p id="section-1.1-22.7.1">Add additional constraints on participant indexes and nonce usage (#105, #103, #98, #97).<a href="#section-1.1-22.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-22.8">Apply various editorial improvements.<a href="#section-1.1-22.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-22.8">
+            <p id="section-1.1-22.8.1">Apply various editorial improvements.<a href="#section-1.1-22.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-23">draft-02<a href="#section-1.1-23" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-24.1">Fully specify both rounds of FROST, as well as trusted dealer key generation.<a href="#section-1.1-24.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-24.1">
+            <p id="section-1.1-24.1.1">Fully specify both rounds of FROST, as well as trusted dealer key generation.<a href="#section-1.1-24.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-24.2">Add ciphersuites and corresponding test vectors, including suites for RFC8032 compatibility.<a href="#section-1.1-24.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-24.2">
+            <p id="section-1.1-24.2.1">Add ciphersuites and corresponding test vectors, including suites for RFC8032 compatibility.<a href="#section-1.1-24.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-24.3">Refactor document for editorial clarity.<a href="#section-1.1-24.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-1.1-24.3">
+            <p id="section-1.1-24.3.1">Refactor document for editorial clarity.<a href="#section-1.1-24.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-25">draft-01<a href="#section-1.1-25" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-26.1">Specify operations, notation and cryptographic dependencies.<a href="#section-1.1-26.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-26.1">
+            <p id="section-1.1-26.1.1">Specify operations, notation and cryptographic dependencies.<a href="#section-1.1-26.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-27">draft-00<a href="#section-1.1-27" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-28.1">Outline CFRG draft based on draft-komlo-frost.<a href="#section-1.1-28.1" class="pilcrow">¶</a>
+<li class="normal" id="section-1.1-28.1">
+            <p id="section-1.1-28.1.1">Outline CFRG draft based on draft-komlo-frost.<a href="#section-1.1-28.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1578,31 +1619,34 @@ described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</s
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2-2">The following notation is used throughout the document.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-2-3.1">byte: A sequence of eight bits.<a href="#section-2-3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-2-3.1">
+          <p id="section-2-3.1.1">byte: A sequence of eight bits.<a href="#section-2-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-3.2">
-          <code>random_bytes(n)</code>: Outputs <code>n</code> bytes, sampled uniformly at random
-using a cryptographically secure pseudorandom number generator (CSPRNG).<a href="#section-2-3.2" class="pilcrow">¶</a>
+          <p id="section-2-3.2.1"><code>random_bytes(n)</code>: Outputs <code>n</code> bytes, sampled uniformly at random
+using a cryptographically secure pseudorandom number generator (CSPRNG).<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-3.3">
-          <code>count(i, L)</code>: Outputs the number of times the element <code>i</code> is represented in the list <code>L</code>.<a href="#section-2-3.3" class="pilcrow">¶</a>
+          <p id="section-2-3.3.1"><code>count(i, L)</code>: Outputs the number of times the element <code>i</code> is represented in the list <code>L</code>.<a href="#section-2-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-3.4">
-          <code>len(l)</code>: Outputs the length of list <code>l</code>, e.g., <code>len([1,2,3]) = 3</code>.<a href="#section-2-3.4" class="pilcrow">¶</a>
+          <p id="section-2-3.4.1"><code>len(l)</code>: Outputs the length of list <code>l</code>, e.g., <code>len([1,2,3]) = 3</code>.<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-3.5">
-          <code>reverse(l)</code>: Outputs the list <code>l</code> in reverse order, e.g., <code>reverse([1,2,3]) = [3,2,1]</code>.<a href="#section-2-3.5" class="pilcrow">¶</a>
+          <p id="section-2-3.5.1"><code>reverse(l)</code>: Outputs the list <code>l</code> in reverse order, e.g., <code>reverse([1,2,3]) = [3,2,1]</code>.<a href="#section-2-3.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-3.6">
-          <code>range(a, b)</code>: Outputs a list of integers from <code>a</code> to <code>b-1</code> in ascending order, e.g., <code>range(1, 4) = [1,2,3]</code>.<a href="#section-2-3.6" class="pilcrow">¶</a>
+          <p id="section-2-3.6.1"><code>range(a, b)</code>: Outputs a list of integers from <code>a</code> to <code>b-1</code> in ascending order, e.g., <code>range(1, 4) = [1,2,3]</code>.<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-3.7">
-          <code>pow(a, b)</code>: Outputs the result, a Scalar, of <code>a</code> to the power of <code>b</code>, e.g., <code>pow(2, 3) = 8</code> modulo the relevant group order <code>p</code>.<a href="#section-2-3.7" class="pilcrow">¶</a>
+          <p id="section-2-3.7.1"><code>pow(a, b)</code>: Outputs the result, a Scalar, of <code>a</code> to the power of <code>b</code>, e.g., <code>pow(2, 3) = 8</code> modulo the relevant group order <code>p</code>.<a href="#section-2-3.7.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-2-3.8">|| denotes concatenation of byte strings, i.e., <code>x || y</code> denotes the byte string <code>x</code>, immediately followed by
-the byte string <code>y</code>, with no extra separator, yielding <code>xy</code>.<a href="#section-2-3.8" class="pilcrow">¶</a>
+        <li class="normal" id="section-2-3.8">
+          <p id="section-2-3.8.1">|| denotes concatenation of byte strings, i.e., <code>x || y</code> denotes the byte string <code>x</code>, immediately followed by
+the byte string <code>y</code>, with no extra separator, yielding <code>xy</code>.<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-2-3.9">nil denotes an empty byte string.<a href="#section-2-3.9" class="pilcrow">¶</a>
+        <li class="normal" id="section-2-3.9">
+          <p id="section-2-3.9.1">nil denotes an empty byte string.<a href="#section-2-3.9.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-2-4">Unless otherwise stated, we assume that secrets are sampled uniformly at random
@@ -1617,9 +1661,11 @@ using a cryptographically secure pseudorandom number generator (CSPRNG); see
       </h2>
 <p id="section-3-1">FROST signing depends on the following cryptographic constructs:<a href="#section-3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3-2.1">Prime-order Group, <a href="#dep-pog" class="auto internal xref">Section 3.1</a>;<a href="#section-3-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3-2.1">
+          <p id="section-3-2.1.1">Prime-order Group, <a href="#dep-pog" class="auto internal xref">Section 3.1</a>;<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-3-2.2">Cryptographic hash function, <a href="#dep-hash" class="auto internal xref">Section 3.2</a>;<a href="#section-3-2.2" class="pilcrow">¶</a>
+        <li class="normal" id="section-3-2.2">
+          <p id="section-3-2.2.1">Cryptographic hash function, <a href="#dep-hash" class="auto internal xref">Section 3.2</a>;<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-3-3">These are described in the following sections.<a href="#section-3-3" class="pilcrow">¶</a></p>
@@ -1654,30 +1700,39 @@ as <code>==</code> and assignment of values by <code>=</code>. When comparing Sc
 of sorting lists of Scalar values, the least nonnegative representation mod <code>p</code> is used.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">We now detail a number of member functions that can be invoked on <code>G</code>.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.1-4.1">Order(): Outputs the order of <code>G</code> (i.e., <code>p</code>).<a href="#section-3.1-4.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.1-4.1">
+            <p id="section-3.1-4.1.1">Order(): Outputs the order of <code>G</code> (i.e., <code>p</code>).<a href="#section-3.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.2">Identity(): Outputs the identity <code>Element</code> of the group (i.e., <code>I</code>).<a href="#section-3.1-4.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.1-4.2">
+            <p id="section-3.1-4.2.1">Identity(): Outputs the identity <code>Element</code> of the group (i.e., <code>I</code>).<a href="#section-3.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.3">RandomScalar(): Outputs a random <code>Scalar</code> element in GF(p), i.e., a random scalar in [0, p - 1].<a href="#section-3.1-4.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.1-4.3">
+            <p id="section-3.1-4.3.1">RandomScalar(): Outputs a random <code>Scalar</code> element in GF(p), i.e., a random scalar in [0, p - 1].<a href="#section-3.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.4">ScalarMult(A, k): Outputs the scalar multiplication between Element <code>A</code> and Scalar <code>k</code>.<a href="#section-3.1-4.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.1-4.4">
+            <p id="section-3.1-4.4.1">ScalarMult(A, k): Outputs the scalar multiplication between Element <code>A</code> and Scalar <code>k</code>.<a href="#section-3.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.5">ScalarBaseMult(k): Outputs the scalar multiplication between Scalar <code>k</code> and the group generator <code>B</code>.<a href="#section-3.1-4.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.1-4.5">
+            <p id="section-3.1-4.5.1">ScalarBaseMult(k): Outputs the scalar multiplication between Scalar <code>k</code> and the group generator <code>B</code>.<a href="#section-3.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.6">SerializeElement(A): Maps an <code>Element</code> <code>A</code> to a canonical byte array <code>buf</code> of fixed length <code>Ne</code>. This
-function raises an error if <code>A</code> is the identity element of the group.<a href="#section-3.1-4.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.1-4.6">
+            <p id="section-3.1-4.6.1">SerializeElement(A): Maps an <code>Element</code> <code>A</code> to a canonical byte array <code>buf</code> of fixed length <code>Ne</code>. This
+function raises an error if <code>A</code> is the identity element of the group.<a href="#section-3.1-4.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.7">DeserializeElement(buf): Attempts to map a byte array <code>buf</code> to an <code>Element</code> <code>A</code>,
+          <li class="normal" id="section-3.1-4.7">
+            <p id="section-3.1-4.7.1">DeserializeElement(buf): Attempts to map a byte array <code>buf</code> to an <code>Element</code> <code>A</code>,
 and fails if the input is not the valid canonical byte representation of an element of
 the group. This function raises an error if deserialization fails
 or if <code>A</code> is the identity element of the group; see <a href="#ciphersuites" class="auto internal xref">Section 6</a> for group-specific
-input validation steps.<a href="#section-3.1-4.7" class="pilcrow">¶</a>
+input validation steps.<a href="#section-3.1-4.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.8">SerializeScalar(s): Maps a Scalar <code>s</code> to a canonical byte array <code>buf</code> of fixed length <code>Ns</code>.<a href="#section-3.1-4.8" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.1-4.8">
+            <p id="section-3.1-4.8.1">SerializeScalar(s): Maps a Scalar <code>s</code> to a canonical byte array <code>buf</code> of fixed length <code>Ns</code>.<a href="#section-3.1-4.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-4.9">DeserializeScalar(buf): Attempts to map a byte array <code>buf</code> to a <code>Scalar</code> <code>s</code>.
+          <li class="normal" id="section-3.1-4.9">
+            <p id="section-3.1-4.9.1">DeserializeScalar(buf): Attempts to map a byte array <code>buf</code> to a <code>Scalar</code> <code>s</code>.
 This function raises an error if deserialization fails; see
-<a href="#ciphersuites" class="auto internal xref">Section 6</a> for group-specific input validation steps.<a href="#section-3.1-4.9" class="pilcrow">¶</a>
+<a href="#ciphersuites" class="auto internal xref">Section 6</a> for group-specific input validation steps.<a href="#section-3.1-4.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1693,9 +1748,11 @@ written as H, which is modeled as a random oracle in security proofs for the pro
 which SHOULD be used in practice, see <a href="#ciphersuites" class="auto internal xref">Section 6</a>. Using H, we introduce distinct
 domain-separated hashes, H1, H2, H3, H4, and H5:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2-2.1">H1, H2, and H3 map arbitrary byte strings to Scalar elements associated with the prime-order group.<a href="#section-3.2-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.2-2.1">
+            <p id="section-3.2-2.1.1">H1, H2, and H3 map arbitrary byte strings to Scalar elements associated with the prime-order group.<a href="#section-3.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.2-2.2">H4 and H5 are aliases for H with distinct domain separators.<a href="#section-3.2-2.2" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.2-2.2">
+            <p id="section-3.2-2.2.1">H4 and H5 are aliases for H with distinct domain separators.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.2-3">The details of H1, H2, H3, H4, and H5 vary based on ciphersuite. See <a href="#ciphersuites" class="auto internal xref">Section 6</a>
@@ -1712,17 +1769,23 @@ for more details about each.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-4-1">Beyond the core dependencies, the protocol in this document depends on the
 following helper operations:<a href="#section-4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4-2.1">Nonce generation, <a href="#dep-nonces" class="auto internal xref">Section 4.1</a>;<a href="#section-4-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4-2.1">
+          <p id="section-4-2.1.1">Nonce generation, <a href="#dep-nonces" class="auto internal xref">Section 4.1</a>;<a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-4-2.2">Polynomials, <a href="#dep-polynomial" class="auto internal xref">Section 4.2</a>;<a href="#section-4-2.2" class="pilcrow">¶</a>
+        <li class="normal" id="section-4-2.2">
+          <p id="section-4-2.2.1">Polynomials, <a href="#dep-polynomial" class="auto internal xref">Section 4.2</a>;<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-4-2.3">Encoding operations, <a href="#dep-encoding" class="auto internal xref">Section 4.3</a>;<a href="#section-4-2.3" class="pilcrow">¶</a>
+        <li class="normal" id="section-4-2.3">
+          <p id="section-4-2.3.1">Encoding operations, <a href="#dep-encoding" class="auto internal xref">Section 4.3</a>;<a href="#section-4-2.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-4-2.4">Signature binding computation <a href="#dep-binding-factor" class="auto internal xref">Section 4.4</a>;<a href="#section-4-2.4" class="pilcrow">¶</a>
+        <li class="normal" id="section-4-2.4">
+          <p id="section-4-2.4.1">Signature binding computation <a href="#dep-binding-factor" class="auto internal xref">Section 4.4</a>;<a href="#section-4-2.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-4-2.5">Group commitment computation <a href="#dep-group-commit" class="auto internal xref">Section 4.5</a>; and<a href="#section-4-2.5" class="pilcrow">¶</a>
+        <li class="normal" id="section-4-2.5">
+          <p id="section-4-2.5.1">Group commitment computation <a href="#dep-group-commit" class="auto internal xref">Section 4.5</a>; and<a href="#section-4-2.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-4-2.6">Signature challenge computation <a href="#dep-sig-challenge" class="auto internal xref">Section 4.6</a>.<a href="#section-4-2.6" class="pilcrow">¶</a>
+        <li class="normal" id="section-4-2.6">
+          <p id="section-4-2.6.1">Signature challenge computation <a href="#dep-sig-challenge" class="auto internal xref">Section 4.6</a>.<a href="#section-4-2.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-4-3">The following sections describe these operations in more detail.<a href="#section-4-3" class="pilcrow">¶</a></p>
@@ -2017,39 +2080,46 @@ MUST NOT be larger than <code>MAX_PARTICIPANTS</code>, where <code>MIN_PARTICIPA
 less than the group order. A signer participant, or simply participant, is an entity that is trusted
 to hold and use a signing key share. The Coordinator is an entity with the following responsibilities:<a href="#section-5-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5-2">
-<li id="section-5-2.1">Determining which participants will participate (at least MIN_PARTICIPANTS in number);<a href="#section-5-2.1" class="pilcrow">¶</a>
+<li id="section-5-2.1">
+          <p id="section-5-2.1.1">Determining which participants will participate (at least MIN_PARTICIPANTS in number);<a href="#section-5-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-5-2.2">Coordinating rounds (receiving and forwarding inputs among participants); and<a href="#section-5-2.2" class="pilcrow">¶</a>
+        <li id="section-5-2.2">
+          <p id="section-5-2.2.1">Coordinating rounds (receiving and forwarding inputs among participants); and<a href="#section-5-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-5-2.3">Aggregating signature shares output by each participant, and publishing the resulting signature.<a href="#section-5-2.3" class="pilcrow">¶</a>
+        <li id="section-5-2.3">
+          <p id="section-5-2.3.1">Aggregating signature shares output by each participant, and publishing the resulting signature.<a href="#section-5-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
 <p id="section-5-3">FROST assumes that the Coordinator and the set of signer participants are chosen
 externally to the protocol. Note that it is possible to deploy the protocol without
 designating a single Coordinator; see <a href="#no-coordinator" class="auto internal xref">Section 7.5</a> for more information.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <p id="section-5-4">FROST produces signatures that can be verified as if they were produced from a single signer
-using a signing key <code>s</code> with corresponding public key <code>PK</code>, where <code>s</code> is a Scalar
-value and <code>PK = G.ScalarBaseMult(s)</code>. As a threshold signing protocol, the group signing
+using a signing key <code>s</code> with corresponding public key <code>group_public_key</code>, where <code>s</code> is a Scalar
+value and <code>group_public_key = G.ScalarBaseMult(s)</code>. As a threshold signing protocol, the group signing
 key <code>s</code> is Shamir secret-shared amongst each of the <code>MAX_PARTICIPANTS</code> participants
 and used to produce signatures; see <a href="#dep-shamir" class="auto internal xref">Appendix D.1</a> for more information about Shamir secret sharing.
 In particular, FROST assumes each participant is configured with the following information:<a href="#section-5-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5-5.1">An identifier, which is a NonZeroScalar value denoted <code>i</code> in the range <code>[1, MAX_PARTICIPANTS]</code>
-and MUST be distinct from the identifier of every other participant.<a href="#section-5-5.1" class="pilcrow">¶</a>
+<li class="normal" id="section-5-5.1">
+          <p id="section-5-5.1.1">An identifier, which is a NonZeroScalar value denoted <code>i</code> in the range <code>[1, MAX_PARTICIPANTS]</code>
+and MUST be distinct from the identifier of every other participant.<a href="#section-5-5.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-5-5.2">A signing key <code>sk_i</code>, which is a Scalar value representing the i-th Shamir secret share
-of the group signing key <code>s</code>. In particular, <code>sk_i</code> is the value <code>f(i)</code> on a secret
+        <li class="normal" id="section-5-5.2">
+          <p id="section-5-5.2.1">A signing key <code>secret_key_i</code>, which is a Scalar value representing the i-th Shamir secret share
+of the group signing key <code>s</code>. In particular, <code>secret_key_i</code> is the value <code>f(i)</code> on a secret
 polynomial <code>f</code> of degree <code>(MIN_PARTICIPANTS - 1)</code>, where <code>s</code> is <code>f(0)</code>. The public key
-corresponding to this signing key share is <code>PK_i = G.ScalarBaseMult(sk_i)</code>.<a href="#section-5-5.2" class="pilcrow">¶</a>
+corresponding to this signing key share is <code>public_key_i = G.ScalarBaseMult(secret_key_i)</code>.<a href="#section-5-5.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-5-6">The Coordinator and each participant are additionally configured with common group
 information, denoted "group info," which consists of the following:<a href="#section-5-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5-7.1">Group public key, which is an <code>Element</code> in <code>G</code> denoted <code>PK</code>.<a href="#section-5-7.1" class="pilcrow">¶</a>
+<li class="normal" id="section-5-7.1">
+          <p id="section-5-7.1.1">Group public key, which is an <code>Element</code> in <code>G</code> denoted <code>group_public_key</code>.<a href="#section-5-7.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-5-7.2">Public keys <code>PK_i</code> for each participant, which are <code>Element</code> values in <code>G</code> denoted <code>PK_i</code>
-for each <code>i</code> in <code>[1, MAX_PARTICIPANTS]</code>.<a href="#section-5-7.2" class="pilcrow">¶</a>
+        <li class="normal" id="section-5-7.2">
+          <p id="section-5-7.2.1">Public keys <code>public_key_i</code> for each participant, which are <code>Element</code> values in <code>G</code> denoted <code>public_key_i</code>
+for each <code>i</code> in <code>[1, MAX_PARTICIPANTS]</code>.<a href="#section-5-7.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-5-8">This document does not specify how this information, including the signing key shares,
@@ -2075,7 +2145,7 @@ without abort, is shown in <a href="#fig-frost" class="auto internal xref">Figur
             v                         v                v
         Coordinator               Signer-1   ...   Signer-n
     ------------------------------------------------------------
-   message
+    signing request
 ------------&gt;
             |
       == Round 1 (Commitment) ==
@@ -2086,6 +2156,8 @@ without abort, is shown in <a href="#fig-frost" class="auto internal xref">Figur
             |&lt;-----------------------------------------+         |
                                                                  |
       == Round 2 (Signature Share Generation) ==                 |
+   message
+------------&gt;
             |                                                    |
             |   participant input    |                 |         |
             +------------------------&gt;                 |         |
@@ -2137,16 +2209,16 @@ a pair of secret nonces <code>(hiding_nonce, binding_nonce)</code> and their cor
 <div class="alignLeft art-text artwork" id="section-5.1-2">
 <pre>
 Inputs:
-- sk_i, the secret key share, a Scalar.
+- secret_key_i, the secret key share, a Scalar.
 
 Outputs:
 - (nonce, comm), a tuple of nonce and nonce commitment pairs,
   where each value in the nonce pair is a Scalar and each value in
   the nonce commitment pair is an Element.
 
-def commit(sk_i):
-  hiding_nonce = nonce_generate(sk_i)
-  binding_nonce = nonce_generate(sk_i)
+def commit(secret_key_i):
+  hiding_nonce = nonce_generate(secret_key_i)
+  binding_nonce = nonce_generate(secret_key_i)
   hiding_nonce_commitment = G.ScalarBaseMult(hiding_nonce)
   binding_nonce_commitment = G.ScalarBaseMult(binding_nonce)
   nonces = (hiding_nonce, binding_nonce)
@@ -2186,7 +2258,7 @@ procedure to produce its own signature share.<a href="#section-5.2-3" class="pil
 <pre>
 Inputs:
 - identifier, identifier i of the participant, a NonZeroScalar.
-- sk_i, Signer secret key share, a Scalar.
+- secret_key_i, Signer secret key share, a Scalar.
 - group_public_key, public key corresponding to the group signing
   key, an Element.
 - nonce_i, pair of Scalar values (hiding_nonce, binding_nonce)
@@ -2203,7 +2275,7 @@ Inputs:
 Outputs:
 - sig_share, a signature share, a Scalar.
 
-def sign(identifier, sk_i, group_public_key,
+def sign(identifier, secret_key_i, group_public_key,
          nonce_i, msg, commitment_list):
   # Compute the binding factor(s)
   binding_factor_list = compute_binding_factors(group_public_key, commitment_list, msg)
@@ -2226,7 +2298,7 @@ def sign(identifier, sk_i, group_public_key,
   # Compute the signature share
   (hiding_nonce, binding_nonce) = nonce_i
   sig_share = hiding_nonce + (binding_nonce * binding_factor) +
-      (lambda_i * sk_i * challenge)
+      (lambda_i * secret_key_i * challenge)
 
   return sig_share
 </pre><a href="#section-5.2-4" class="pilcrow">¶</a>
@@ -2299,14 +2371,13 @@ a misbehaving participant is out of scope for this specification; see <a href="#
 about dealing with invalid signatures and misbehaving participants.<a href="#section-5.3-5" class="pilcrow">¶</a></p>
 <p id="section-5.3-6">The function for verifying a signature share, denoted <code>verify_signature_share</code>, is described below.
 Recall that the Coordinator is configured with "group info" which contains
-the group public key <code>PK</code> and public keys <code>PK_i</code> for each participant, so the <code>group_public_key</code> and
-<code>PK_i</code> function arguments MUST come from that previously stored group info.<a href="#section-5.3-6" class="pilcrow">¶</a></p>
+the group public key <code>group_public_key</code> and public keys <code>public_key_i</code> for each participant.<a href="#section-5.3-6" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.3-7">
 <pre>
 Inputs:
 - identifier, identifier i of the participant, a NonZeroScalar.
-- PK_i, the public key for the i-th participant, where
-  PK_i = G.ScalarBaseMult(sk_i), an Element.
+- public_key_i, the public key for the i-th participant, where
+  public_key_i = G.ScalarBaseMult(secret_key_i), an Element.
 - comm_i, pair of Element values in G
   (hiding_nonce_commitment, binding_nonce_commitment) generated in
   round one from the i-th participant.
@@ -2326,7 +2397,7 @@ Outputs:
 - True if the signature share is valid, and False otherwise.
 
 def verify_signature_share(
-        identifier, PK_i, comm_i, sig_share_i, commitment_list,
+        identifier, public_key_i, comm_i, sig_share_i, commitment_list,
         group_public_key, msg):
   # Compute the binding factors
   binding_factor_list = compute_binding_factors(group_public_key, commitment_list, msg)
@@ -2353,7 +2424,7 @@ def verify_signature_share(
 
   # Compute relation values
   l = G.ScalarBaseMult(sig_share_i)
-  r = comm_share + G.ScalarMult(PK_i, challenge * lambda_i)
+  r = comm_share + G.ScalarMult(public_key_i, challenge * lambda_i)
 
   return l == r
 </pre><a href="#section-5.3-7" class="pilcrow">¶</a>
@@ -2426,61 +2497,73 @@ The value of the contextString parameter is "FROST-ED25519-SHA512-v1".<a href="#
 <li class="normal" id="section-6.1-2.1">
             <p id="section-6.1-2.1.1">Group: edwards25519 <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>]</span>, where Ne = 32 and Ns = 32.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.1-2.1.2.1">Order(): Return 2^252 + 27742317777372353535851937790883648493 (see <span>[<a href="#RFC7748" class="cite xref">RFC7748</a>]</span>).<a href="#section-6.1-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.1-2.1.2.1">
+                <p id="section-6.1-2.1.2.1.1">Order(): Return 2^252 + 27742317777372353535851937790883648493 (see <span>[<a href="#RFC7748" class="cite xref">RFC7748</a>]</span>).<a href="#section-6.1-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.1.2.2">Identity(): As defined in <span>[<a href="#RFC7748" class="cite xref">RFC7748</a>]</span>.<a href="#section-6.1-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.1-2.1.2.2">
+                <p id="section-6.1-2.1.2.2.1">Identity(): As defined in <span>[<a href="#RFC7748" class="cite xref">RFC7748</a>]</span>.<a href="#section-6.1-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.1.2.3">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.1-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.1-2.1.2.3">
+                <p id="section-6.1-2.1.2.3.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.1-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.1.2.4">SerializeElement(A): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.1.2" class="relref">Section 5.1.2</a></span>.
+              <li class="normal" id="section-6.1-2.1.2.4">
+                <p id="section-6.1-2.1.2.4.1">SerializeElement(A): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.1.2" class="relref">Section 5.1.2</a></span>.
 Additionally, this function validates that the input element is not the group
-identity element.<a href="#section-6.1-2.1.2.4" class="pilcrow">¶</a>
+identity element.<a href="#section-6.1-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.1.2.5">DeserializeElement(buf): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.1.3" class="relref">Section 5.1.3</a></span>.
+              <li class="normal" id="section-6.1-2.1.2.5">
+                <p id="section-6.1-2.1.2.5.1">DeserializeElement(buf): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.1.3" class="relref">Section 5.1.3</a></span>.
 Additionally, this function validates that the resulting element is not the group
 identity element and is in the prime-order subgroup. If any of these checks fail,
 deserialization returns an error. The latter check can
 be implemented by multiplying the resulting point by the order of the group and
 checking that the result is the identity element. Note that optimizations for
-this check exist; see <span>[<a href="#Pornin22" class="cite xref">Pornin22</a>]</span>.<a href="#section-6.1-2.1.2.5" class="pilcrow">¶</a>
+this check exist; see <span>[<a href="#Pornin22" class="cite xref">Pornin22</a>]</span>.<a href="#section-6.1-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.1.2.6">SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
-the Scalar value with the top three bits set to zero.<a href="#section-6.1-2.1.2.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.1-2.1.2.6">
+                <p id="section-6.1-2.1.2.6.1">SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
+the Scalar value with the top three bits set to zero.<a href="#section-6.1-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.1.2.7">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
+              <li class="normal" id="section-6.1-2.1.2.7">
+                <p id="section-6.1-2.1.2.7.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
 little-endian 32-byte string. This function can fail if the input does not
 represent a Scalar in the range [0, <code>G.Order()</code> - 1]. Note that this means the
-top three bits of the input MUST be zero.<a href="#section-6.1-2.1.2.7" class="pilcrow">¶</a>
+top three bits of the input MUST be zero.<a href="#section-6.1-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
           <li class="normal" id="section-6.1-2.2">
             <p id="section-6.1-2.2.1">Hash (<code>H</code>): SHA-512, which has 64 bytes of output<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.1-2.2.2.1">H1(m): Implemented by computing H(contextString || "rho" || m), interpreting the 64-byte digest
+<li class="normal" id="section-6.1-2.2.2.1">
+                <p id="section-6.1-2.2.2.1.1">H1(m): Implemented by computing H(contextString || "rho" || m), interpreting the 64-byte digest
 as a little-endian integer, and reducing the resulting integer modulo
-2^252+27742317777372353535851937790883648493.<a href="#section-6.1-2.2.2.1" class="pilcrow">¶</a>
+2^252+27742317777372353535851937790883648493.<a href="#section-6.1-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.2.2.2">H2(m): Implemented by computing H(m), interpreting the 64-byte digest
+              <li class="normal" id="section-6.1-2.2.2.2">
+                <p id="section-6.1-2.2.2.2.1">H2(m): Implemented by computing H(m), interpreting the 64-byte digest
 as a little-endian integer, and reducing the resulting integer modulo
-2^252+27742317777372353535851937790883648493.<a href="#section-6.1-2.2.2.2" class="pilcrow">¶</a>
+2^252+27742317777372353535851937790883648493.<a href="#section-6.1-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.2.2.3">H3(m): Implemented by computing H(contextString || "nonce" || m), interpreting the 64-byte digest
+              <li class="normal" id="section-6.1-2.2.2.3">
+                <p id="section-6.1-2.2.2.3.1">H3(m): Implemented by computing H(contextString || "nonce" || m), interpreting the 64-byte digest
 as a little-endian integer, and reducing the resulting integer modulo
-2^252+27742317777372353535851937790883648493.<a href="#section-6.1-2.2.2.3" class="pilcrow">¶</a>
+2^252+27742317777372353535851937790883648493.<a href="#section-6.1-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.2.2.4">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.1-2.2.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.1-2.2.2.4">
+                <p id="section-6.1-2.2.2.4.1">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.1-2.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.1-2.2.2.5">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.1-2.2.2.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.1-2.2.2.5">
+                <p id="section-6.1-2.2.2.5.1">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.1-2.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
         </ul>
 <p id="section-6.1-3">Normally H2 would also include a domain separator, but for compatibility with <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>]</span>, it is omitted.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.1-4">Signature verification is as specified in <span><a href="https://rfc-editor.org/rfc/rfc8032#section-5.1.7" class="relref">Section 5.1.7</a> of [<a href="#RFC8032" class="cite xref">RFC8032</a>]</span> with the
-constraint that implementations MUST check the group equation <code>[8][z]B = [8]R + [8][c]PK</code>
-(changed to use the notation in this document).<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+constraint that implementations MUST check the group equation <code>[8][z]B = [8]R + [8][c]PK</code>,
+where <code>PK = group_public_key</code> (changed to use the notation in this document).<a href="#section-6.1-4" class="pilcrow">¶</a></p>
 <p id="section-6.1-5">Canonical signature encoding is as specified in <a href="#sig-encoding" class="auto internal xref">Appendix B</a>.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2496,46 +2579,58 @@ The value of the contextString parameter is "FROST-RISTRETTO255-SHA512-v1".<a hr
             <p id="section-6.2-2.1.1">Group: ristretto255 <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>,
 where Ne = 32 and Ns = 32.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.2-2.1.2.1">Order(): Return 2^252 + 27742317777372353535851937790883648493 (see <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>).<a href="#section-6.2-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.2-2.1.2.1">
+                <p id="section-6.2-2.1.2.1.1">Order(): Return 2^252 + 27742317777372353535851937790883648493 (see <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>).<a href="#section-6.2-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.1.2.2">Identity(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-6.2-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.2-2.1.2.2">
+                <p id="section-6.2-2.1.2.2.1">Identity(): As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-6.2-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.1.2.3">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.2-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.2-2.1.2.3">
+                <p id="section-6.2-2.1.2.3.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.2-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.1.2.4">SerializeElement(A): Implemented using the 'Encode' function from <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
+              <li class="normal" id="section-6.2-2.1.2.4">
+                <p id="section-6.2-2.1.2.4.1">SerializeElement(A): Implemented using the 'Encode' function from <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
 Additionally, this function validates that the input element is not the group
-identity element.<a href="#section-6.2-2.1.2.4" class="pilcrow">¶</a>
+identity element.<a href="#section-6.2-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.1.2.5">DeserializeElement(buf): Implemented using the 'Decode' function from <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
+              <li class="normal" id="section-6.2-2.1.2.5">
+                <p id="section-6.2-2.1.2.5.1">DeserializeElement(buf): Implemented using the 'Decode' function from <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.
 Additionally, this function validates that the resulting element is not the group
-identity element. If either 'Decode' or that check fails, deserialization returns an error.<a href="#section-6.2-2.1.2.5" class="pilcrow">¶</a>
+identity element. If either 'Decode' or that check fails, deserialization returns an error.<a href="#section-6.2-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.1.2.6">SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
-the Scalar value with the top three bits set to zero.<a href="#section-6.2-2.1.2.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.2-2.1.2.6">
+                <p id="section-6.2-2.1.2.6.1">SerializeScalar(s): Implemented by outputting the little-endian 32-byte encoding of
+the Scalar value with the top three bits set to zero.<a href="#section-6.2-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.1.2.7">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
+              <li class="normal" id="section-6.2-2.1.2.7">
+                <p id="section-6.2-2.1.2.7.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
 little-endian 32-byte string. This function can fail if the input does not
 represent a Scalar in the range [0, <code>G.Order()</code> - 1]. Note that this means the
-top three bits of the input MUST be zero.<a href="#section-6.2-2.1.2.7" class="pilcrow">¶</a>
+top three bits of the input MUST be zero.<a href="#section-6.2-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
           <li class="normal" id="section-6.2-2.2">
             <p id="section-6.2-2.2.1">Hash (<code>H</code>): SHA-512, which has 64 bytes of output<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.2-2.2.2.1">H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
-output to a Scalar as described in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08#section-4.4" class="relref">Section 4.4</a></span>.<a href="#section-6.2-2.2.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.2-2.2.2.1">
+                <p id="section-6.2-2.2.2.1.1">H1(m): Implemented by computing H(contextString || "rho" || m) and mapping the
+output to a Scalar as described in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08#section-4.4" class="relref">Section 4.4</a></span>.<a href="#section-6.2-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.2.2.2">H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
-output to a Scalar as described in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08#section-4.4" class="relref">Section 4.4</a></span>.<a href="#section-6.2-2.2.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.2-2.2.2.2">
+                <p id="section-6.2-2.2.2.2.1">H2(m): Implemented by computing H(contextString || "chal" || m) and mapping the
+output to a Scalar as described in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08#section-4.4" class="relref">Section 4.4</a></span>.<a href="#section-6.2-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.2.2.3">H3(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
-output to a Scalar as described in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08#section-4.4" class="relref">Section 4.4</a></span>.<a href="#section-6.2-2.2.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.2-2.2.2.3">
+                <p id="section-6.2-2.2.2.3.1">H3(m): Implemented by computing H(contextString || "nonce" || m) and mapping the
+output to a Scalar as described in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-ristretto255-decaf448-08#section-4.4" class="relref">Section 4.4</a></span>.<a href="#section-6.2-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.2.2.4">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.2-2.2.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.2-2.2.2.4">
+                <p id="section-6.2-2.2.2.4.1">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.2-2.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.2-2.2.2.5">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.2-2.2.2.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.2-2.2.2.5">
+                <p id="section-6.2-2.2.2.5.1">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.2-2.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
@@ -2558,60 +2653,72 @@ The value of the (internal to FROST) contextString parameter is "FROST-ED448-SHA
 <li class="normal" id="section-6.3-2.1">
             <p id="section-6.3-2.1.1">Group: edwards448 <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>]</span>, where Ne = 57 and Ns = 57.<a href="#section-6.3-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.3-2.1.2.1">Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.3-2.1.2.1">
+                <p id="section-6.3-2.1.2.1.1">Order(): Return 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.1.2.2">Identity(): As defined in <span>[<a href="#RFC7748" class="cite xref">RFC7748</a>]</span>.<a href="#section-6.3-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.3-2.1.2.2">
+                <p id="section-6.3-2.1.2.2.1">Identity(): As defined in <span>[<a href="#RFC7748" class="cite xref">RFC7748</a>]</span>.<a href="#section-6.3-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.1.2.3">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.3-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.3-2.1.2.3">
+                <p id="section-6.3-2.1.2.3.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.3-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.1.2.4">SerializeElement(A): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.2.2" class="relref">Section 5.2.2</a></span>.
+              <li class="normal" id="section-6.3-2.1.2.4">
+                <p id="section-6.3-2.1.2.4.1">SerializeElement(A): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.2.2" class="relref">Section 5.2.2</a></span>.
 Additionally, this function validates that the input element is not the group
-identity element.<a href="#section-6.3-2.1.2.4" class="pilcrow">¶</a>
+identity element.<a href="#section-6.3-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.1.2.5">DeserializeElement(buf): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.2.3" class="relref">Section 5.2.3</a></span>.
+              <li class="normal" id="section-6.3-2.1.2.5">
+                <p id="section-6.3-2.1.2.5.1">DeserializeElement(buf): Implemented as specified in <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>], <a href="https://rfc-editor.org/rfc/rfc8032#section-5.2.3" class="relref">Section 5.2.3</a></span>.
 Additionally, this function validates that the resulting element is not the group
 identity element and is in the prime-order subgroup. If any of these checks fail,
 deserialization returns an error. The latter check can
 be implemented by multiplying the resulting point by the order of the group and
 checking that the result is the identity element. Note that optimizations for
-this check exist; see <span>[<a href="#Pornin22" class="cite xref">Pornin22</a>]</span>.<a href="#section-6.3-2.1.2.5" class="pilcrow">¶</a>
+this check exist; see <span>[<a href="#Pornin22" class="cite xref">Pornin22</a>]</span>.<a href="#section-6.3-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.1.2.6">SerializeScalar(s): Implemented by outputting the little-endian 57-byte encoding of
-the Scalar value.<a href="#section-6.3-2.1.2.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.3-2.1.2.6">
+                <p id="section-6.3-2.1.2.6.1">SerializeScalar(s): Implemented by outputting the little-endian 57-byte encoding of
+the Scalar value.<a href="#section-6.3-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.1.2.7">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
+              <li class="normal" id="section-6.3-2.1.2.7">
+                <p id="section-6.3-2.1.2.7.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a
 little-endian 57-byte string. This function can fail if the input does not
-represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-6.3-2.1.2.7" class="pilcrow">¶</a>
+represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-6.3-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
           <li class="normal" id="section-6.3-2.2">
             <p id="section-6.3-2.2.1">Hash (<code>H</code>): SHAKE256 with 114 bytes of output<a href="#section-6.3-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.3-2.2.2.1">H1(m): Implemented by computing H(contextString || "rho" || m), interpreting the
+<li class="normal" id="section-6.3-2.2.2.1">
+                <p id="section-6.3-2.2.2.1.1">H1(m): Implemented by computing H(contextString || "rho" || m), interpreting the
 114-byte digest as a little-endian integer, and reducing the resulting integer modulo
-2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.2.2.1" class="pilcrow">¶</a>
+2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.2.2.2">H2(m): Implemented by computing H("SigEd448" || 0 || 0 || m), interpreting
+              <li class="normal" id="section-6.3-2.2.2.2">
+                <p id="section-6.3-2.2.2.2.1">H2(m): Implemented by computing H("SigEd448" || 0 || 0 || m), interpreting
 the 114-byte digest as a little-endian integer, and reducing the resulting integer
-modulo 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.2.2.2" class="pilcrow">¶</a>
+modulo 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.2.2.3">H3(m): Implemented by computing H(contextString || "nonce" || m), interpreting the
+              <li class="normal" id="section-6.3-2.2.2.3">
+                <p id="section-6.3-2.2.2.3.1">H3(m): Implemented by computing H(contextString || "nonce" || m), interpreting the
 114-byte digest as a little-endian integer, and reducing the resulting integer modulo
-2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.2.2.3" class="pilcrow">¶</a>
+2^446 - 13818066809895115352007386748515426880336692474882178609894547503885.<a href="#section-6.3-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.2.2.4">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.3-2.2.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.3-2.2.2.4">
+                <p id="section-6.3-2.2.2.4.1">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.3-2.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.3-2.2.2.5">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.3-2.2.2.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.3-2.2.2.5">
+                <p id="section-6.3-2.2.2.5.1">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.3-2.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
         </ul>
 <p id="section-6.3-3">Normally H2 would also include a domain separator, but for compatibility with <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>]</span>, it is omitted.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
 <p id="section-6.3-4">Signature verification is as specified in <span><a href="https://rfc-editor.org/rfc/rfc8032#section-5.2.7" class="relref">Section 5.2.7</a> of [<a href="#RFC8032" class="cite xref">RFC8032</a>]</span> with the
-constraint that implementations MUST check the group equation <code>[4][z]B = [4]R + [4][c]PK</code>
-(changed to use the notation in this document).<a href="#section-6.3-4" class="pilcrow">¶</a></p>
+constraint that implementations MUST check the group equation <code>[4][z]B = [4]R + [4][c]PK</code>,
+where <code>PK = group_public_key</code> (changed to use the notation in this document).<a href="#section-6.3-4" class="pilcrow">¶</a></p>
 <p id="section-6.3-5">Canonical signature encoding is as specified in <a href="#sig-encoding" class="auto internal xref">Appendix B</a>.<a href="#section-6.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2626,53 +2733,65 @@ The value of the contextString parameter is "FROST-P256-SHA256-v1".<a href="#sec
 <li class="normal" id="section-6.4-2.1">
             <p id="section-6.4-2.1.1">Group: P-256 (secp256r1) <span>[<a href="#x9.62" class="cite xref">x9.62</a>]</span>, where Ne = 33 and Ns = 32.<a href="#section-6.4-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.4-2.1.2.1">Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.<a href="#section-6.4-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.4-2.1.2.1">
+                <p id="section-6.4-2.1.2.1.1">Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.<a href="#section-6.4-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.1.2.2">Identity(): As defined in <span>[<a href="#x9.62" class="cite xref">x9.62</a>]</span>.<a href="#section-6.4-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.4-2.1.2.2">
+                <p id="section-6.4-2.1.2.2.1">Identity(): As defined in <span>[<a href="#x9.62" class="cite xref">x9.62</a>]</span>.<a href="#section-6.4-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.1.2.3">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.4-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.4-2.1.2.3">
+                <p id="section-6.4-2.1.2.3.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.4-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.1.2.4">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+              <li class="normal" id="section-6.4-2.1.2.4">
+                <p id="section-6.4-2.1.2.4.1">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
 method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>, yielding a 33-byte output. Additionally, this function validates
-that the input element is not the group identity element.<a href="#section-6.4-2.1.2.4" class="pilcrow">¶</a>
+that the input element is not the group identity element.<a href="#section-6.4-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.1.2.5">DeserializeElement(buf): Implemented by attempting to deserialize a 33-byte input string to
+              <li class="normal" id="section-6.4-2.1.2.5">
+                <p id="section-6.4-2.1.2.5.1">DeserializeElement(buf): Implemented by attempting to deserialize a 33-byte input string to
 a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>,
 and then performs public-key validation as defined in section 3.2.2.1 of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>.
 This includes checking that the coordinates of the resulting point are
 in the correct range, that the point is on the curve, and that the point is not
 the point at infinity. (As noted in the specification, validation of the point
 order is not required since the cofactor is 1.) If any of these checks fail,
-deserialization returns an error.<a href="#section-6.4-2.1.2.5" class="pilcrow">¶</a>
+deserialization returns an error.<a href="#section-6.4-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.1.2.6">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
-according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>.<a href="#section-6.4-2.1.2.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.4-2.1.2.6">
+                <p id="section-6.4-2.1.2.6.1">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>.<a href="#section-6.4-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.1.2.7">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
+              <li class="normal" id="section-6.4-2.1.2.7">
+                <p id="section-6.4-2.1.2.7.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
 string using Octet-String-to-Field-Element from <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. This function can fail if the
-input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-6.4-2.1.2.7" class="pilcrow">¶</a>
+input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-6.4-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
           <li class="normal" id="section-6.4-2.2">
             <p id="section-6.4-2.2.1">Hash (<code>H</code>): SHA-256, which has 32 bytes of output<a href="#section-6.4-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.4-2.2.2.1">H1(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
+<li class="normal" id="section-6.4-2.2.2.1">
+                <p id="section-6.4-2.2.2.1.1">H1(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
 using <code>expand_message_xmd</code> with SHA-256 with parameters DST = contextString || "rho",
-F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.4-2.2.2.1" class="pilcrow">¶</a>
+F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.4-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.2.2.2">H2(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
+              <li class="normal" id="section-6.4-2.2.2.2">
+                <p id="section-6.4-2.2.2.2.1">H2(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
 using <code>expand_message_xmd</code> with SHA-256 with parameters DST = contextString || "chal",
-F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.4-2.2.2.2" class="pilcrow">¶</a>
+F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.4-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.2.2.3">H3(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
+              <li class="normal" id="section-6.4-2.2.2.3">
+                <p id="section-6.4-2.2.2.3.1">H3(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
 using <code>expand_message_xmd</code> with SHA-256 with parameters DST = contextString || "nonce",
-F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.4-2.2.2.3" class="pilcrow">¶</a>
+F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.4-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.2.2.4">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.4-2.2.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.4-2.2.2.4">
+                <p id="section-6.4-2.2.2.4.1">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.4-2.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.4-2.2.2.5">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.4-2.2.2.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.4-2.2.2.5">
+                <p id="section-6.4-2.2.2.5.1">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.4-2.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
@@ -2692,53 +2811,65 @@ The value of the contextString parameter is "FROST-secp256k1-SHA256-v1".<a href=
 <li class="normal" id="section-6.5-2.1">
             <p id="section-6.5-2.1.1">Group: secp256k1 <span>[<a href="#SEC2" class="cite xref">SEC2</a>]</span>, where Ne = 33 and Ns = 32.<a href="#section-6.5-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.5-2.1.2.1">Order(): Return 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141.<a href="#section-6.5-2.1.2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-6.5-2.1.2.1">
+                <p id="section-6.5-2.1.2.1.1">Order(): Return 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141.<a href="#section-6.5-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.1.2.2">Identity(): As defined in <span>[<a href="#SEC2" class="cite xref">SEC2</a>]</span>.<a href="#section-6.5-2.1.2.2" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.5-2.1.2.2">
+                <p id="section-6.5-2.1.2.2.1">Identity(): As defined in <span>[<a href="#SEC2" class="cite xref">SEC2</a>]</span>.<a href="#section-6.5-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.1.2.3">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
-[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.5-2.1.2.3" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.5-2.1.2.3">
+                <p id="section-6.5-2.1.2.3.1">RandomScalar(): Implemented by returning a uniformly random Scalar in the range
+[0, <code>G.Order()</code> - 1]. Refer to <a href="#random-scalar" class="auto internal xref">Appendix E</a> for implementation guidance.<a href="#section-6.5-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.1.2.4">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
+              <li class="normal" id="section-6.5-2.1.2.4">
+                <p id="section-6.5-2.1.2.4.1">SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
 method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>, yielding a 33-byte output. Additionally, this function validates
-that the input element is not the group identity element.<a href="#section-6.5-2.1.2.4" class="pilcrow">¶</a>
+that the input element is not the group identity element.<a href="#section-6.5-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.1.2.5">DeserializeElement(buf): Implemented by attempting to deserialize a 33-byte input string to
+              <li class="normal" id="section-6.5-2.1.2.5">
+                <p id="section-6.5-2.1.2.5.1">DeserializeElement(buf): Implemented by attempting to deserialize a 33-byte input string to
 a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>,
 and then performs public-key validation as defined in section 3.2.2.1 of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>.
 This includes checking that the coordinates of the resulting point are
 in the correct range, that the point is on the curve, and that the point is not
 the point at infinity. (As noted in the specification, validation of the point
 order is not required since the cofactor is 1.) If any of these checks fail,
-deserialization returns an error.<a href="#section-6.5-2.1.2.5" class="pilcrow">¶</a>
+deserialization returns an error.<a href="#section-6.5-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.1.2.6">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
-according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>.<a href="#section-6.5-2.1.2.6" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.5-2.1.2.6">
+                <p id="section-6.5-2.1.2.6.1">SerializeScalar(s): Implemented using the Field-Element-to-Octet-String conversion
+according to <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>.<a href="#section-6.5-2.1.2.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.1.2.7">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
+              <li class="normal" id="section-6.5-2.1.2.7">
+                <p id="section-6.5-2.1.2.7.1">DeserializeScalar(buf): Implemented by attempting to deserialize a Scalar from a 32-byte
 string using Octet-String-to-Field-Element from <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. This function can fail if the
-input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-6.5-2.1.2.7" class="pilcrow">¶</a>
+input does not represent a Scalar in the range [0, <code>G.Order()</code> - 1].<a href="#section-6.5-2.1.2.7.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
           <li class="normal" id="section-6.5-2.2">
             <p id="section-6.5-2.2.1">Hash (<code>H</code>): SHA-256, which has 32 bytes of output<a href="#section-6.5-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.5-2.2.2.1">H1(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
+<li class="normal" id="section-6.5-2.2.2.1">
+                <p id="section-6.5-2.2.2.1.1">H1(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
 using <code>expand_message_xmd</code> with SHA-256 with parameters DST = contextString || "rho",
-F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.5-2.2.2.1" class="pilcrow">¶</a>
+F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.5-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.2.2.2">H2(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
+              <li class="normal" id="section-6.5-2.2.2.2">
+                <p id="section-6.5-2.2.2.2.1">H2(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
 using <code>expand_message_xmd</code> with SHA-256 with parameters DST = contextString || "chal",
-F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.5-2.2.2.2" class="pilcrow">¶</a>
+F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.5-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.2.2.3">H3(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
+              <li class="normal" id="section-6.5-2.2.2.3">
+                <p id="section-6.5-2.2.2.3.1">H3(m): Implemented as hash_to_field(m, 1) from <span>[<a href="#HASH-TO-CURVE" class="cite xref">HASH-TO-CURVE</a>], <a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-16#section-5.2" class="relref">Section 5.2</a></span>
 using <code>expand_message_xmd</code> with SHA-256 with parameters DST = contextString || "nonce",
-F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.5-2.2.2.3" class="pilcrow">¶</a>
+F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a href="#section-6.5-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.2.2.4">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.5-2.2.2.4" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.5-2.2.2.4">
+                <p id="section-6.5-2.2.2.4.1">H4(m): Implemented by computing H(contextString || "msg" || m).<a href="#section-6.5-2.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-6.5-2.2.2.5">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.5-2.2.2.5" class="pilcrow">¶</a>
+              <li class="normal" id="section-6.5-2.2.2.5">
+                <p id="section-6.5-2.2.2.5.1">H5(m): Implemented by computing H(contextString || "com" || m).<a href="#section-6.5-2.2.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
@@ -2755,19 +2886,23 @@ F set to the scalar field, p set to <code>G.Order()</code>, m = 1, and L = 48.<a
 <p id="section-6.6-1">Future documents that introduce new ciphersuites MUST adhere to
 the following requirements.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.6-2">
-<li id="section-6.6-2.1">H1, H2, and H3 all have output distributions that are close to
-  (indistinguishable from) the uniform distribution.<a href="#section-6.6-2.1" class="pilcrow">¶</a>
+<li id="section-6.6-2.1">
+            <p id="section-6.6-2.1.1">H1, H2, and H3 all have output distributions that are close to
+  (indistinguishable from) the uniform distribution.<a href="#section-6.6-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.6-2.2">All hash functions MUST be domain separated with a per-suite context
+          <li id="section-6.6-2.2">
+            <p id="section-6.6-2.2.1">All hash functions MUST be domain separated with a per-suite context
   string. Note that the FROST(Ed25519, SHA-512) ciphersuite does not
   adhere to this requirement for H2 alone to maintain compatibility
-  with <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>]</span>.<a href="#section-6.6-2.2" class="pilcrow">¶</a>
+  with <span>[<a href="#RFC8032" class="cite xref">RFC8032</a>]</span>.<a href="#section-6.6-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.6-2.3">The group MUST be of prime-order, and all deserialization functions MUST
+          <li id="section-6.6-2.3">
+            <p id="section-6.6-2.3.1">The group MUST be of prime-order, and all deserialization functions MUST
   output elements that belong to their respective sets of Elements or Scalars,
-  or failure when deserialization fails.<a href="#section-6.6-2.3" class="pilcrow">¶</a>
+  or failure when deserialization fails.<a href="#section-6.6-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.6-2.4">The canonical signature encoding details are clearly specified.<a href="#section-6.6-2.4" class="pilcrow">¶</a>
+          <li id="section-6.6-2.4">
+            <p id="section-6.6-2.4.1">The canonical signature encoding details are clearly specified.<a href="#section-6.6-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -2785,36 +2920,46 @@ Attack (EUF-CMA) attacks, as defined in <span>[<a href="#StrongerSec22" class="c
 requires the ciphersuite to adhere to the requirements in <a href="#ciphersuite-reqs" class="auto internal xref">Section 6.6</a>, as well
 as the following assumptions to hold.<a href="#section-7-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7-2.1">The signer key shares are generated and distributed securely, e.g., via a trusted dealer
-that performs key generation (see <a href="#dep-vss" class="auto internal xref">Appendix D.2</a>) or through a distributed key generation protocol.<a href="#section-7-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-7-2.1">
+          <p id="section-7-2.1.1">The signer key shares are generated and distributed securely, e.g., via a trusted dealer
+that performs key generation (see <a href="#dep-vss" class="auto internal xref">Appendix D.2</a>) or through a distributed key generation protocol.<a href="#section-7-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-2.2">The Coordinator and at most <code>(MIN_PARTICIPANTS-1)</code> participants may be corrupted.<a href="#section-7-2.2" class="pilcrow">¶</a>
+        <li class="normal" id="section-7-2.2">
+          <p id="section-7-2.2.1">The Coordinator and at most <code>(MIN_PARTICIPANTS-1)</code> participants may be corrupted.<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-7-3">Note that the Coordinator is not trusted with any private information and communication
 at the time of signing can be performed over a public channel, as long as it is
-authenticated and reliable.<a href="#section-7-3" class="pilcrow">¶</a></p>
+reliable. To give the guarantee of identifying misbehaving
+signers, the network channel should be additionally authenticated;
+see <a href="#abort" class="auto internal xref">Section 5.4</a> for more discussion.<a href="#section-7-3" class="pilcrow">¶</a></p>
 <p id="section-7-4">FROST provides security against denial of service attacks under the following assumptions:<a href="#section-7-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7-5.1">The Coordinator does not perform a denial of service attack.<a href="#section-7-5.1" class="pilcrow">¶</a>
+<li class="normal" id="section-7-5.1">
+          <p id="section-7-5.1.1">The Coordinator does not perform a denial of service attack.<a href="#section-7-5.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-5.2">The Coordinator identifies misbehaving participants such that they can be removed from
+        <li class="normal" id="section-7-5.2">
+          <p id="section-7-5.2.1">The Coordinator identifies misbehaving participants such that they can be removed from
 future invocations of FROST. The Coordinator may also abort upon detecting a misbehaving
-participant to ensure that invalid signatures are not produced.<a href="#section-7-5.2" class="pilcrow">¶</a>
+participant to ensure that invalid signatures are not produced.<a href="#section-7-5.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-7-6">FROST does not aim to achieve the following goals:<a href="#section-7-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7-7.1">Post-quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.<a href="#section-7-7.1" class="pilcrow">¶</a>
+<li class="normal" id="section-7-7.1">
+          <p id="section-7-7.1.1">Post-quantum security. FROST, like plain Schnorr signatures, requires the hardness of the Discrete Logarithm Problem.<a href="#section-7-7.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-7.2">Robustness. Preventing denial-of-service attacks against misbehaving participants requires the Coordinator
+        <li class="normal" id="section-7-7.2">
+          <p id="section-7-7.2.1">Robustness. Preventing denial-of-service attacks against misbehaving participants requires the Coordinator
 to identify and act on misbehaving participants; see <a href="#abort" class="auto internal xref">Section 5.4</a> for more information. While FROST
-does not provide robustness, <span>[<a href="#ROAST" class="cite xref">ROAST</a>]</span> is as a wrapper protocol around FROST that does.<a href="#section-7-7.2" class="pilcrow">¶</a>
+does not provide robustness, <span>[<a href="#ROAST" class="cite xref">ROAST</a>]</span> is as a wrapper protocol around FROST that does.<a href="#section-7-7.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-7.3">Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.<a href="#section-7-7.3" class="pilcrow">¶</a>
+        <li class="normal" id="section-7-7.3">
+          <p id="section-7-7.3.1">Downgrade prevention. All participants in the protocol are assumed to agree on what algorithms to use.<a href="#section-7-7.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-7.4">Metadata protection. If protection for metadata is desired, a higher-level communication
-channel can be used to facilitate key generation and signing.<a href="#section-7-7.4" class="pilcrow">¶</a>
+        <li class="normal" id="section-7-7.4">
+          <p id="section-7-7.4.1">Metadata protection. If protection for metadata is desired, a higher-level communication
+channel can be used to facilitate key generation and signing.<a href="#section-7-7.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-7-8">The rest of this section documents issues particular to implementations or deployments.<a href="#section-7-8" class="pilcrow">¶</a></p>
@@ -2883,10 +3028,13 @@ message to be signed prior to performing the protocol.<a href="#section-7.5-1" c
 where a Coordinator is used. However, instead of sending the commitment
 to the Coordinator, every participant instead will publish
 this commitment to every other participant. Then, in the second round, participants will already have
-sufficient information to perform signing. They will directly perform <code>sign()</code>.
-All participants will then publish their signature shares to one another. After having
-received all signature shares from all other participants, each participant will then perform
-<code>verify_signature_share</code> and then <code>aggregate</code> directly.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
+sufficient information to perform signing. After invoking <code>sign()</code>,
+each participant then publishes its signature share to the other participants. After having
+received all signature shares from all other participants, each participant then
+aggregates them using <code>aggregate()</code> and then verifies the signature using the
+group public key. If aggregate signature verification fails, each participant can
+verify each signature share individually to identify and act on misbehaving participants;
+see <a href="#abort" class="auto internal xref">Section 5.4</a> for more information about dealing with invalid signatures and misbehaving participants.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
 <p id="section-7.5-3">The requirements for the underlying network channel remain the same in the setting
 where all participants play the role of the Coordinator, in that all messages that
 are exchanged are public and so the channel simply must be reliable. However, in
@@ -2952,6 +3100,7 @@ participants do not operate as signing oracles for arbitrary messages.<a href="#
       <h2 id="name-references">
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
+<div id="sec-normative-references">
 <section id="section-9.1">
         <h3 id="name-normative-references">
 <a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
@@ -2991,6 +3140,8 @@ participants do not operate as signing oracles for arbitrary messages.<a href="#
 <dd class="break"></dd>
 </dl>
 </section>
+</div>
+<div id="sec-informative-references">
 <section id="section-9.2">
         <h3 id="name-informative-references">
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
@@ -3038,6 +3189,7 @@ participants do not operate as signing oracles for arbitrary messages.<a href="#
 <dd class="break"></dd>
 </dl>
 </section>
+</div>
 </section>
 <div id="acknowledgments">
 <section id="appendix-A">
@@ -3087,21 +3239,21 @@ key as input (as opposed to a key share.)<a href="#appendix-C-2" class="pilcrow"
 <pre>
 Inputs:
 - msg, message to sign, a byte string.
-- sk, secret key, a Scalar.
+- secret_key, secret key, a Scalar.
 
 Outputs:
 - (R, z), a Schnorr signature consisting of an Element R and
   Scalar z.
 
-def prime_order_sign(msg, sk):
+def prime_order_sign(msg, secret_key):
   r = G.RandomScalar()
   R = G.ScalarBaseMult(r)
-  PK = G.ScalarBaseMult(sk)
+  public_key = G.ScalarBaseMult(secret_key)
   comm_enc = G.SerializeElement(R)
-  pk_enc = G.SerializeElement(PK)
-  challenge_input = comm_enc || pk_enc || msg
+  public_key_enc = G.SerializeElement(public_key)
+  challenge_input = comm_enc || public_key_enc || msg
   c = H2(challenge_input)
-  z = r + (c * sk) // Scalar addition and multiplication
+  z = r + (c * secret_key) // Scalar addition and multiplication
   return (R, z)
 </pre><a href="#appendix-C-3" class="pilcrow">¶</a>
 </div>
@@ -3112,19 +3264,19 @@ Specifically, it assumes that signature R component and public key belong to the
 Inputs:
 - msg, signed message, a byte string.
 - sig, a tuple (R, z) output from signature generation.
-- PK, public key, an Element.
+- public_key, public key, an Element.
 
 Outputs:
 - True if signature is valid, and False otherwise.
 
-def prime_order_verify(msg, sig = (R, z), PK):
+def prime_order_verify(msg, sig = (R, z), public_key):
   comm_enc = G.SerializeElement(R)
-  pk_enc = G.SerializeElement(PK)
-  challenge_input = comm_enc || pk_enc || msg
+  public_key_enc = G.SerializeElement(public_key)
+  challenge_input = comm_enc || public_key_enc || msg
   c = H2(challenge_input)
 
   l = G.ScalarBaseMult(z)
-  r = R + G.ScalarMult(PK, c)
+  r = R + G.ScalarMult(public_key, c)
   return l == r
 </pre><a href="#appendix-C-5" class="pilcrow">¶</a>
 </div>
@@ -3342,20 +3494,20 @@ If <code>vss_verify</code> fails, the participant MUST abort the protocol, and f
 <div class="alignLeft art-text artwork" id="appendix-D.2-5">
 <pre>
 Inputs:
-- share_i: A tuple of the form (i, sk_i), where i indicates the
-  participant identifier (a NonZeroScalar), and sk_i the
+- share_i: A tuple of the form (i, secret_key_i), where i indicates the
+  participant identifier (a NonZeroScalar), and secret_key_i the
   participant's secret key, a secret share of the constant term of f,
-  where sk_i is a Scalar.
+  where secret_key_i is a Scalar.
 - vss_commitment, a VSS commitment to a secret polynomial f, a vector
   commitment to each of the coefficients in coeffs, where each
   element of the vector commitment is an Element.
 
 Outputs:
-- True if sk_i is valid, and False otherwise.
+- True if secret_key_i is valid, and False otherwise.
 
 def vss_verify(share_i, vss_commitment)
-  (i, sk_i) = share_i
-  S_i = G.ScalarBaseMult(sk_i)
+  (i, secret_key_i) = share_i
+  S_i = G.ScalarBaseMult(secret_key_i)
   S_i' = G.Identity()
   for j in range(0, MIN_PARTICIPANTS):
     S_i' += G.ScalarMult(vss_commitment[j], pow(i, j))
@@ -3375,20 +3527,20 @@ Inputs:
   element of the vector commitment is an Element.
 
 Outputs:
-- PK, the public key representing the group, an Element.
+- group_public_key, the public key representing the group, an Element.
 - participant_public_keys, a list of MAX_PARTICIPANTS public keys
-  PK_i for i=1,...,MAX_PARTICIPANTS, where each PK_i is the public
+  public_key_i for i=1,...,MAX_PARTICIPANTS, where each public_key_i is the public
   key, an Element, for participant i.
 
 def derive_group_info(MAX_PARTICIPANTS, MIN_PARTICIPANTS, vss_commitment)
-  PK = vss_commitment[0]
+  group_public_key = vss_commitment[0]
   participant_public_keys = []
   for i in range(1, MAX_PARTICIPANTS+1):
-    PK_i = G.Identity()
+    public_key_i = G.Identity()
     for j in range(0, MIN_PARTICIPANTS):
-      PK_i += G.ScalarMult(vss_commitment[j], pow(i, j))
-    participant_public_keys.append(PK_i)
-  return PK, participant_public_keys
+      public_key_i += G.ScalarMult(vss_commitment[j], pow(i, j))
+    participant_public_keys.append(public_key_i)
+  return group_public_key, participant_public_keys
 </pre><a href="#appendix-D.2-7" class="pilcrow">¶</a>
 </div>
 </section>
@@ -3444,32 +3596,38 @@ constituent parts. The input message to be signed is also encoded as a hexadecim
 string.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
 <p id="appendix-F-2">Each test vector consists of the following information.<a href="#appendix-F-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-F-3.1">Configuration. This lists the fixed parameters for the particular instantiation
-of FROST, including MAX_PARTICIPANTS, MIN_PARTICIPANTS, and NUM_PARTICIPANTS.<a href="#appendix-F-3.1" class="pilcrow">¶</a>
+<li class="normal" id="appendix-F-3.1">
+          <p id="appendix-F-3.1.1">Configuration. This lists the fixed parameters for the particular instantiation
+of FROST, including MAX_PARTICIPANTS, MIN_PARTICIPANTS, and NUM_PARTICIPANTS.<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-F-3.2">Group input parameters. This lists the group secret key and shared public key,
+        <li class="normal" id="appendix-F-3.2">
+          <p id="appendix-F-3.2.1">Group input parameters. This lists the group secret key and shared public key,
 generated by a trusted dealer as described in <a href="#dep-dealer" class="auto internal xref">Appendix D</a>, as well as the
 input message to be signed. The randomly generated coefficients produced by the
 trusted dealer to share the group signing secret are also listed. Each coefficient
 is identified by its index, e.g., <code>share_polynomial_coefficients[1]</code> is the coefficient
 of the first term in the polynomial. Note that the 0-th coefficient is omitted as this
-is equal to the group secret key. All values are encoded as hexadecimal strings.<a href="#appendix-F-3.2" class="pilcrow">¶</a>
+is equal to the group secret key. All values are encoded as hexadecimal strings.<a href="#appendix-F-3.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-F-3.3">Signer input parameters. This lists the signing key share for each of the
-NUM_PARTICIPANTS participants.<a href="#appendix-F-3.3" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-F-3.3">
+          <p id="appendix-F-3.3.1">Signer input parameters. This lists the signing key share for each of the
+NUM_PARTICIPANTS participants.<a href="#appendix-F-3.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-F-3.4">Round one parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
+        <li class="normal" id="appendix-F-3.4">
+          <p id="appendix-F-3.4.1">Round one parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
 in the protocol, identified by their NonZeroScalar identifier, and for each participant:
 the hiding and binding commitment values produced in <a href="#frost-round-one" class="auto internal xref">Section 5.1</a>; the randomness
 values used to derive the commitment nonces in <code>nonce_generate</code>; the resulting group
 binding factor input computed in part from the group commitment list encoded as
-described in <a href="#dep-encoding" class="auto internal xref">Section 4.3</a>; and group binding factor as computed in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>).<a href="#appendix-F-3.4" class="pilcrow">¶</a>
+described in <a href="#dep-encoding" class="auto internal xref">Section 4.3</a>; and group binding factor as computed in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>).<a href="#appendix-F-3.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-F-3.5">Round two parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
+        <li class="normal" id="appendix-F-3.5">
+          <p id="appendix-F-3.5.1">Round two parameters and outputs. This lists the NUM_PARTICIPANTS participants engaged
 in the protocol, identified by their NonZeroScalar identifier, along with their corresponding
-output signature share as produced in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>.<a href="#appendix-F-3.5" class="pilcrow">¶</a>
+output signature share as produced in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>.<a href="#appendix-F-3.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-F-3.6">Final output. This lists the aggregate signature as produced in <a href="#frost-aggregation" class="auto internal xref">Section 5.3</a>.<a href="#appendix-F-3.6" class="pilcrow">¶</a>
+        <li class="normal" id="appendix-F-3.6">
+          <p id="appendix-F-3.6.1">Final output. This lists the aggregate signature as produced in <a href="#frost-aggregation" class="auto internal xref">Section 5.3</a>.<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <div id="frosted25519-sha-512-1">
