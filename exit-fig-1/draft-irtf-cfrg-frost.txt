@@ -870,6 +870,11 @@ def compute_binding_factors(group_public_key, commitment_list, msg):
    as described in Section 5.2.  The final Aggregation step is described
    in Section 5.3.
 
+   Note that applications MAY send the message in the first round, to
+   optimize when the message is checked for validity and allow for early
+   termination in the case the participant decides the message is
+   invalid.
+
    FROST assumes that all inputs to each round, especially those of
    which are received over the network, are validated before use.  In
    particular, this means that any value of type Element or Scalar
