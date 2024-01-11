@@ -2183,20 +2183,18 @@ without abort, is shown in <a href="#fig-frost" class="auto internal xref">Figur
 are described in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>. Note that each participant persists some state between
 the two rounds, and this state is deleted as described in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>. The final
 Aggregation step is described in <a href="#frost-aggregation" class="auto internal xref">Section 5.3</a>.<a href="#section-5-11" class="pilcrow">¶</a></p>
-<p id="section-5-12">Note that applications are expected to verify the message before deciding to
-sign; this can happen before or after they choose to participate in the first round.<a href="#section-5-12" class="pilcrow">¶</a></p>
-<p id="section-5-13">FROST assumes that all inputs to each round, especially those of which are received
+<p id="section-5-12">FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
 of type Element or Scalar received over the network MUST be deserialized using DeserializeElement
 and DeserializeScalar, respectively, as these functions perform the necessary input validation steps,
 and that all messages sent over the wire MUST be encoded appropriately, e.g., that Scalars and Elements are
-encoded using their respective functions SerializeScalar and SerializeElement.<a href="#section-5-13" class="pilcrow">¶</a></p>
-<p id="section-5-14">FROST assumes reliable message delivery between the Coordinator and participants in
+encoded using their respective functions SerializeScalar and SerializeElement.<a href="#section-5-12" class="pilcrow">¶</a></p>
+<p id="section-5-13">FROST assumes reliable message delivery between the Coordinator and participants in
 order for the protocol to complete. An attacker masquerading as another participant
 will result only in an invalid signature; see <a href="#sec-considerations" class="auto internal xref">Section 7</a>. However, in order
 to identify misbehaving participants,
 we assume that the network channel is additionally authenticated; confidentiality is
-not required.<a href="#section-5-14" class="pilcrow">¶</a></p>
+not required.<a href="#section-5-13" class="pilcrow">¶</a></p>
 <div id="frost-round-one">
 <section id="section-5.1">
         <h3 id="name-round-one-commitment">

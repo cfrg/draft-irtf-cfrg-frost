@@ -870,10 +870,6 @@ def compute_binding_factors(group_public_key, commitment_list, msg):
    as described in Section 5.2.  The final Aggregation step is described
    in Section 5.3.
 
-   Note that applications are expected to verify the message before
-   deciding to sign; this can happen before or after they choose to
-   participate in the first round.
-
    FROST assumes that all inputs to each round, especially those of
    which are received over the network, are validated before use.  In
    particular, this means that any value of type Element or Scalar
