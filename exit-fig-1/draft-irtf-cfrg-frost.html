@@ -2183,9 +2183,8 @@ without abort, is shown in <a href="#fig-frost" class="auto internal xref">Figur
 are described in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>. Note that each participant persists some state between
 the two rounds, and this state is deleted as described in <a href="#frost-round-two" class="auto internal xref">Section 5.2</a>. The final
 Aggregation step is described in <a href="#frost-aggregation" class="auto internal xref">Section 5.3</a>.<a href="#section-5-11" class="pilcrow">¶</a></p>
-<p id="section-5-12">Note that applications MAY send the message in the first round, to optimize
-when the message is checked for validity and allow for early termination in the
-case the participant decides the message is invalid.<a href="#section-5-12" class="pilcrow">¶</a></p>
+<p id="section-5-12">Note that applications are expected to verify the message before deciding to
+sign; this can happen before or after they choose to participate in the first round.<a href="#section-5-12" class="pilcrow">¶</a></p>
 <p id="section-5-13">FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
 of type Element or Scalar received over the network MUST be deserialized using DeserializeElement
