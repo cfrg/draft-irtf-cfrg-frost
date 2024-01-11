@@ -663,7 +663,7 @@ without abort, is shown in {{fig-frost}}.
             v                         v                v
         Coordinator               Signer-1   ...   Signer-n
     ------------------------------------------------------------
-   message
+    signing request
 ------------>
             |
       == Round 1 (Commitment) ==
@@ -674,6 +674,8 @@ without abort, is shown in {{fig-frost}}.
             |<-----------------------------------------+         |
                                                                  |
       == Round 2 (Signature Share Generation) ==                 |
+   message
+------------>
             |                                                    |
             |   participant input    |                 |         |
             +------------------------>                 |         |
