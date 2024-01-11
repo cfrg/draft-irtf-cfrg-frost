@@ -699,9 +699,8 @@ are described in {{frost-round-two}}. Note that each participant persists some s
 the two rounds, and this state is deleted as described in {{frost-round-two}}. The final
 Aggregation step is described in {{frost-aggregation}}.
 
-Note that applications MAY send the message in the first round, to optimize
-when the message is checked for validity and allow for early termination in the
-case the participant decides the message is invalid.
+Note that applications are expected to verify the message before deciding to
+sign; this can happen before or after they choose to participate in the first round.
 
 FROST assumes that all inputs to each round, especially those of which are received
 over the network, are validated before use. In particular, this means that any value
