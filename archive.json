@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-11T00:41:19.188072+00:00",
+  "timestamp": "2024-01-14T00:44:41.184819+00:00",
   "repo": "cfrg/draft-irtf-cfrg-frost",
   "labels": [
     {
@@ -28691,6 +28691,47 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 470,
+      "id": "PR_kwDOEpUZs85j04Sn",
+      "title": "Message should be sent in second round",
+      "url": "https://github.com/cfrg/draft-irtf-cfrg-frost/pull/470",
+      "state": "OPEN",
+      "author": "chelseakomlo",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In the algorithm descriptions, the message is sent in the second round. Fig. 1 should reflect this. ",
+      "createdAt": "2024-01-11T15:42:51Z",
+      "updatedAt": "2024-01-11T19:56:57Z",
+      "baseRepository": "cfrg/draft-irtf-cfrg-frost",
+      "baseRefName": "master",
+      "baseRefOid": "127452b93acb3094a6f659d059550df5618c2714",
+      "headRepository": "cfrg/draft-irtf-cfrg-frost",
+      "headRefName": "exit-fig-1",
+      "headRefOid": "f8099480b691790a8c2029a2d514769afff81983",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "chris-wood",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We can no longer make changes like this since the draft is with the RFC editor.",
+          "createdAt": "2024-01-11T15:46:22Z",
+          "updatedAt": "2024-01-11T15:46:22Z"
+        },
+        {
+          "author": "dconnolly",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merge blocked until reply from RFC editor",
+          "createdAt": "2024-01-11T17:45:51Z",
+          "updatedAt": "2024-01-11T17:45:51Z"
+        }
+      ],
       "reviews": []
     }
   ]
