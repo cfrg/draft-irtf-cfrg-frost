@@ -1136,16 +1136,16 @@ Canonical signature encoding is as specified in {{sig-encoding}}.
 This ciphersuite uses P-256 for the Group and SHA-256 for the Hash function `H`.
 The value of the contextString parameter is "FROST-P256-SHA256-v1".
 
-- Group: P-256 (secp256r1) {{x9.62}}, where Ne = 33 and Ns = 32.
+- Group: P-256 (secp256r1) {{x9.62}}, where Ne = 64 and Ns = 32.
   - Order(): Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
   - Identity(): As defined in {{x9.62}}.
   - RandomScalar(): Implemented by returning a uniformly random Scalar in the range
     \[0, `G.Order()` - 1\]. Refer to {{random-scalar}} for implementation guidance.
-  - SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String
-    method according to {{SEC1}}, yielding a 33-byte output. Additionally, this function validates
+  - SerializeElement(A): Implemented using the uncompressed Elliptic-Curve-Point-to-Octet-String
+    method according to {{SEC1}}, yielding a 64-byte output. Additionally, this function validates
     that the input element is not the group identity element.
-  - DeserializeElement(buf): Implemented by attempting to deserialize a 33-byte input string to
-    a public key using the compressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
+  - DeserializeElement(buf): Implemented by attempting to deserialize a 64-byte input string to
+    a public key using the uncompressed Octet-String-to-Elliptic-Curve-Point method according to {{SEC1}},
     and then performs public-key validation as defined in section 3.2.2.1 of {{SEC1}}.
     This includes checking that the coordinates of the resulting point are
     in the correct range, that the point is on the curve, and that the point is not
