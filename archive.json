@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-14T00:44:41.184819+00:00",
+  "timestamp": "2024-01-16T00:40:51.075598+00:00",
   "repo": "cfrg/draft-irtf-cfrg-frost",
   "labels": [
     {
@@ -28679,7 +28679,7 @@
       "labels": [],
       "body": "This change proposes an alternative Coordinator-less scenario:\r\n\r\n1. Participants commit()\r\n2. Participants receive message to be signed\r\n3. Participants sign() and aggregate()\r\n\r\nI don\u2019t yet see a security disadvantage to this.",
       "createdAt": "2023-12-16T11:11:54Z",
-      "updatedAt": "2023-12-22T18:40:08Z",
+      "updatedAt": "2024-01-15T21:51:01Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-frost",
       "baseRefName": "master",
       "baseRefOid": "127452b93acb3094a6f659d059550df5618c2714",
@@ -28690,7 +28690,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "sander",
+          "authorAssociation": "NONE",
+          "body": "Relates to #470 ",
+          "createdAt": "2024-01-15T21:51:00Z",
+          "updatedAt": "2024-01-15T21:51:00Z"
+        }
+      ],
       "reviews": []
     },
     {
@@ -28730,6 +28738,54 @@
           "body": "Merge blocked until reply from RFC editor",
           "createdAt": "2024-01-11T17:45:51Z",
           "updatedAt": "2024-01-11T17:45:51Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 471,
+      "id": "PR_kwDOEpUZs85kINAq",
+      "title": "Use uncompressed element serialization in P-256",
+      "url": "https://github.com/cfrg/draft-irtf-cfrg-frost/pull/471",
+      "state": "CLOSED",
+      "author": "sander",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "For compatibility with ECSDSA as standardized in ISO/IEC 14888-3:2018 and BSI TR-03111 v2.10. I\u2019m not aware of other standards that specify a general Schnorr signature scheme. Were there specific reasons to use compressed element serialization?\r\n\r\nProbably not feasible to change FROST(P-256, SHA-256) at this stage. Do you have recommendations for an alternative `contextString` to use?\r\n\r\nIf it is feasible to make the change, I\u2019d be happy to update the PR to also include updated test vectors.",
+      "createdAt": "2024-01-15T22:03:14Z",
+      "updatedAt": "2024-01-15T22:49:27Z",
+      "baseRepository": "cfrg/draft-irtf-cfrg-frost",
+      "baseRefName": "master",
+      "baseRefOid": "127452b93acb3094a6f659d059550df5618c2714",
+      "headRepository": "sander/draft-irtf-cfrg-frost",
+      "headRefName": "patch-3",
+      "headRefOid": "f6a1f9552fe7c7402b5a60b043e9c8acdc23357d",
+      "closedAt": "2024-01-15T22:12:18Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "dconnolly",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The draft is with the RFC editor and cannot be changed.",
+          "createdAt": "2024-01-15T22:12:45Z",
+          "updatedAt": "2024-01-15T22:12:45Z"
+        },
+        {
+          "author": "conradoplg",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this would be moot anyway - at least for the BSI standard it would not be sufficient to use uncompressed points and it would require changing the spec significantly, since apparently the first signature component is pretty different",
+          "createdAt": "2024-01-15T22:16:52Z",
+          "updatedAt": "2024-01-15T22:16:52Z"
+        },
+        {
+          "author": "sander",
+          "authorAssociation": "NONE",
+          "body": "Thank you for reviewing and pointing out the difference in the first signature component.\r\n\r\nAt first I thought this could be just an easy encoding of FROST signature `(R, z)` as ISO/BSI signature `c_encoded || z_encoded` with:\r\n\r\n```\r\ncomm_enc = G.SerializeElement(R)\r\npublic_key_enc = G.SerializeElement(group_public_key)\r\nc_encoded = hash(comm_enc || public_key_enc || msg)\r\nz_encoded = G.SerializeScalar(z)\r\n```\r\n\r\nBut now I see that there is another difference: FROST(P-256, SHA-256) uses a `hash_to_field` function instead of plain SHA-256 for this component. So an ISO/BSI standards compliant FROST ciphersuite would be substantially different, with new risks to consider.\r\n\r\nNow that the draft cannot be changed, is there another place to propose an elaborated extension FROST(\u201cP-256-ISO\u201d, SHA-256)?",
+          "createdAt": "2024-01-15T22:49:25Z",
+          "updatedAt": "2024-01-15T22:49:25Z"
         }
       ],
       "reviews": []
