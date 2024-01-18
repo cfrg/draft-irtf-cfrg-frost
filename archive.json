@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-16T00:40:51.075598+00:00",
+  "timestamp": "2024-01-18T00:40:55.832114+00:00",
   "repo": "cfrg/draft-irtf-cfrg-frost",
   "labels": [
     {
@@ -28754,7 +28754,7 @@
       "labels": [],
       "body": "For compatibility with ECSDSA as standardized in ISO/IEC 14888-3:2018 and BSI TR-03111 v2.10. I\u2019m not aware of other standards that specify a general Schnorr signature scheme. Were there specific reasons to use compressed element serialization?\r\n\r\nProbably not feasible to change FROST(P-256, SHA-256) at this stage. Do you have recommendations for an alternative `contextString` to use?\r\n\r\nIf it is feasible to make the change, I\u2019d be happy to update the PR to also include updated test vectors.",
       "createdAt": "2024-01-15T22:03:14Z",
-      "updatedAt": "2024-01-15T22:49:27Z",
+      "updatedAt": "2024-01-16T12:54:35Z",
       "baseRepository": "cfrg/draft-irtf-cfrg-frost",
       "baseRefName": "master",
       "baseRefOid": "127452b93acb3094a6f659d059550df5618c2714",
@@ -28786,6 +28786,13 @@
           "body": "Thank you for reviewing and pointing out the difference in the first signature component.\r\n\r\nAt first I thought this could be just an easy encoding of FROST signature `(R, z)` as ISO/BSI signature `c_encoded || z_encoded` with:\r\n\r\n```\r\ncomm_enc = G.SerializeElement(R)\r\npublic_key_enc = G.SerializeElement(group_public_key)\r\nc_encoded = hash(comm_enc || public_key_enc || msg)\r\nz_encoded = G.SerializeScalar(z)\r\n```\r\n\r\nBut now I see that there is another difference: FROST(P-256, SHA-256) uses a `hash_to_field` function instead of plain SHA-256 for this component. So an ISO/BSI standards compliant FROST ciphersuite would be substantially different, with new risks to consider.\r\n\r\nNow that the draft cannot be changed, is there another place to propose an elaborated extension FROST(\u201cP-256-ISO\u201d, SHA-256)?",
           "createdAt": "2024-01-15T22:49:25Z",
           "updatedAt": "2024-01-15T22:49:25Z"
+        },
+        {
+          "author": "conradoplg",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Now that the draft cannot be changed, is there another place to propose an elaborated extension FROST(\u201cP-256-ISO\u201d, SHA-256)?\r\n\r\nI'm not sure. The \"ideal\" solution would be to propose a new ISO/BSI standard for FROST but that would be a monumental amount of work. I think the best approach for now is to simply write up how to make FROST compatible with those standards and publish it somewhere.",
+          "createdAt": "2024-01-16T12:54:34Z",
+          "updatedAt": "2024-01-16T12:54:34Z"
         }
       ],
       "reviews": []
