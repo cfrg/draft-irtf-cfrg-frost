@@ -21,6 +21,8 @@ This is the working area for the individual Internet-Draft, "Two-Round Threshold
 | [modular-frost](https://github.com/serai-dex/serai/tree/develop/crypto/frost) | Rust     | All   | 14 |
 | [crrl](https://github.com/pornin/crrl/blob/main/src/frost.rs)               | Rust     | All     | 14 |
 | [frost](https://github.com/bytemare/frost)                                 | Go       | All except FROST(Ed448, SHAKE256) | main |
+| [secp256k1-frost](https://github.com/bancaditalia/secp256k1-frost)                                 | C        | FROST(secp256k1, SHA-256) | RFC 9591 |
+
 
 ## Contributing
 
